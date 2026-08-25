@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#0b0b0f" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Typly — Exam practice</title>
+    <script>
+      // Stamp the resolved theme before first paint so there is no light flash
+      // on a dark-mode load. Kept in sync afterwards by store/themeMode.ts.
+      (function () {
+        var system = function () {
+          return window.matchMedia('(prefers-color-scheme: dark)').matches;
+        };
+        var mode = 'system';
+        try {
+          mode = localStorage.getItem('typly:mode') || 'system';
+        } catch (e) {}
+        var dark = mode === 'dark' || (mode !== 'light' && system());
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

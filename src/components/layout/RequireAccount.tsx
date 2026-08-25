@@ -1,0 +1,23 @@
+import { useEffect, useState, type ReactNode } from 'react';
+import { Navigate } from 'react-router-dom';
+import { usePlatform } from '@/platform/PlatformContext';
+import { FullPageLoader } from '@/ui/Skeleton';
+import { useAuthStore } from '@/store/authStore';
+
+// Loads any existing account (guest or logged-in); redirects to Login if none.
+export function RequireAccount({ children }: { children: ReactNode }) {
+  const platform = usePlatform();
+  const { account, setAccount } = useAuthStore();
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    platform.auth.current().then((a) => {
+      if (a) setAccount(a);
+      setChecked(true);
+    });
+  }, [platform, setAccount]);
+
+  if (!checked) return <FullPageLoader label="Restoring session" />;
+  if (!account) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}

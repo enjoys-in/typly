@@ -1,0 +1,23 @@
+Typly — End User License Agreement
+
+Copyright © 2026 enjoys (https://enjoys.in). All rights reserved.
+
+By installing or using Typly ("the Software"), you agree to the terms below.
+
+1. License. enjoys grants you a personal, non-exclusive, non-transferable
+   license to install and use the Software on your devices for typing
+   practice and exam preparation.
+
+2. Privacy & data. Typly is offline-first. Your practice text, results and
+   settings are stored locally on your device. AI features are optional and
+   are used only if you provide your own API key.
+
+3. Restrictions. You may not sell, sublicense, rent, or redistribute the
+   Software, or attempt to reverse-engineer it except where permitted by law.
+
+4. No warranty. The Software is provided "AS IS", without warranty of any
+   kind. enjoys shall not be liable for any damages arising from its use.
+
+5. Updates. Future versions may add, change, or remove features.
+
+Learn more at https://enjoys.in.

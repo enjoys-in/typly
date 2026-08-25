@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+.bun-cache/
+
+# Build output
+dist/
+dist-electron/
+release/
+*.tsbuildinfo
+
+# Locally-fetched OCR assets (run `bun run ocr:assets`); large binaries
+public/tesseract/
+
+# Env / secrets — never commit real keys
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.tmp/
+.DS_Store
+.claude/

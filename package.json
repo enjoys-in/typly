@@ -1,0 +1,150 @@
+{
+  "name": "typly",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Offline-first typing-exam practice for Indian competitive exams.",
+  "author": {
+    "name": "enjoys",
+    "url": "https://enjoys.in"
+  },
+  "homepage": "https://enjoys.in",
+  "type": "module",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "ocr:assets": "node scripts/fetch-ocr-assets.mjs",
+    "electron:build": "node electron/build.mjs",
+    "electron:dev": "bun run electron:build && ELECTRON_RENDERER_URL=http://localhost:5173 electron .",
+    "electron:preview": "bun run build && bun run electron:build && electron .",
+    "rebuild": "electron-builder install-app-deps",
+    "dist": "bun run ocr:assets && bun run build && bun run electron:build && electron-builder --mac",
+    "dist:universal": "bun run ocr:assets && bun run build && bun run electron:build && electron-builder --mac --universal",
+    "dist:desktop": "bash scripts/build-desktop.sh"
+  },
+  "dependencies": {
+    "@enjoys/react-api": "^0.0.8",
+    "better-sqlite3": "^13.0.3",
+    "date-fns": "^4.1.0",
+    "dexie": "^4.0.11",
+    "diff": "^7.0.0",
+    "dot-object": "^2.1.5",
+    "fast-fuzzy": "^1.12.0",
+    "harper.js": "^2.7.0",
+    "lucide-react": "^1.34.0",
+    "mammoth": "^1.9.0",
+    "mnemonist": "^0.40.4",
+    "nspell": "^2.1.5",
+    "pdfjs-dist": "^4.10.38",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.1.5",
+    "tesseract.js": "^6.0.0",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@electron/notarize": "^3.1.1",
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/diff": "^7.0.0",
+    "@types/node": "^26.3.0",
+    "@types/nspell": "^2.1.6",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "an-array-of-english-words": "^2.0.0",
+    "dictionary-en": "^4.0.0",
+    "electron": "^44.0.0",
+    "electron-builder": "^26.15.3",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0"
+  },
+  "build": {
+    "appId": "in.enjoys.typly",
+    "productName": "Typly",
+    "copyright": "Copyright © 2026 enjoys (enjoys.in)",
+    "afterSign": "build/notarize.cjs",
+    "npmRebuild": false,
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": ["dist/**", "dist-electron/**", "package.json"],
+    "asarUnpack": ["**/*.node", "dist/tesseract/**"],
+    "artifactName": "${productName}-${version}-${arch}.${ext}",
+    "mac": {
+      "category": "public.app-category.education",
+      "target": [{
+        "target": "dmg",
+        "arch": ["arm64"]
+      }],
+      "icon": "build/icon.png",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "minimumSystemVersion": "11.0",
+      "extendInfo": {
+        "CFBundleDisplayName": "Typly",
+        "LSApplicationCategoryType": "public.app-category.education",
+        "NSHumanReadableCopyright": "Copyright © 2026 enjoys (enjoys.in)"
+      }
+    },
+    "dmg": {
+      "title": "${productName} ${version}",
+      "contents": [
+        {
+          "x": 140,
+          "y": 220
+        },
+        {
+          "x": 400,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "license": "build/license.txt",
+      "runAfterFinish": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Typly",
+      "include": "build/installer.nsh",
+      "uninstallDisplayName": "Typly ${version}"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "deb",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "build/icon.png",
+      "category": "Education",
+      "maintainer": "enjoys (https://enjoys.in)",
+      "synopsis": "Offline-first typing-exam practice",
+      "description": "Offline-first typing-exam practice for Indian competitive exams."
+    }
+  }
+}
