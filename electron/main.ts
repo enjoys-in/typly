@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, shell, nativeImage } from 'electron';
 import path from 'node:path';
 import { createTray, destroyTray } from './shell/tray';
 import { createSplash } from './shell/splash';
@@ -10,9 +10,11 @@ import { registerAiIpc } from './ipc/ai';
 import { registerAppSchemePrivileges, registerAppProtocol, appUrl } from './shell/protocol';
 import { IpcChannel } from '../src/core/ipc/channels';
 
-const isDev = !app.isPackaged;
-// The Vite dev server URL when running `bun dev`; production loads the built files.
-const DEV_URL = process.env.ELECTRON_RENDERER_URL ?? 'http://localhost:5173';
+// Dev mode is driven by an explicit Vite dev-server URL (set only in `electron:dev`).
+// Without it we always load the built renderer over app:// — this covers packaged
+// builds AND `electron:preview` (unpackaged but running the built dist folder).
+const DEV_URL = process.env.ELECTRON_RENDERER_URL ?? '';
+const isDev = DEV_URL.length > 0;
 const DIST_DIR = path.join(__dirname, '../dist');
 
 // Privileged scheme must be declared before the app is ready.
@@ -58,6 +60,13 @@ function createMainWindow(): BrowserWindow {
 }
 
 void app.whenReady().then(() => {
+  // Packaged builds get the dock/Finder icon from the bundled .icns; in dev we
+  // point the dock at the source icon so it isn't the default Electron logo.
+  if (process.platform === 'darwin' && !app.isPackaged) {
+    const dockIcon = nativeImage.createFromPath(path.join(app.getAppPath(), 'build/icon.png'));
+    if (!dockIcon.isEmpty()) app.dock?.setIcon(dockIcon);
+  }
+
   // Canonical desktop store lives in the main process. If the native module can't
   // load (e.g. ABI mismatch, or node-gyp couldn't build in a path with spaces),
   // fall back to the renderer's IndexedDB store instead of crashing.
