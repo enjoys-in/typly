@@ -30,7 +30,7 @@ function createMainWindow(): BrowserWindow {
     backgroundColor: '#0b0b0f',
     titleBarStyle: 'hiddenInset',
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -47,7 +47,6 @@ function createMainWindow(): BrowserWindow {
 
   if (isDev) {
     void win.loadURL(DEV_URL);
-    win.webContents.openDevTools({ mode: 'detach' });
   } else {
     void win.loadURL(appUrl());
   }

@@ -9,7 +9,7 @@
   },
   "homepage": "https://enjoys.in",
   "type": "module",
-  "main": "dist-electron/main.js",
+  "main": "dist-electron/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

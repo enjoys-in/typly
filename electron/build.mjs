@@ -17,5 +17,5 @@ const common = {
   logLevel: 'info',
 };
 
-await build({ ...common, entryPoints: ['electron/main.ts'], outfile: 'dist-electron/main.js' });
-await build({ ...common, entryPoints: ['electron/preload.ts'], outfile: 'dist-electron/preload.js' });
+await build({ ...common, entryPoints: ['electron/main.ts'], outfile: 'dist-electron/main.cjs' });
+await build({ ...common, entryPoints: ['electron/preload.ts'], outfile: 'dist-electron/preload.cjs' });
