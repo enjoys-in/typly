@@ -8,6 +8,7 @@ import { GrammarPanel } from '@/components/grammar/GrammarPanel';
 import { usePlatform } from '@/platform/PlatformContext';
 import { useExamStore } from '@/store/examStore';
 import { useIncomingStore } from '@/store/incomingStore';
+import { usePaperRun } from '@/hooks/usePaperRun';
 import { useSettingsStore } from '@/store/settingsStore';
 import { stripEmoji } from '@/core/text/ocrCleanup';
 import { isLongPassage, splitTexts, suggestChunkChars } from '@/core/text/splitter';
@@ -28,6 +29,7 @@ export function NewTest() {
   const platform = usePlatform();
   const { lang } = useSettingsStore();
   const setDraft = useExamStore((s) => s.setDraft);
+  const startPaperRun = usePaperRun();
   const incoming = useIncomingStore((s) => s.file);
   const takeIncoming = useIncomingStore((s) => s.takeFile);
   const [passage, setPassage] = useState('');
@@ -45,19 +47,6 @@ export function NewTest() {
     // Long imports default to being split — that is almost always what someone
     // pasting a whole chapter wants, and the toggle is right there to undo it.
     setChunkChars(isLongPassage(text) ? suggestChunkChars(text.trim().length) : NO_SPLIT);
-  }
-
-  /** Paper mode: straight to Setup with nothing to type from on screen. */
-  function startPaperRun() {
-    setDraft({
-      passage: '',
-      title: 'Paper test',
-      documentId: null,
-      sourceType: SourceType.Text,
-      lang,
-      paper: true,
-    });
-    navigate('/app/setup');
   }
 
   // Back to the paste / upload step with a clean slate.

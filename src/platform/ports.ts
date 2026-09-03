@@ -111,8 +111,13 @@ export interface AiCoach {
   analyze(input: CoachInput, settings: AiSettings, signal?: AbortSignal): Promise<CoachFeedback>;
 }
 
+/** Where a permission request stands, so the UI can explain itself. */
+export type NotificationPermission = 'unsupported' | 'default' | 'granted' | 'denied';
+
 export interface Notifications {
   available(): boolean;
+  /** Current state, without prompting. */
+  permission(): NotificationPermission;
   ensurePermission(): Promise<boolean>;
   notify(title: string, body?: string): void;
 }

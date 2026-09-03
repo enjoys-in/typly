@@ -44,6 +44,10 @@ export function Settings() {
   const [importing, setImporting] = useState(false);
   const [backupStatus, setBackupStatus] = useState<string | null>(null);
   const [fontNote, setFontNote] = useState<string | null>(null);
+  // Re-read after a prompt, so the hint below the switch stays truthful.
+  const [notifyPermission, setNotifyPermission] = useState(() =>
+    platform.notifications.permission(),
+  );
 
   useEffect(() => {
     Promise.all([platform.repo.listHistory(), platform.repo.listDocuments()]).then(([h, d]) =>
@@ -65,13 +69,17 @@ export function Settings() {
     settings.setNotify(false);
   }
 
+  /**
+   * The reminder has two ways to reach you: a system notification, and the tray
+   * (or the browser tab) showing practice as pending. Only the first needs
+   * permission — so a refused or blocked prompt must not stop the switch from
+   * going on, which is what used to happen, silently.
+   */
   async function toggleReminder(next: boolean) {
-    if (next) {
-      const granted = await platform.notifications.ensurePermission();
-      settings.setReminderEnabled(granted);
-      return;
-    }
-    settings.setReminderEnabled(false);
+    settings.setReminderEnabled(next);
+    if (!next) return;
+    await platform.notifications.ensurePermission().catch(() => false);
+    setNotifyPermission(platform.notifications.permission());
   }
 
   async function exportBackup() {
@@ -352,8 +360,20 @@ export function Settings() {
           hint="A daily nudge at a set time if you haven't practiced yet."
           checked={settings.reminderEnabled}
           onChange={toggleReminder}
-          disabled={!platform.notifications.available()}
         />
+        {settings.reminderEnabled && notifyPermission !== 'granted' && (
+          <p className="max-w-2xl text-xs text-danger-text">
+            {notifyPermission === 'denied'
+              ? 'Notifications are blocked for Typly, so the reminder cannot pop up.'
+              : notifyPermission === 'unsupported'
+                ? 'This browser has no notification support.'
+                : 'Notifications are not allowed yet.'}{' '}
+            The reminder still works: the {isElectron() ? 'tray icon' : 'browser tab'} shows
+            practice as pending until you finish a test.
+            {notifyPermission === 'denied' &&
+              ' To get pop-ups too, allow notifications for this app in your browser or system settings.'}
+          </p>
+        )}
         {settings.reminderEnabled && (
           <label className="flex items-center justify-between gap-4">
             <span className="flex flex-col">

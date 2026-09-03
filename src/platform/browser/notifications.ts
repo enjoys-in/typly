@@ -1,10 +1,15 @@
-import type { Notifications } from '../ports';
+import type { Notifications, NotificationPermission } from '../ports';
 
 // Desktop/web notifications via the Notification API. No-ops gracefully when the
 // API is missing or permission is denied.
 export class BrowserNotifications implements Notifications {
   available(): boolean {
     return typeof window !== 'undefined' && 'Notification' in window;
+  }
+
+  permission(): NotificationPermission {
+    if (!this.available()) return 'unsupported';
+    return Notification.permission as NotificationPermission;
   }
 
   async ensurePermission(): Promise<boolean> {

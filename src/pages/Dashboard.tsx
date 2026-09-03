@@ -7,6 +7,7 @@ import {
   Dumbbell,
   History as HistoryIcon,
   PlusCircle,
+  ScanLine,
   type LucideIcon,
 } from 'lucide-react';
 import { appConfig } from '@/config/appConfig';
@@ -15,6 +16,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useExamStore } from '@/store/examStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useAsync } from '@/hooks/useAsync';
+import { usePaperRun } from '@/hooks/usePaperRun';
 import { clearExamSnapshot, readExamSnapshot } from '@/hooks/useExamSnapshot';
 import { readSampleDocument, seedSampleLibrary } from '@/hooks/useSampleLibrary';
 import { profileFor } from '@/core/scoring/examProfiles';
@@ -41,6 +43,7 @@ export function Dashboard() {
   const setDraft = useExamStore((s) => s.setDraft);
   const account = useAuthStore((s) => s.account);
   const t = useT();
+  const startPaperRun = usePaperRun();
   const Logo = appConfig.logo;
 
   const overview = useAsync(async () => {
@@ -229,8 +232,15 @@ export function Dashboard() {
           onClick={() => navigate('/app/new')}
         />
         <ActionCard
-          icon={Dumbbell}
+          icon={ScanLine}
           tone="accent"
+          title="Typing from paper?"
+          desc="Read from a printed sheet and type here — nothing to upload."
+          onClick={startPaperRun}
+        />
+        <ActionCard
+          icon={Dumbbell}
+          tone="primary"
           title="Practice drills"
           desc="Rows, numbers, symbols and shortcuts, generated fresh."
           onClick={() => navigate('/app/practice')}
