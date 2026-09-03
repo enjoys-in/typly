@@ -19,6 +19,9 @@ export class BrowserShell implements Shell {
   onNavigate(): () => void {
     return noop;
   }
+  onSetDnd(): () => void {
+    return noop;
+  }
   setStatus(): void {}
   setProgress(): void {}
   ready(): void {}

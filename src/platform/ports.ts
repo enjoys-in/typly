@@ -153,6 +153,8 @@ export interface Shell {
   onOpenFile(handler: (file: OpenedFile) => void): () => void;
   /** Routes chosen from the tray, dock menu or jump list. */
   onNavigate(handler: (route: ShellRoute) => void): () => void;
+  /** Do not disturb, switched from the tray. Returns an unsubscribe. */
+  onSetDnd(handler: (dnd: boolean) => void): () => void;
   /** Publish what the tray menu, tooltip and dock badge should say. */
   setStatus(status: ShellStatus): void;
   /** 0..1 while a test runs, or null to clear the taskbar/dock progress bar. */

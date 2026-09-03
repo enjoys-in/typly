@@ -334,6 +334,13 @@ export function Settings() {
       <Card className="space-y-4">
         <h2 className="text-sm font-semibold">{t('settings.feedback')}</h2>
         <Toggle
+          label={t('settings.dnd')}
+          hint={t('settings.dndHint')}
+          checked={settings.dnd}
+          onChange={settings.setDnd}
+        />
+        {settings.dnd && <p className="max-w-2xl text-xs text-fg-muted">{t('settings.dndOn')}</p>}
+        <Toggle
           label={t('settings.notifications')}
           hint={t('settings.notificationsHint')}
           checked={settings.notify}

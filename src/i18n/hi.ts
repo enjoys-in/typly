@@ -896,8 +896,10 @@ export const hi: Record<TKey, string> = {
   'changelog.trayReminder':
     'ट्रे मेन्यू बताता है कि रोज़ का रिमाइंडर कब आना है, और आज भर के लिए छोड़ने भी देता है।',
   'changelog.loginItem': 'लॉगिन पर खुलें, ताकि रिमाइंडर आपको ऐप खोले बिना भी मिल जाए।',
+  'changelog.dnd': 'बाधा न डालें: सेटिंग्स या ट्रे से हर सूचना रोक दें।',
+  'changelog.sidebarLanguage': 'इंटरफ़ेस की भाषा सीधे साइडबार से बदलें।',
   'changelog.icons':
-    'हर जगह सही आइकन: इंस्टॉलर, अनइंस्टॉलर, और macOS मेन्यू बार का रंग बदलने योग्य आइकन।',
+    'हर जगह सही आइकन: इंस्टॉलर, अनइंस्टॉलर, पूरा Linux आइकन सेट, और हर प्लैटफ़ॉर्म पर ब्रांड रंग वाली ट्रे।',
   'changelog.whatsNew': 'यही पैनल — हर रिलीज़ में क्या बदला, About से कभी भी खोलें।',
   'changelog.hindi': 'पूरा इंटरफ़ेस हिन्दी में, सेटिंग्स से चुनें।',
   'changelog.paperMode':
@@ -956,4 +958,30 @@ export const hi: Record<TKey, string> = {
   'settings.restoredCount': '{tests} टेस्ट और {documents} अनुच्छेद पुनर्स्थापित किए।',
   'settings.restoreFailed': 'पुनर्स्थापित नहीं हो सका: {error}',
   'settings.notABackup': 'यह Typly बैकअप फ़ाइल नहीं है',
+
+  // Notifications
+  'notify.timeUp': 'समय समाप्त',
+  'notify.submitted': 'परीक्षा जमा हो गई',
+  'notify.complete': 'टेस्ट पूरा',
+  'notify.result': 'नेट WPM {wpm} · सटीकता {accuracy}%',
+  'notify.idleTitle': 'आप हैं?',
+  'notify.idleBody': 'टेस्ट के दौरान आपने कुछ देर कुछ नहीं टाइप किया।',
+  'notify.awayTitle': 'आपने टेस्ट छोड़ दिया',
+  'notify.awayBody': 'जारी रखने के लिए टैब पर लौटें।',
+  'notify.badgeTitle': 'उपलब्धि मिली 🏅',
+  'notify.goalTitle': 'आज का लक्ष्य पूरा 🎯',
+  'notify.goalBody': 'आपने आज {count} टेस्ट पूरे किए।',
+
+  // Leaving a locked exam
+  'exam.leaveTitle': 'परीक्षा छोड़ें?',
+  'exam.leaveBody': 'आपने परीक्षा विंडो छोड़ दी। छोड़ने पर आपका टेस्ट अभी जमा हो जाएगा।',
+  'exam.leaveConfirm': 'अभी जमा करें',
+  'exam.leaveCancel': 'जारी रखें',
+
+  // Do not disturb
+  'settings.dnd': 'बाधा न डालें',
+  'settings.dndHint': 'जब तक आप इसे बंद न करें, हर सूचना — अभ्यास रिमाइंडर सहित — रोक दी जाएगी।',
+  'settings.dndOn': 'सूचनाएँ रोकी जा रही हैं। रिमाइंडर याद है और इसे बंद करने पर फिर चालू हो जाएगा।',
+
+  'nav.language': 'भाषा',
 };

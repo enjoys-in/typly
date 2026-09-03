@@ -24,6 +24,8 @@ export const RELEASES: readonly Release[] = [
     date: '2026-09-04',
     items: [
       'changelog.deviceSync',
+      'changelog.dnd',
+      'changelog.sidebarLanguage',
       'changelog.splash',
       'changelog.trayReminder',
       'changelog.loginItem',

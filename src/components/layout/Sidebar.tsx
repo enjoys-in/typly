@@ -24,6 +24,7 @@ import { useT } from '@/i18n';
 import type { TKey } from '@/i18n/en';
 import { firstName, initialOf } from '@/core/profile/profile';
 import { AboutPanel } from './AboutPanel';
+import { LanguageMenu } from './LanguageMenu';
 
 const LINKS: { to: string; label: TKey; icon: LucideIcon; end?: boolean }[] = [
   { to: '/app', label: 'nav.dashboard', icon: LayoutDashboard, end: true },
@@ -139,7 +140,10 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="mt-auto pt-3">
+      {/* Language sits with About: both are about the app rather than the
+          practice, and both have to be reachable from the collapsed rail. */}
+      <div className="mt-auto flex flex-col gap-1 pt-3">
+        <LanguageMenu collapsed={collapsed} />
         <button
           type="button"
           onClick={() => setAboutOpen(true)}

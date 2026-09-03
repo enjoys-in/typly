@@ -30,6 +30,7 @@ interface Bridge {
     pendingFile(): Promise<{ name: string; bytes: Uint8Array } | null>;
     onOpenFile(handler: (file: { name: string; bytes: Uint8Array }) => void): () => void;
     onNavigate(handler: (route: string) => void): () => void;
+    onSetDnd(handler: (dnd: boolean) => void): () => void;
     setStatus(status: ShellStatus): void;
     setProgress(fraction: number | null): void;
     ready(): void;

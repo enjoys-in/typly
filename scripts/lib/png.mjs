@@ -1,8 +1,9 @@
 // Minimal PNG reader/writer and image maths, with no dependencies.
 //
-// Every icon Typly ships (Windows .ico, the macOS menu-bar template, the splash
-// mark) is derived from the single 1024px source at build/icon.png, so the brand
-// can never drift between the dock, the tray and the installer. That means
+// Every icon Typly ships (the Windows .ico files, the Linux icon theme, the tray
+// and the splash mark) is derived from the single 1024px source at
+// build/icon.png, so the brand can never drift between the dock, the tray and
+// the installer. That means
 // reading a PNG, resizing it well, and writing it back — which is all this file
 // does. It deliberately supports only what our own source file uses (8-bit
 // truecolour, non-interlaced) and throws clearly on anything else.
@@ -196,66 +197,4 @@ export function resize(image, width, height) {
     }
   }
   return { width, height, data: out };
-}
-
-export function crop(image, x, y, width, height) {
-  const out = Buffer.alloc(width * height * 4);
-  for (let row = 0; row < height; row += 1) {
-    const from = ((y + row) * image.width + x) * 4;
-    image.data.copy(out, row * width * 4, from, from + width * 4);
-  }
-  return { width, height, data: out };
-}
-
-/** Centres an image on a transparent square canvas of `size`. */
-export function padToSquare(image, size) {
-  const out = Buffer.alloc(size * size * 4);
-  const x = Math.floor((size - image.width) / 2);
-  const y = Math.floor((size - image.height) / 2);
-  for (let row = 0; row < image.height; row += 1) {
-    const from = row * image.width * 4;
-    out.set(image.data.subarray(from, from + image.width * 4), ((y + row) * size + x) * 4);
-  }
-  return { width: size, height: size, data: out };
-}
-
-/** The tight bounding box of everything at least `threshold` opaque. */
-export function opaqueBounds(image, threshold = 8) {
-  let minX = image.width;
-  let minY = image.height;
-  let maxX = -1;
-  let maxY = -1;
-  for (let y = 0; y < image.height; y += 1) {
-    for (let x = 0; x < image.width; x += 1) {
-      if (image.data[(y * image.width + x) * 4 + 3] < threshold) continue;
-      if (x < minX) minX = x;
-      if (y < minY) minY = y;
-      if (x > maxX) maxX = x;
-      if (y > maxY) maxY = y;
-    }
-  }
-  if (maxX < 0) throw new Error('image is fully transparent');
-  return { x: minX, y: minY, width: maxX - minX + 1, height: maxY - minY + 1 };
-}
-
-/**
- * Turns the light part of an image into a black-on-transparent mask.
- *
- * macOS menu-bar icons are *template* images: the system reads only the alpha
- * channel and tints the result, so it can invert with a light or dark menu bar.
- * A full-colour logo handed over as a template renders as a solid blob — which
- * is exactly what a green tile with a white letter on it would do. Keeping only
- * the letter (the lightest pixels) gives macOS a glyph it can actually tint.
- */
-export function lightnessMask(image, low = 150, high = 240) {
-  const out = Buffer.alloc(image.width * image.height * 4);
-  for (let i = 0; i < image.width * image.height; i += 1) {
-    const src = i * 4;
-    const { 0: r, 1: g, 2: b, 3: a } = image.data.subarray(src, src + 4);
-    // The darkest channel: white stays high, any saturated colour drops away.
-    const light = Math.min(r, g, b);
-    const coverage = Math.min(1, Math.max(0, (light - low) / (high - low)));
-    out[src + 3] = Math.round(coverage * (a / 255) * 255);
-  }
-  return { width: image.width, height: image.height, data: out };
 }

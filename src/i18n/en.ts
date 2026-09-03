@@ -893,8 +893,10 @@ export const en = {
   'changelog.trayReminder':
     'The tray menu shows when the daily reminder is due, and lets you skip just today.',
   'changelog.loginItem': 'Open at login, so the reminder can reach you without opening the app first.',
+  'changelog.dnd': 'Do not disturb: hold every notification, from Settings or the tray.',
+  'changelog.sidebarLanguage': 'Switch the interface language straight from the sidebar.',
   'changelog.icons':
-    'Proper icons everywhere: the installer, the uninstaller, and a menu-bar icon macOS can tint.',
+    'Proper icons everywhere: the installer, the uninstaller, the full Linux icon set, and the tray in brand colour on every platform.',
   'changelog.whatsNew': 'This panel — what changed in each release, reachable from About.',
   'changelog.hindi': 'The whole interface in Hindi, chosen in Settings.',
   'changelog.paperMode':
@@ -953,6 +955,32 @@ export const en = {
   'settings.restoredCount': 'Restored {tests} tests and {documents} paragraphs.',
   'settings.restoreFailed': 'Could not restore: {error}',
   'settings.notABackup': 'not a Typly backup file',
+
+  // Notifications
+  'notify.timeUp': "Time's up",
+  'notify.submitted': 'Exam submitted',
+  'notify.complete': 'Test complete',
+  'notify.result': 'Net WPM {wpm} · Accuracy {accuracy}%',
+  'notify.idleTitle': 'Still there?',
+  'notify.idleBody': 'You have been idle during the test.',
+  'notify.awayTitle': 'You left the test',
+  'notify.awayBody': 'Return to the tab to keep going.',
+  'notify.badgeTitle': 'Achievement unlocked 🏅',
+  'notify.goalTitle': 'Daily goal reached 🎯',
+  'notify.goalBody': 'You completed {count} tests today.',
+
+  // Leaving a locked exam
+  'exam.leaveTitle': 'Leave the exam?',
+  'exam.leaveBody': 'You left the exam window. Leaving will submit your test now.',
+  'exam.leaveConfirm': 'Submit now',
+  'exam.leaveCancel': 'Keep going',
+
+  // Do not disturb
+  'settings.dnd': 'Do not disturb',
+  'settings.dndHint': 'Hold every notification, including the practice reminder, until you turn this off.',
+  'settings.dndOn': 'Notifications are being held. The reminder is remembered and resumes when you turn this off.',
+
+  'nav.language': 'Language',
 } as const;
 
 export type TKey = keyof typeof en;

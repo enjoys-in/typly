@@ -17,6 +17,8 @@ export const enum IpcChannel {
   ShellProgress = 'shell:progress',
   /** Main → renderer: a route picked from the tray, dock menu or jump list. */
   ShellNavigate = 'shell:navigate',
+  /** Main → renderer: do not disturb was switched from the tray. */
+  ShellSetDnd = 'shell:setDnd',
   /** Renderer → main: the interface is on screen, so the splash can go. */
   AppReady = 'app:ready',
   /** Renderer → main: serve this backup on the local network for pairing. */

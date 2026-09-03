@@ -13,8 +13,12 @@ const PENDING_TITLE = `⌨️ Typing pending — ${appConfig.name}`;
 // alive via the tray, so the main process runs the same schedule there instead.
 export function usePracticeReminder(): void {
   const platform = usePlatform();
-  const enabled = useSettingsStore((s) => s.reminderEnabled);
+  const reminderEnabled = useSettingsStore((s) => s.reminderEnabled);
   const time = useSettingsStore((s) => s.reminderTime);
+  const dnd = useSettingsStore((s) => s.dnd);
+  // Do not disturb holds the nudge without forgetting it: the setting stays on,
+  // and the schedule resumes the moment it is lifted.
+  const enabled = reminderEnabled && !dnd;
 
   useEffect(() => {
     // Desktop: let the main process run the timer (survives renderer throttling)

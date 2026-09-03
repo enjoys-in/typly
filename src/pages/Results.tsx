@@ -26,6 +26,7 @@ import { FONT_FAMILY } from '@/ui/fonts';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { translate, useT } from '@/i18n';
+import { useNotify } from '@/hooks/useNotify';
 
 export function Results() {
   const t = useT();
@@ -37,7 +38,7 @@ export function Results() {
   const series = useExamStore((s) => s.series);
   const advanceSeries = useExamStore((s) => s.advanceSeries);
   const clearSeries = useExamStore((s) => s.clearSeries);
-  const notify = useSettingsStore((s) => s.notify);
+  const notifier = useNotify();
   const dailyGoal = useSettingsStore((s) => s.dailyGoal);
   const hindiFont = useSettingsStore((s) => s.hindiFont);
   // The notification is built outside render, so it translates explicitly.
@@ -103,11 +104,10 @@ export function Results() {
       const fresh = badges.filter((b) => b.earned && !prev.includes(b.id));
       if (fresh.length) {
         setUnlocked(fresh);
-        if (notify)
-          platform.notifications.notify(
-            `Achievement unlocked 🏅`,
-            fresh.map((b) => translate(uiLang, `badge.${b.id}`)).join(', '),
-          );
+        notifier.notify(
+          translate(uiLang, 'notify.badgeTitle'),
+          fresh.map((b) => translate(uiLang, `badge.${b.id}`)).join(', '),
+        );
         await platform.repo.setSetting(SETTING_KEY.NotifiedBadges, JSON.stringify(earnedNow));
       }
       const today = testsToday(rows);
@@ -115,13 +115,15 @@ export function Results() {
         const todayStr = format(new Date(), 'yyyy-MM-dd');
         if ((await platform.repo.getSetting('goalNotifiedDate')) !== todayStr) {
           setGoalHit(true);
-          if (notify)
-            platform.notifications.notify('Daily goal reached 🎯', `You completed ${today} tests today.`);
+          notifier.notify(
+            translate(uiLang, 'notify.goalTitle'),
+            translate(uiLang, 'notify.goalBody', { count: today }),
+          );
           await platform.repo.setSetting('goalNotifiedDate', todayStr);
         }
       }
     })();
-  }, [finished, platform, notify, dailyGoal, uiLang]);
+  }, [finished, platform, notifier, dailyGoal, uiLang]);
 
   if (!finished) return null;
 

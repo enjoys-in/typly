@@ -266,6 +266,21 @@ function bootstrap(): void {
     show: focusMainWindow,
     navigate,
     resume,
+    // The renderer owns the setting; the tray only asks for it to change.
+    // Sending to a hidden window is fine — and better than raising it, since
+    // not opening the app is the whole point of switching this from the tray.
+    setDnd: (dnd) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send(IpcChannel.ShellSetDnd, dnd);
+        return;
+      }
+      // With no renderer there is nothing to store it, so the app comes back
+      // and is told once it can listen.
+      const win = (mainWindow = createMainWindow());
+      win.webContents.once('did-finish-load', () =>
+        win.webContents.send(IpcChannel.ShellSetDnd, dnd),
+      );
+    },
     // "Not today, thanks": today's nudge is dropped, the reminder stays on.
     dismissReminder: () => reminders?.dismissToday(),
     quit,

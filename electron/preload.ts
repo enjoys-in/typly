@@ -42,6 +42,7 @@ contextBridge.exposeInMainWorld('bridge', {
     onOpenFile: (handler: (file: { name: string; bytes: Uint8Array }) => void) =>
       subscribe(IpcChannel.FileOpened, handler),
     onNavigate: (handler: (route: string) => void) => subscribe(IpcChannel.ShellNavigate, handler),
+    onSetDnd: (handler: (dnd: boolean) => void) => subscribe(IpcChannel.ShellSetDnd, handler),
     setStatus: (status: unknown) => ipcRenderer.send(IpcChannel.ShellStatus, status),
     setProgress: (fraction: number | null) => ipcRenderer.send(IpcChannel.ShellProgress, fraction),
     ready: () => ipcRenderer.send(IpcChannel.AppReady),

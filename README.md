@@ -56,6 +56,9 @@ against the exact scoring your exam uses, and track your progress over time.
   distraction-free UI.
 - **System tray and taskbar** integration on desktop: today's practice at a glance, the
   daily reminder, quick actions, and live exam progress on the icon.
+- **Do not disturb** holds every notification — including the daily reminder, which is
+  remembered rather than switched off — from Settings or straight from the tray.
+- **Interface in English or Hindi**, switchable from the sidebar as well as Settings.
 
 ### Move between your own devices
 - **Pair over Wi-Fi**: the desktop app shows a QR code, the other device scans it and

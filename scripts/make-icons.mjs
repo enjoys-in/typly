@@ -10,28 +10,15 @@
 //   icon.ico            Windows app icon (window, taskbar, Explorer)
 //   installerIcon.ico   the Setup executable's own icon
 //   uninstallerIcon.ico the uninstaller's icon, in Add/Remove Programs
-//   tray-template.png   macOS menu bar — alpha-only, so the system can tint it
-//   tray-icon.png       Windows/Linux tray, and the taskbar overlay badge
+//   tray-icon.png       tray / menu bar, and the Windows taskbar overlay badge
 //   splash-icon.png     the mark on the launch splash
 //   icons/<n>x<n>.png   the Linux icon theme set, which wants every size
-//
-// The macOS tray icon is the interesting one: a menu-bar template image is read
-// for its alpha channel alone, so the coloured tile has to be reduced to just
-// the letter or it renders as a solid blob.
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { encodeIco } from './lib/ico.mjs';
-import {
-  crop,
-  decodePng,
-  encodePng,
-  lightnessMask,
-  opaqueBounds,
-  padToSquare,
-  resize,
-} from './lib/png.mjs';
+import { decodePng, encodePng, resize } from './lib/png.mjs';
 
 const BUILD_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'build');
 const SOURCE = path.join(BUILD_DIR, 'icon.png');
@@ -48,15 +35,6 @@ const TRAY_SIZES = [
   { scale: '', size: 16 },
   { scale: '@2x', size: 32 },
 ];
-/** Fraction of a menu-bar icon left as breathing room around the glyph. */
-const TEMPLATE_PADDING = 0.06;
-/**
- * How opaque a masked pixel must be to count as part of the letter. The source
- * mark is antialiased against transparency with *white*, so its outer edge is
- * light too — only near-solid coverage is the letter itself.
- */
-const LETTER_COVERAGE = 200;
-
 const written = [];
 
 async function write(name, buffer) {
@@ -87,26 +65,9 @@ for (const size of LINUX_SIZES) {
   await write(path.join('icons', `${size}x${size}.png`), encodePng(image));
 }
 
-// Windows/Linux trays show colour icons, so they get the mark as-is.
+// The tray shows the mark in colour on every platform, at 1x and 2x.
 for (const { scale, size } of TRAY_SIZES) {
   await write(`tray-icon${scale}.png`, encodePng(resize(source, size, size)));
-}
-
-// macOS: keep only the letter, cropped tight and re-padded, so the menu bar has
-// a glyph to tint rather than a filled square.
-const glyph = lightnessMask(source);
-const bounds = opaqueBounds(glyph, LETTER_COVERAGE);
-const letter = crop(glyph, bounds.x, bounds.y, bounds.width, bounds.height);
-for (const { scale, size } of TRAY_SIZES) {
-  const inner = Math.round(size * (1 - TEMPLATE_PADDING * 2));
-  // Keep the letter's proportions: fit it inside the padded box.
-  const fit = Math.min(inner / letter.width, inner / letter.height);
-  const scaled = resize(
-    letter,
-    Math.max(1, Math.round(letter.width * fit)),
-    Math.max(1, Math.round(letter.height * fit)),
-  );
-  await write(`tray-template${scale}.png`, encodePng(padToSquare(scaled, size)));
 }
 
 console.log(`Icons generated from ${path.relative(process.cwd(), SOURCE)}:`);

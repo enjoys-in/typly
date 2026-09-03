@@ -4,6 +4,7 @@ import { ArrowRight, Pause, Play } from 'lucide-react';
 import { usePlatform } from '@/platform/PlatformContext';
 import { useExamStore } from '@/store/examStore';
 import { useSettingsStore } from '@/store/settingsStore';
+import { useNotify } from '@/hooks/useNotify';
 import { useChromeStore } from '@/store/chromeStore';
 import { useCountdown } from '@/hooks/useCountdown';
 import { useStopwatch } from '@/hooks/useStopwatch';
@@ -84,7 +85,6 @@ export function ExamRun({ config, resume }: Props) {
   const setFinished = useExamStore((s) => s.setFinished);
   const clearResume = useExamStore((s) => s.clearResume);
   const series = useExamStore((s) => s.series);
-  const notifyEnabled = useSettingsStore((s) => s.notify);
   const sound = useSettingsStore((s) => s.sound);
   const showKeyboard = useSettingsStore((s) => s.showKeyboard);
   const setShowKeyboard = useSettingsStore((s) => s.setShowKeyboard);
@@ -132,8 +132,9 @@ export function ExamRun({ config, resume }: Props) {
   const isCountdown = config.timing === TimingMode.Countdown;
   // Locked exams and exam-day mode both forbid pausing.
   const nonStop = config.examLock || config.examDay;
-  // Nothing pops up over a real test centre's screen.
-  const notify = notifyEnabled && !config.examDay;
+  // Nothing pops up over a real test centre's screen, whatever the preferences
+  // say — which is what exam-day mode is for.
+  const notifier = useNotify(config.examDay);
   const typing = phase === 'typing';
   const active = running && !paused && typing;
   const countdown = useCountdown(config.durationSec, active && isCountdown, resume?.elapsedMs ?? 0);
@@ -239,14 +240,16 @@ export function ExamRun({ config, resume }: Props) {
         });
       }
 
-      if (notify) {
-        const title =
-          reason === 'time' ? "Time's up" : reason === 'away' ? 'Exam submitted' : 'Test complete';
-        platform.notifications.notify(
-          title,
-          `Net WPM ${result.netWpm} · Accuracy ${result.accuracy}%`,
-        );
-      }
+      notifier.notify(
+        t(
+          reason === 'time'
+            ? 'notify.timeUp'
+            : reason === 'away'
+              ? 'notify.submitted'
+              : 'notify.complete',
+        ),
+        t('notify.result', { wpm: result.netWpm, accuracy: result.accuracy }),
+      );
       if (sound) platform.sound.play('complete');
 
       // Lesson (curriculum or custom): record completion when its targets are met.
@@ -299,7 +302,7 @@ export function ExamRun({ config, resume }: Props) {
       setFinished({ payload, result, mistakes, savedId, ...(paper ? { paper } : {}) });
       navigate('/app/result');
     },
-    [config, rules, elapsedMs, platform, setFinished, navigate, notify, sound, clearSnapshot],
+    [config, rules, elapsedMs, platform, setFinished, navigate, notifier, sound, clearSnapshot, t],
   );
 
   useEffect(() => {
@@ -343,8 +346,8 @@ export function ExamRun({ config, resume }: Props) {
 
   // Ask for notification permission once when the exam mounts.
   useEffect(() => {
-    if (notify) void platform.notifications.ensurePermission();
-  }, [notify, platform]);
+    void notifier.ensurePermission();
+  }, [notifier]);
 
   // Locked exams warn before refresh/close (native browser prompt).
   useEffect(() => {
@@ -364,11 +367,7 @@ export function ExamRun({ config, resume }: Props) {
   const ping = useActivityMonitor({
     active,
     idleMs: IDLE_SECONDS * 1000,
-    onIdle: () => {
-      if (notify) {
-        platform.notifications.notify('Still there?', 'You have been idle during the test.');
-      }
-    },
+    onIdle: () => notifier.notify(t('notify.idleTitle'), t('notify.idleBody')),
     onAway: () => {
       if (!active) return;
       // Locked exams force-submit when the user leaves — but only after they confirm.
@@ -376,19 +375,17 @@ export function ExamRun({ config, resume }: Props) {
         if (awayPrompting.current) return;
         awayPrompting.current = true;
         void confirm({
-          title: 'Leave the exam?',
-          message: 'You left the exam window. Leaving will submit your test now.',
-          confirmLabel: 'Submit now',
-          cancelLabel: 'Keep going',
+          title: t('exam.leaveTitle'),
+          message: t('exam.leaveBody'),
+          confirmLabel: t('exam.leaveConfirm'),
+          cancelLabel: t('exam.leaveCancel'),
         }).then((ok) => {
           if (ok) void finish('away');
           else setTimeout(() => (awayPrompting.current = false), 800);
         });
         return;
       }
-      if (notify) {
-        platform.notifications.notify('You left the test', 'Return to the tab to keep going.');
-      }
+      notifier.notify(t('notify.awayTitle'), t('notify.awayBody'));
     },
   });
 

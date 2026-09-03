@@ -25,12 +25,9 @@ await build({ ...common, entryPoints: ['electron/preload.ts'], outfile: 'dist-el
 // where they are loaded via __dirname. All of them are generated from the one
 // source mark by scripts/make-icons.mjs.
 const SHELL_ASSETS = [
-  // Windows/Linux tray and the taskbar overlay badge.
+  // Tray / menu bar, and the Windows taskbar overlay badge.
   'tray-icon.png',
   'tray-icon@2x.png',
-  // macOS menu bar: alpha-only, so the system can tint it.
-  'tray-template.png',
-  'tray-template@2x.png',
   // The mark on the launch splash.
   'splash-icon.png',
 ];

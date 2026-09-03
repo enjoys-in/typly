@@ -24,12 +24,21 @@ export function useShellBridge(): void {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const dailyGoal = useSettingsStore((s) => s.dailyGoal);
+  const dnd = useSettingsStore((s) => s.dnd);
+  const setDnd = useSettingsStore((s) => s.setDnd);
   const setFile = useIncomingStore((s) => s.setFile);
 
   // Routes from the tray / dock menu / jump list.
   useEffect(() => {
     return platform.shell.onNavigate((route) => navigate(route));
   }, [platform, navigate]);
+
+  // Do not disturb can be switched from the tray without opening the window.
+  // The store stays the one source of truth: the tray asks, this applies it,
+  // and the new status is published back below.
+  useEffect(() => {
+    return platform.shell.onSetDnd(setDnd);
+  }, [platform, setDnd]);
 
   // A file opened with Typly goes to the New Test page, which runs it through
   // the same extraction pipeline as the drop zone. One that arrived during a
@@ -52,16 +61,20 @@ export function useShellBridge(): void {
     if (!platform.shell.available()) return;
     let alive = true;
     void (async () => {
-      const status = await collectStatus(platform, dailyGoal).catch(() => null);
+      const status = await collectStatus(platform, dailyGoal, dnd).catch(() => null);
       if (alive && status) platform.shell.setStatus(status);
     })();
     return () => {
       alive = false;
     };
-  }, [platform, dailyGoal, pathname]);
+  }, [platform, dailyGoal, dnd, pathname]);
 }
 
-async function collectStatus(platform: Platform, dailyGoal: number): Promise<ShellStatus> {
+async function collectStatus(
+  platform: Platform,
+  dailyGoal: number,
+  dnd: boolean,
+): Promise<ShellStatus> {
   const get = (key: string) => platform.repo.getSetting(key);
   const rows = await platform.repo.listHistory();
   const snapshot = await readExamSnapshot(platform.repo);
@@ -86,5 +99,6 @@ async function collectStatus(platform: Platform, dailyGoal: number): Promise<She
     streak: currentStreak(rows),
     hasUnfinished: snapshot !== null,
     resumeLabel,
+    dnd,
   };
 }

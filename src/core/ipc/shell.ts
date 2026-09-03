@@ -16,6 +16,8 @@ export interface ShellStatus {
   hasUnfinished: boolean;
   /** A split document is part-way through, with its next part waiting. */
   resumeLabel: string | null;
+  /** Do not disturb: every notification is being held. */
+  dnd: boolean;
 }
 
 export const EMPTY_SHELL_STATUS: ShellStatus = {
@@ -24,6 +26,7 @@ export const EMPTY_SHELL_STATUS: ShellStatus = {
   streak: 0,
   hasUnfinished: false,
   resumeLabel: null,
+  dnd: false,
 };
 
 /** One line of practice status, for the tray menu header and its tooltip. */
@@ -40,6 +43,7 @@ export function statusLine(status: ShellStatus): string {
 export function shellTooltip(status: ShellStatus, pending: boolean, appName = 'Typly'): string {
   const lines = [`${appName} — ${statusLine(status)}`];
   if (pending) lines.push('Typing practice pending');
+  if (status.dnd) lines.push('Do not disturb');
   return lines.join('\n');
 }
 
@@ -52,6 +56,7 @@ export function isShellStatus(value: unknown): value is ShellStatus {
     Number.isFinite(s.dailyGoal) &&
     Number.isFinite(s.streak) &&
     typeof s.hasUnfinished === 'boolean' &&
+    typeof s.dnd === 'boolean' &&
     (s.resumeLabel === null || typeof s.resumeLabel === 'string')
   );
 }

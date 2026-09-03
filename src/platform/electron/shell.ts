@@ -34,6 +34,12 @@ export class ElectronShell implements Shell {
     });
   }
 
+  onSetDnd(handler: (dnd: boolean) => void): () => void {
+    const shell = window.bridge?.shell;
+    if (!shell) return noop;
+    return shell.onSetDnd((dnd) => handler(dnd === true));
+  }
+
   setStatus(status: ShellStatus): void {
     window.bridge?.shell?.setStatus(status);
   }

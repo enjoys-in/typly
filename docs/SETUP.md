@@ -94,10 +94,11 @@ icon theme (`build/icons/16x16.png` … `1024x1024.png`), the tray icons, and th
 splash mark. The generated files are **committed**, so packaging never depends on
 the script having been run; re-run it and commit the result after changing the mark.
 
-The macOS tray icon is a separate file (`tray-template.png`). A menu-bar icon is a
-*template* image — the system reads only its alpha channel so it can tint it for a
-light or dark menu bar — so the coloured tile is reduced to just the letter. Handing
-macOS the full-colour mark renders a solid blob.
+The tray shows the mark **in colour on every platform**, including the macOS menu
+bar. macOS would also accept a *template* image — alpha only, which the system tints
+for a light or dark menu bar — but that throws the green away, and a white letter on
+a green tile reads on either. Templating is therefore switched off explicitly; handing
+macOS the coloured mark *as* a template is what renders a solid blob.
 
 ### Native module note
 

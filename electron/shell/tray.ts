@@ -9,29 +9,29 @@ import { practicePending, reminderState, shellStatus, subscribeShellState } from
 const CAN_OPEN_AT_LOGIN = process.platform === 'darwin' || process.platform === 'win32';
 
 /**
- * The tray icon, in the form each platform expects.
+ * The tray icon: the brand mark, in colour, on every platform.
  *
- * macOS menu-bar icons are *template* images: the system reads the alpha channel
- * and tints the result, so it can invert against a light or dark menu bar. A
- * full-colour tile handed over as a template renders as a solid blob, so macOS
- * gets a separate glyph-only file (see scripts/make-icons.mjs). Windows and
- * Linux show the icon as drawn, and get the coloured mark.
+ * macOS would also accept a *template* image — alpha only, which the system
+ * tints for a light or dark menu bar — but that throws the green away, and the
+ * mark is a white letter on a green tile, which reads on either. So the icon is
+ * handed over as drawn, with templating explicitly off in case a future
+ * nativeImage guesses otherwise.
  *
  * nativeImage picks the @2x variant sitting next to the file it is given. Both
  * are copied into dist-electron by electron/build.mjs, so the path is the same
  * in dev and inside the packaged asar.
  */
 function trayImage(): Electron.NativeImage {
-  const mac = process.platform === 'darwin';
-  const file = mac ? 'tray-template.png' : 'tray-icon.png';
-  const img = nativeImage.createFromPath(path.join(__dirname, file));
-  img.setTemplateImage(mac);
+  const img = nativeImage.createFromPath(path.join(__dirname, 'tray-icon.png'));
+  img.setTemplateImage(false);
   return img;
 }
 
 export interface TrayHandlers {
   /** Bring the window forward (creating it again if it was closed). */
   show: () => void;
+  /** Ask the app to hold (or resume) every notification. */
+  setDnd: (dnd: boolean) => void;
   /** Send the renderer to a route, showing the window first. */
   navigate: (route: ShellRoute) => void;
   /** Resume the checkpointed attempt, or the next part of a split document. */
@@ -87,6 +87,9 @@ function actionItems(
  * do it now, or leave it for today.
  */
 function reminderItems(pending: boolean): MenuItemConstructorOptions[] {
+  // Do not disturb reaches here as `enabled: false`, because the app pushes the
+  // reminder it actually wants run — so a held reminder shows no line at all,
+  // and the switch below is what says why.
   const { enabled, time } = reminderState();
   if (!enabled) return [];
 
@@ -98,6 +101,23 @@ function reminderItems(pending: boolean): MenuItemConstructorOptions[] {
     { label: 'Practice now', click: () => handlers?.navigate('/app/new') },
     { label: 'Not today, thanks', click: () => handlers?.dismissReminder() },
     { type: 'separator' },
+  ];
+}
+
+/**
+ * Do not disturb, reachable without opening the window — which is the point of
+ * it. The app owns the setting (it has to persist and travel with a backup), so
+ * this only asks; the checkbox reflects whatever the app then publishes back.
+ */
+function dndItem(): MenuItemConstructorOptions[] {
+  const dnd = shellStatus().dnd;
+  return [
+    {
+      label: 'Do not disturb',
+      type: 'checkbox',
+      checked: dnd,
+      click: () => handlers?.setDnd(!dnd),
+    },
   ];
 }
 
@@ -156,6 +176,7 @@ function refresh(): void {
         submenu: actionItems(SECONDARY_ACTIONS, false),
       },
       { type: 'separator' },
+      ...dndItem(),
       ...loginItem(),
       { label: 'Quit Typly', accelerator: 'CmdOrCtrl+Q', click: () => handlers?.quit() },
     ]),

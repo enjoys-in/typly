@@ -27,6 +27,8 @@ interface SettingsState {
   enterEnabled: boolean;
   examLock: boolean;
   notify: boolean;
+  /** Do not disturb: hold every notification, whatever else is switched on. */
+  dnd: boolean;
   sound: boolean;
   showKeyboard: boolean;
   /** When the keyboard is hidden, show just the key that was pressed. */
@@ -67,6 +69,7 @@ interface SettingsState {
   setEnterEnabled: (v: boolean) => void;
   setExamLock: (v: boolean) => void;
   setNotify: (v: boolean) => void;
+  setDnd: (v: boolean) => void;
   setSound: (v: boolean) => void;
   setShowKeyboard: (v: boolean) => void;
   setShowKeys: (v: boolean) => void;
@@ -99,6 +102,7 @@ const DEFAULTS: Persisted = {
   enterEnabled: true,
   examLock: false,
   notify: true,
+  dnd: false,
   sound: false,
   showKeyboard: true,
   showKeys: true,
@@ -134,6 +138,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setEnterEnabled: (enterEnabled) => set({ enterEnabled }),
   setExamLock: (examLock) => set({ examLock }),
   setNotify: (notify) => set({ notify }),
+  setDnd: (dnd) => set({ dnd }),
   setSound: (sound) => set({ sound }),
   setShowKeyboard: (showKeyboard) => set({ showKeyboard }),
   setShowKeys: (showKeys) => set({ showKeys }),
