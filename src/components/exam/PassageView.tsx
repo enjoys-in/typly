@@ -60,8 +60,10 @@ export function PassageView({
       )}
       <p
         // `ch`-based measure keeps the line length readable at every zoom step:
-        // the cap scales with the font, so it never runs past ~70 characters.
-        className="max-w-[70ch] px-5 py-5 font-mono leading-relaxed whitespace-pre-wrap select-none"
+        // the cap scales with the font, so it never runs past ~90 characters.
+        // Centred, so a panel wider than the measure gutters evenly instead of
+        // leaving all the empty space on the right.
+        className="mx-auto max-w-[90ch] px-5 py-5 font-mono leading-relaxed whitespace-pre-wrap select-none"
         style={{ fontSize: `${fontScale * 1.125}rem`, fontFamily }}
       >
         {chars.slice(0, spanEnd).map((ch, i) => (

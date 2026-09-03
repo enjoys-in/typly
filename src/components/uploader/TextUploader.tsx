@@ -288,11 +288,18 @@ export function TextUploader({ lang, onText }: Props) {
         <label className="text-sm font-medium text-fg-muted">
           Paste a paragraph
         </label>
+        {/* Once the user commits to pasting, the drop zone below collapses and
+            the field takes the freed screen height — long paragraphs scroll
+            inside it so the page never gains a scrollbar. */}
         <textarea
           value={pasted}
           onChange={(e) => setPasted(e.target.value)}
           placeholder="Paste text here…"
-          className="h-36 w-full resize-none rounded-control border border-edge bg-field p-3 font-mono text-sm outline-none transition-colors focus:border-accent focus:ring-4 focus:ring-accent-ring"
+          className={`scroll-area w-full resize-none rounded-control border border-edge bg-field p-3 font-mono text-sm outline-none ${
+            pasting
+              ? 'h-[calc(100dvh-19rem)] min-h-36'
+              : 'h-36'
+          }`}
         />
         <div className="flex items-center justify-between gap-3">
           <span className="text-xs tabular-nums text-fg-muted">
