@@ -1,0 +1,28 @@
+{
+  // The Electron main process and preload, which the app's tsconfig does not
+  // cover: it compiles the renderer (src) only. Same strictness, Node globals
+  // instead of the DOM, and no emit — esbuild does the bundling.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2023"],
+    "types": ["node"],
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noUncheckedIndexedAccess": true,
+    "noFallthroughCasesInSwitch": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    // The shared core is imported by both sides, and uses the same alias.
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["electron"]
+}

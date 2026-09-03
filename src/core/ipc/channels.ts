@@ -17,6 +17,16 @@ export const enum IpcChannel {
   ShellProgress = 'shell:progress',
   /** Main → renderer: a route picked from the tray, dock menu or jump list. */
   ShellNavigate = 'shell:navigate',
+  /** Renderer → main: the interface is on screen, so the splash can go. */
+  AppReady = 'app:ready',
+  /** Renderer → main: serve this backup on the local network for pairing. */
+  SyncStart = 'sync:start',
+  /** Renderer → main: close the pairing session now. */
+  SyncStop = 'sync:stop',
+  /** Main → renderer: pairing started, stopped or expired. */
+  SyncState = 'sync:state',
+  /** Main → renderer: a backup arrived from the paired device. */
+  SyncIncoming = 'sync:incoming',
   AiCoach = 'ai:coach',
   AiGrammar = 'ai:grammar',
   AiOcr = 'ai:ocrVision',

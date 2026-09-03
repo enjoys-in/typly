@@ -86,6 +86,19 @@ bun run dist:desktop    # same as scripts/build-desktop.sh
 
 Artifacts are written to `release/`.
 
+### Icons
+
+Everything is derived from one 1024px source, `build/icon.png`, by
+`bun run icons` — the Windows `.ico` files (app, installer, uninstaller), the Linux
+icon theme (`build/icons/16x16.png` … `1024x1024.png`), the tray icons, and the
+splash mark. The generated files are **committed**, so packaging never depends on
+the script having been run; re-run it and commit the result after changing the mark.
+
+The macOS tray icon is a separate file (`tray-template.png`). A menu-bar icon is a
+*template* image — the system reads only its alpha channel so it can tint it for a
+light or dark menu bar — so the coloured tile is reduced to just the letter. Handing
+macOS the full-colour mark renders a solid blob.
+
 ### Native module note
 
 Storage on desktop uses `better-sqlite3`. The build sets `npmRebuild: false` and relies
@@ -103,7 +116,12 @@ Builds are **unsigned** by default:
   certificate (`CSC_LINK` / `CSC_KEY_PASSWORD`) to remove it.
 
 The Windows installer is an assisted wizard: **Welcome → License → Choose install
-location → Install → Finish (Run Typly)**.
+location → Install → Finish (Run Typly)**. Uninstalling leaves your practice data in
+place (`deleteAppDataOnUninstall: false`).
+
+On Linux the packaged `.desktop` entry is named after `desktopName` in `package.json`
+so it matches Electron's `app_id` / `StartupWMClass` — without that, desktop
+environments do not associate the running window with the launcher icon.
 
 ## Project structure
 
@@ -115,8 +133,9 @@ src/            React app (pages, components, stores, UI)
 server/         Framework-agnostic AI backend (coach, grammar, OCR) — mounted in dev/Electron
 electron/       Desktop shell — main, preload, IPC (data/, ipc/, shell/)
 public/         Static assets (dictionaries, service worker, icons)
-build/          Packaging resources (icon, entitlements, NSIS installer, license)
-scripts/        build-desktop.sh
+build/          Packaging resources — source mark, generated icons, entitlements,
+                NSIS installer script, license
+scripts/        build-desktop.sh, make-icons.mjs (+ lib/ PNG and ICO writers)
 ```
 
 ## Common scripts
@@ -125,9 +144,10 @@ scripts/        build-desktop.sh
 | --- | --- |
 | `bun run dev` | Vite dev server (web) |
 | `bun run build` | Type-check + production web build |
-| `bun run typecheck` | TypeScript only, no emit |
+| `bun run typecheck` | TypeScript only, no emit — renderer *and* Electron main |
 | `bun run electron:dev` | Build the Electron bundle and launch against the dev server |
 | `bun run electron:build` | Bundle Electron main + preload → `dist-electron/` |
 | `bun run dist` | Build + package the macOS app |
 | `bun run dist:desktop` | Multi-platform packaging via `scripts/build-desktop.sh` |
 | `bun run rebuild` | Rebuild native deps for the Electron ABI |
+| `bun run icons` | Regenerate every derived icon from `build/icon.png` |

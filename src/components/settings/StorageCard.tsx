@@ -40,7 +40,7 @@ export function StorageCard() {
     setStatus(null);
     try {
       await warmLanguageData(platform);
-      setStatus('Language data downloaded — grammar and spelling now work offline.');
+      setStatus(t('storage.downloaded'));
     } finally {
       setBusy(null);
       refresh();
@@ -49,10 +49,9 @@ export function StorageCard() {
 
   async function removeLang() {
     const ok = await confirm({
-      title: 'Remove language data?',
-      message:
-        'Deletes the downloaded grammar model and dictionaries. They will re-download when needed.',
-      confirmLabel: 'Remove',
+      title: t('storage.removeTitle'),
+      message: t('storage.removeBody'),
+      confirmLabel: t('storage.removeConfirm'),
       destructive: true,
     });
     if (!ok) return;
@@ -60,7 +59,7 @@ export function StorageCard() {
     setStatus(null);
     try {
       await clearLanguageData(platform);
-      setStatus('Downloaded language data removed.');
+      setStatus(t('storage.removed'));
     } finally {
       setBusy(null);
       refresh();
@@ -90,18 +89,17 @@ export function StorageCard() {
       <div className="flex items-center gap-2">
         <Database size={18} className="text-accent-text" />
         <h2 className="font-semibold">{t('storage.title')}</h2>
-        <span className="ml-auto text-xs text-fg-muted">Using ~{fmtMB(usage)}</span>
+        <span className="ml-auto text-xs text-fg-muted">
+          {t('storage.using', { size: fmtMB(usage) })}
+        </span>
       </div>
-      <p className="text-xs text-fg-muted">
-        Grammar (Harper) and the spelling dictionaries download once and are cached on your device
-        for offline use. You can remove them any time to free space.
-      </p>
+      <p className="text-xs text-fg-muted">{t('storage.hint')}</p>
       <div className="flex flex-wrap gap-3">
         <Button variant="secondary" onClick={download} disabled={busy !== null} aria-busy={busy === 'warm'}>
-          <Download size={16} /> {busy === 'warm' ? 'Downloading…' : 'Download for offline'}
+          <Download size={16} /> {t(busy === 'warm' ? 'storage.downloading' : 'storage.download')}
         </Button>
         <Button variant="secondary" onClick={removeLang} disabled={busy !== null} aria-busy={busy === 'lang'}>
-          <Trash2 size={16} /> {busy === 'lang' ? 'Removing…' : 'Remove language data'}
+          <Trash2 size={16} /> {t(busy === 'lang' ? 'storage.removing' : 'storage.removeLang')}
         </Button>
         <Button variant="secondary" onClick={wipe} disabled={busy !== null} aria-busy={busy === 'all'}>
           <Trash2 size={16} /> {t('storage.clearAll')}

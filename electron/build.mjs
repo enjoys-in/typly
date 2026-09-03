@@ -20,7 +20,21 @@ const common = {
 await build({ ...common, entryPoints: ['electron/main.ts'], outfile: 'dist-electron/main.cjs' });
 await build({ ...common, entryPoints: ['electron/preload.ts'], outfile: 'dist-electron/preload.cjs' });
 
-// Ship the tray icons next to the main process so nativeImage resolves them the
-// same way in dev and inside the packaged asar (loaded via __dirname).
-await copyFile('build/tray-icon.png', 'dist-electron/tray-icon.png');
-await copyFile('build/tray-icon@2x.png', 'dist-electron/tray-icon@2x.png');
+// Ship the shell's images next to the main process so nativeImage (and the
+// splash page) resolve them the same way in dev and inside the packaged asar,
+// where they are loaded via __dirname. All of them are generated from the one
+// source mark by scripts/make-icons.mjs.
+const SHELL_ASSETS = [
+  // Windows/Linux tray and the taskbar overlay badge.
+  'tray-icon.png',
+  'tray-icon@2x.png',
+  // macOS menu bar: alpha-only, so the system can tint it.
+  'tray-template.png',
+  'tray-template@2x.png',
+  // The mark on the launch splash.
+  'splash-icon.png',
+];
+
+for (const asset of SHELL_ASSETS) {
+  await copyFile(`build/${asset}`, `dist-electron/${asset}`);
+}

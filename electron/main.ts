@@ -11,8 +11,9 @@ import {
   registerOpenWith,
   routeFromArgv,
 } from './shell/openWith';
-import { setPracticePending, setShellStatus, shellStatus } from './shell/state';
-import { createSplash } from './shell/splash';
+import { setPracticePending, setReminderState, setShellStatus, shellStatus } from './shell/state';
+import { createSplash, type Splash } from './shell/splash';
+import { createLanSync } from './shell/lanSync';
 import { SqliteRepository } from './data/db';
 import { registerRepoIpc } from './ipc/repository';
 import { registerFontIpc } from './ipc/fonts';
@@ -21,6 +22,7 @@ import { registerAiIpc } from './ipc/ai';
 import { registerAppSchemePrivileges, registerAppProtocol, appUrl } from './shell/protocol';
 import { IpcChannel } from '../src/core/ipc/channels';
 import { isShellStatus, type ShellRoute } from '../src/core/ipc/shell';
+import { DEFAULT_REMINDER_TIME } from '../src/core/reminder/schedule';
 
 // Dev mode is driven by an explicit Vite dev-server URL (set only in `electron:dev`).
 // Without it we always load the built renderer over app:// — this covers packaged
@@ -38,11 +40,18 @@ registerAppSchemePrivileges();
 // so the listener has to exist before the app is ready.
 registerOpenFileEvent();
 
+// How long to wait for the renderer to say it is ready before showing the
+// window anyway. A launch that goes wrong must still end in a visible app.
+const LAUNCH_TIMEOUT_MS = 12_000;
+
 let mainWindow: BrowserWindow | null = null;
 // Set only by a real quit request (tray, menu, Cmd-Q). Until then, closing the
 // window on Windows/Linux hides it to the tray instead of ending the session.
 let quitting = false;
 let hintedTray = false;
+// The launch splash, and whether the first window has been revealed yet.
+let splash: Splash | null = null;
+let launched = false;
 
 function focusMainWindow(): void {
   if (!mainWindow || mainWindow.isDestroyed()) {
@@ -89,6 +98,22 @@ function hintTray(): void {
   n.show();
 }
 
+/**
+ * Show the first window and take the splash down over it. The window is shown
+ * *before* the fade so the two cross over each other rather than leaving a gap;
+ * after this, windows show themselves.
+ */
+function reveal(win: BrowserWindow): void {
+  if (launched || win.isDestroyed()) return;
+  launched = true;
+  splash?.progress(1);
+  win.show();
+  win.focus();
+  void splash?.finish().then(() => {
+    splash = null;
+  });
+}
+
 function createMainWindow(): BrowserWindow {
   const win = new BrowserWindow({
     width: 1200,
@@ -106,7 +131,19 @@ function createMainWindow(): BrowserWindow {
     },
   });
 
-  win.once('ready-to-show', () => win.show());
+  // The renderer decides when the app is really on screen (see IpcChannel
+  // AppReady): its bundle and first paint come well after the window itself is
+  // paintable, and showing at 'ready-to-show' is what makes an Electron app
+  // flash an empty frame. Later windows have no splash to wait for.
+  win.once('ready-to-show', () => {
+    if (launched) win.show();
+    else splash?.progress(0.75);
+  });
+  win.webContents.once('did-finish-load', () => splash?.progress(0.5));
+  // A renderer that failed to load still has to become visible, or the app is
+  // just an icon in the tray with no way to see what went wrong.
+  win.webContents.on('did-fail-load', () => reveal(win));
+  setTimeout(() => reveal(win), LAUNCH_TIMEOUT_MS);
 
   // External links open in the user's browser, never a new Electron window.
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -169,9 +206,40 @@ function bootstrap(): void {
   });
 
   // Renderer pushes reminder settings; the main timer fires even when hidden.
+  // The tray menu reads the same values, so it can say when the nudge is due.
   ipcMain.handle(IpcChannel.ReminderSet, (_e, enabled: boolean, time: string) => {
+    setReminderState({ enabled, time: time || DEFAULT_REMINDER_TIME });
     reminders?.configure(enabled, time);
   });
+
+  // The interface is up: the splash has done its job.
+  ipcMain.on(IpcChannel.AppReady, () => {
+    if (mainWindow) reveal(mainWindow);
+  });
+
+  // Local-network device sync. The renderer owns the data and the import; the
+  // main process only carries bytes, because only it can open a socket.
+  const lan = createLanSync({
+    onState: (state) => mainWindow?.webContents.send(IpcChannel.SyncState, state),
+    onIncoming: (bundle) => {
+      // Only the renderer can restore a bundle, and pairing cannot outlive it
+      // (the card closes the session when it unmounts) — so a missing window
+      // means the session was already over.
+      if (!mainWindow || mainWindow.isDestroyed()) return;
+      mainWindow.webContents.send(IpcChannel.SyncIncoming, bundle);
+      // What was restored is reported in the window, so bring it forward.
+      focusMainWindow();
+    },
+  });
+  ipcMain.handle(IpcChannel.SyncStart, (_e, bundle: unknown, lang: unknown) =>
+    typeof bundle === 'string'
+      ? lan.start(bundle, typeof lang === 'string' ? lang : 'en')
+      : { kind: 'error', message: 'unavailable' },
+  );
+  ipcMain.handle(IpcChannel.SyncStop, () => lan.stop());
+  // Pairing is a live socket holding a copy of the user's data: it must not
+  // outlive the session that opened it.
+  app.on('before-quit', () => lan.stop());
 
   // The renderer owns the practice data, so it publishes what the tray menu,
   // tooltip and dock badge should say. Anything malformed is dropped.
@@ -191,11 +259,17 @@ function bootstrap(): void {
   registerAppProtocol(DIST_DIR);
   registerOpenWith(() => mainWindow, focusMainWindow);
 
-  const splash = createSplash();
+  splash = createSplash(app.getVersion());
   mainWindow = createMainWindow();
-  mainWindow.once('ready-to-show', () => splash.destroy());
 
-  createTray({ show: focusMainWindow, navigate, resume, quit });
+  createTray({
+    show: focusMainWindow,
+    navigate,
+    resume,
+    // "Not today, thanks": today's nudge is dropped, the reminder stays on.
+    dismissReminder: () => reminders?.dismissToday(),
+    quit,
+  });
   createDock({ show: focusMainWindow, navigate, resume }, () => mainWindow);
   createAppMenu({ navigate, openFile: () => void promptForFile(), resume, quit });
 

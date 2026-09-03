@@ -167,7 +167,11 @@ export const SETTING_KEY = {
   SampleDocId: 'sample:documentId',
   ReminderFired: 'reminderLastFired',
   ReminderNudged: 'reminderNudgedFor',
+  /** Day the user chose to skip the reminder for, from the tray. */
+  ReminderDismissed: 'reminderDismissedFor',
   TourDone: 'tour:done',
+  /** Newest release whose changes have been shown, or 'off' to stop asking. */
+  ChangelogSeen: 'changelog:seen',
 } as const;
 
 export const LANG_LABEL: Record<Lang, string> = {

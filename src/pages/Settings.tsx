@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePlatform } from '@/platform/PlatformContext';
-import type { BackupBundle } from '@/platform/ports';
 import { useAuthStore } from '@/store/authStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { boardsByCategory, profileFor } from '@/core/scoring/examProfiles';
 import { isMethodAvailable } from '@/core/text/keymaps';
 import { MISSED_NUDGE_MINUTES } from '@/core/reminder/schedule';
+import { bundleCounts, isBackupBundle } from '@/core/sync/lan';
 import { isElectron } from '@/platform/detect';
 import {
   ExamBoard,
@@ -18,6 +18,7 @@ import {
 import { AiSettingsCard } from '@/components/settings/AiSettingsCard';
 import { ProfileCard } from '@/components/settings/ProfileCard';
 import { UI_LANGS, UI_LANG_LABEL, useT, type UiLang } from '@/i18n';
+import { DeviceSyncCard } from '@/components/settings/DeviceSyncCard';
 import { LanguageToolsCard } from '@/components/settings/LanguageToolsCard';
 import { StorageCard } from '@/components/settings/StorageCard';
 import { ThemeCard } from '@/components/settings/ThemeCard';
@@ -90,9 +91,7 @@ export function Settings() {
       a.download = `typly-backup-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      setBackupStatus(
-        `Exported ${bundle.counts.tests} tests and ${bundle.counts.documents} paragraphs.`,
-      );
+      setBackupStatus(t('settings.exportedCount', bundle.counts));
     } finally {
       setExporting(false);
     }
@@ -105,17 +104,19 @@ export function Settings() {
     setImporting(true);
     setBackupStatus(null);
     try {
-      const bundle = JSON.parse(await file.text()) as BackupBundle;
-      if (!bundle || bundle.app !== 'typly' || !bundle.tables) {
-        throw new Error('not a Typly backup file');
-      }
+      const bundle: unknown = JSON.parse(await file.text());
+      // The same guard the network path uses, so a hand-edited or truncated
+      // file is refused before it reaches the store.
+      if (!isBackupBundle(bundle)) throw new Error(t('settings.notABackup'));
       await platform.repo.importBackup(bundle);
       setEmpty(false);
-      setBackupStatus(
-        `Restored ${bundle.counts?.tests ?? 0} tests and ${bundle.counts?.documents ?? 0} paragraphs.`,
-      );
+      setBackupStatus(t('settings.restoredCount', bundleCounts(bundle)));
     } catch (err) {
-      setBackupStatus(`Could not restore: ${err instanceof Error ? err.message : 'invalid file'}`);
+      setBackupStatus(
+        t('settings.restoreFailed', {
+          error: err instanceof Error ? err.message : t('settings.notABackup'),
+        }),
+      );
     } finally {
       setImporting(false);
     }
@@ -357,15 +358,15 @@ export function Settings() {
         />
         {settings.reminderEnabled && notifyPermission !== 'granted' && (
           <p className="max-w-2xl text-xs text-danger-text">
-            {notifyPermission === 'denied'
-              ? 'Notifications are blocked for Typly, so the reminder cannot pop up.'
-              : notifyPermission === 'unsupported'
-                ? 'This browser has no notification support.'
-                : 'Notifications are not allowed yet.'}{' '}
-            The reminder still works: the {isElectron() ? 'tray icon' : 'browser tab'} shows
-            practice as pending until you finish a test.
-            {notifyPermission === 'denied' &&
-              ' To get pop-ups too, allow notifications for this app in your browser or system settings.'}
+            {t(
+              notifyPermission === 'denied'
+                ? 'settings.reminderBlocked'
+                : notifyPermission === 'unsupported'
+                  ? 'settings.reminderUnsupported'
+                  : 'settings.reminderNotYet',
+            )}{' '}
+            {t(isElectron() ? 'settings.reminderFallbackTray' : 'settings.reminderFallbackTab')}
+            {notifyPermission === 'denied' && ` ${t('settings.reminderHowToAllow')}`}
           </p>
         )}
         {settings.reminderEnabled && (
@@ -385,9 +386,9 @@ export function Settings() {
         )}
         {settings.reminderEnabled && (
           <p className="max-w-2xl text-xs text-fg-muted">
-            Miss it and Typly keeps asking: {MISSED_NUDGE_MINUTES} minutes later you get a second
-            notification, and the {isElectron() ? 'tray icon' : 'browser tab'} shows practice as
-            pending until you finish a test.
+            {t(isElectron() ? 'settings.reminderMissedTray' : 'settings.reminderMissedTab', {
+              minutes: MISSED_NUDGE_MINUTES,
+            })}
           </p>
         )}
       </Card>
@@ -424,6 +425,8 @@ export function Settings() {
           <p className="text-xs text-fg-subtle">{t('settings.nothingToExport')}</p>
         )}
       </Card>
+
+      <DeviceSyncCard />
 
       <ThemeCard />
 

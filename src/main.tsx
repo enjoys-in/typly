@@ -37,3 +37,8 @@ createRoot(document.getElementById('root')!).render(
     </PlatformProvider>
   </StrictMode>,
 );
+
+// The desktop shell holds its launch splash — and keeps the window hidden —
+// until the interface is actually on screen. A timeout rather than an animation
+// frame: a hidden window may not be painting, so rAF could never run.
+setTimeout(() => platform.shell.ready(), 0);

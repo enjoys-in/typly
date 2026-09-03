@@ -1,7 +1,8 @@
 // lucide dropped its brand glyphs, so each link gets the nearest generic icon.
-import { Briefcase, Code2, Globe, Monitor, X, type LucideIcon } from 'lucide-react';
+import { Briefcase, Code2, Globe, Monitor, Sparkles, X, type LucideIcon } from 'lucide-react';
 import { APP_VERSION, appConfig, type AboutLink } from '@/config/appConfig';
 import { isElectron } from '@/platform/detect';
+import { useChromeStore } from '@/store/chromeStore';
 import { Modal } from '@/ui/Modal';
 import { useT } from '@/i18n';
 
@@ -22,6 +23,7 @@ function runtimeLine(): string | null {
 /** Who made this, what it is, and where to find them. */
 export function AboutPanel({ onClose }: Props) {
   const t = useT();
+  const setWhatsNewOpen = useChromeStore((s) => s.setWhatsNewOpen);
   const { about, name, tagline } = appConfig;
   const Logo = appConfig.logo;
   const runtime = runtimeLine();
@@ -58,6 +60,19 @@ export function AboutPanel({ onClose }: Props) {
       </div>
 
       <p className="mt-5 text-sm leading-relaxed text-fg-muted">{about.summary}</p>
+
+      <button
+        type="button"
+        onClick={() => {
+          // One dialog at a time: this panel steps aside for the release notes.
+          onClose();
+          setWhatsNewOpen(true);
+        }}
+        className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-control border border-line px-3 py-1.5 text-sm font-medium text-fg-muted transition-colors hover:border-accent-border hover:bg-accent-soft hover:text-accent-soft-fg"
+      >
+        <Sparkles size={14} className="shrink-0" />
+        {t('whatsNew.title')}
+      </button>
 
       <div className="mt-5 space-y-2 border-t border-line pt-5">
         <p className="text-[11px] font-semibold tracking-[0.14em] text-fg-subtle uppercase">

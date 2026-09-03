@@ -1,19 +1,31 @@
 import { app, Menu, Tray, nativeImage, type MenuItemConstructorOptions } from 'electron';
 import path from 'node:path';
 import { statusLine, shellTooltip, type ShellRoute } from '../../src/core/ipc/shell';
-import { TRAY_PENDING_TITLE } from '../../src/core/reminder/schedule';
+import { formatClock, TRAY_PENDING_TITLE } from '../../src/core/reminder/schedule';
 import { PRIMARY_ACTIONS, SECONDARY_ACTIONS } from './quickActions';
-import { practicePending, shellStatus, subscribeShellState } from './state';
+import { practicePending, reminderState, shellStatus, subscribeShellState } from './state';
 
-// nativeImage auto-picks the @2x variant sitting next to this file. The icons are
-// copied into dist-electron by electron/build.mjs so the path is identical in dev
-// and inside the packaged asar.
+/** Whether this platform can be told to start the app at login. */
+const CAN_OPEN_AT_LOGIN = process.platform === 'darwin' || process.platform === 'win32';
+
+/**
+ * The tray icon, in the form each platform expects.
+ *
+ * macOS menu-bar icons are *template* images: the system reads the alpha channel
+ * and tints the result, so it can invert against a light or dark menu bar. A
+ * full-colour tile handed over as a template renders as a solid blob, so macOS
+ * gets a separate glyph-only file (see scripts/make-icons.mjs). Windows and
+ * Linux show the icon as drawn, and get the coloured mark.
+ *
+ * nativeImage picks the @2x variant sitting next to the file it is given. Both
+ * are copied into dist-electron by electron/build.mjs, so the path is the same
+ * in dev and inside the packaged asar.
+ */
 function trayImage(): Electron.NativeImage {
-  const img = nativeImage.createFromPath(path.join(__dirname, 'tray-icon.png'));
-  // A macOS menu-bar icon must be a template image: the system then tints it to
-  // match a light or dark menu bar (and inverts it when the menu is open)
-  // instead of showing a fixed-colour logo that disappears on one of them.
-  img.setTemplateImage(process.platform === 'darwin');
+  const mac = process.platform === 'darwin';
+  const file = mac ? 'tray-template.png' : 'tray-icon.png';
+  const img = nativeImage.createFromPath(path.join(__dirname, file));
+  img.setTemplateImage(mac);
   return img;
 }
 
@@ -24,6 +36,8 @@ export interface TrayHandlers {
   navigate: (route: ShellRoute) => void;
   /** Resume the checkpointed attempt, or the next part of a split document. */
   resume: () => void;
+  /** Stop nudging about today's practice, without turning the reminder off. */
+  dismissReminder: () => void;
   /** Really quit, rather than hiding back to the tray. */
   quit: () => void;
 }
@@ -34,9 +48,9 @@ let handlers: TrayHandlers | null = null;
 let unsubscribe: (() => void) | null = null;
 
 /**
- * System tray: a live status line, the same quick actions as the dock menu and
- * jump list, and a way out. Rebuilt whenever the practice status changes, so
- * the menu is never showing yesterday's numbers.
+ * System tray: a live status line, where the daily reminder stands, the same
+ * quick actions as the dock menu and jump list, and a way out. Rebuilt whenever
+ * the practice status changes, so the menu is never showing yesterday's numbers.
  */
 export function createTray(next: TrayHandlers): void {
   handlers = next;
@@ -67,6 +81,44 @@ function actionItems(
   }));
 }
 
+/**
+ * The reminder block. Practice being overdue is the one thing the tray exists to
+ * say when the window is closed, so it sits at the top with both replies to it:
+ * do it now, or leave it for today.
+ */
+function reminderItems(pending: boolean): MenuItemConstructorOptions[] {
+  const { enabled, time } = reminderState();
+  if (!enabled) return [];
+
+  if (!pending) {
+    return [{ label: `Daily reminder at ${formatClock(time)}`, enabled: false }, { type: 'separator' }];
+  }
+  return [
+    { label: 'Typing practice pending today', enabled: false },
+    { label: 'Practice now', click: () => handlers?.navigate('/app/new') },
+    { label: 'Not today, thanks', click: () => handlers?.dismissReminder() },
+    { type: 'separator' },
+  ];
+}
+
+/**
+ * Starting with the machine is what makes a daily reminder dependable — the app
+ * cannot nudge anyone if nobody opened it. Electron can only set this on macOS
+ * and Windows; Linux autostart is the desktop environment's business.
+ */
+function loginItem(): MenuItemConstructorOptions[] {
+  if (!CAN_OPEN_AT_LOGIN) return [];
+  const { openAtLogin } = app.getLoginItemSettings();
+  return [
+    {
+      label: 'Open at login',
+      type: 'checkbox',
+      checked: openAtLogin,
+      click: () => app.setLoginItemSettings({ openAtLogin: !openAtLogin }),
+    },
+  ];
+}
+
 function refresh(): void {
   if (!tray) return;
   const status = shellStatus();
@@ -85,13 +137,7 @@ function refresh(): void {
       { label: `Typly ${app.getVersion()}`, enabled: false },
       { label: statusLine(status), enabled: false },
       { type: 'separator' },
-      ...(pending
-        ? ([
-            { label: 'Typing practice pending today', enabled: false },
-            { label: 'Practice now', click: () => handlers?.navigate('/app/new') },
-            { type: 'separator' },
-          ] as MenuItemConstructorOptions[])
-        : []),
+      ...reminderItems(pending),
       { label: 'Open Typly', click: () => handlers?.show() },
       ...(status.hasUnfinished || resumeLabel
         ? ([
@@ -110,6 +156,7 @@ function refresh(): void {
         submenu: actionItems(SECONDARY_ACTIONS, false),
       },
       { type: 'separator' },
+      ...loginItem(),
       { label: 'Quit Typly', accelerator: 'CmdOrCtrl+Q', click: () => handlers?.quit() },
     ]),
   );

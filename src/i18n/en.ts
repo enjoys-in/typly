@@ -877,6 +877,82 @@ export const en = {
   'drill.medium': 'Medium',
   'drill.hard': 'Hard',
   'drill.veryHard': 'Very hard',
+
+  // Release notes
+  'whatsNew.title': "What's new",
+  'whatsNew.lead': 'Everything added since you were last here.',
+  'whatsNew.version': 'Version {version}',
+  'whatsNew.dontShow': "Don't show this again",
+  'whatsNew.close': 'Close',
+
+  // Changelog lines, newest release first (see i18n/changelog.ts)
+  'changelog.deviceSync':
+    'Sync to another device over your own Wi-Fi by scanning a code — no account, no server.',
+  'changelog.splash':
+    'A launch screen with a progress bar, so the app says something the moment you open it.',
+  'changelog.trayReminder':
+    'The tray menu shows when the daily reminder is due, and lets you skip just today.',
+  'changelog.loginItem': 'Open at login, so the reminder can reach you without opening the app first.',
+  'changelog.icons':
+    'Proper icons everywhere: the installer, the uninstaller, and a menu-bar icon macOS can tint.',
+  'changelog.whatsNew': 'This panel — what changed in each release, reachable from About.',
+  'changelog.hindi': 'The whole interface in Hindi, chosen in Settings.',
+  'changelog.paperMode':
+    'Paper mode: type from a printed passage and still get words, errors and spelling checked.',
+  'changelog.examDay': 'Exam-day mode: no sidebar, no notifications, no pausing.',
+  'changelog.profile': 'Your name on the dashboard, with a greeting that follows the clock.',
+  'changelog.splitter':
+    'Long documents split into parts, and every attempt picks up where you left off.',
+  'changelog.lessons': '31 lessons, from the home row to the 55 WPM court standard.',
+  'changelog.drills': '17 practice drills, each marked easy through very hard.',
+  'changelog.timestamps': 'Every date and time reads the same way, with am/pm and seconds.',
+  'changelog.accessibility': 'A keyboard, screen-reader and reduced-motion pass over every screen.',
+  'changelog.openWith': 'Open any text file, PDF or document with Typly and type it straight away.',
+  'changelog.firstRelease': 'The first release: turn any image, PDF or paragraph into a typing test.',
+  'changelog.examScoring': 'Scoring that matches the exam you are sitting, including its cut-off.',
+  'changelog.mistakes': 'Every mistake listed, by word and by key.',
+  'changelog.replay': 'Replays, to watch an attempt back keystroke by keystroke.',
+  'changelog.offline': 'Works with no internet connection, and keeps your data on your device.',
+
+  // Local-network device sync
+  'sync.title': 'Sync to another device',
+  'sync.lead':
+    'Move your tests, paragraphs and settings to another device over the Wi-Fi you are both on. Nothing is uploaded — the two devices talk to each other directly.',
+  'sync.start': 'Show pairing code',
+  'sync.starting': 'Starting…',
+  'sync.stop': 'Close pairing',
+  'sync.scan': 'Scan this with the other device, or type the address into its browser.',
+  'sync.qrLabel': 'QR code for the pairing link',
+  'sync.closesIn': 'Closes in {minutes} min',
+  'sync.closed': 'Pairing closed.',
+  'sync.warning':
+    'While pairing is open, anyone on this network who has the link can read this copy of your data.',
+  'sync.desktopOnly': 'Pairing needs the desktop app — a browser tab cannot be connected to.',
+  'sync.offline': 'No network was found. Join a Wi-Fi network and try again.',
+  'sync.unavailable': 'Pairing could not be started.',
+  'sync.received': 'Received {tests} tests and {documents} paragraphs from the other device.',
+  'sync.receiveFailed': 'A backup arrived but could not be restored.',
+
+  // Storage card
+  'storage.using': 'Using ~{size}',
+  'storage.hint':
+    'Grammar and the spelling dictionaries download once and are kept on your device for offline use. Remove them any time to free space.',
+  'storage.download': 'Download for offline',
+  'storage.downloading': 'Downloading…',
+  'storage.downloaded': 'Language data downloaded — grammar and spelling now work offline.',
+  'storage.removeLang': 'Remove language data',
+  'storage.removing': 'Removing…',
+  'storage.removeTitle': 'Remove language data?',
+  'storage.removeBody':
+    'Deletes the downloaded grammar model and dictionaries. They will download again when needed.',
+  'storage.removeConfirm': 'Remove',
+  'storage.removed': 'Downloaded language data removed.',
+
+  // Backup results
+  'settings.exportedCount': 'Exported {tests} tests and {documents} paragraphs.',
+  'settings.restoredCount': 'Restored {tests} tests and {documents} paragraphs.',
+  'settings.restoreFailed': 'Could not restore: {error}',
+  'settings.notABackup': 'not a Typly backup file',
 } as const;
 
 export type TKey = keyof typeof en;

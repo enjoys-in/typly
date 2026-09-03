@@ -41,6 +41,7 @@ export function usePracticeReminder(): void {
         practicedToday: history.some((t) => dayKey(new Date(t.createdAt)) === dayKey(now)),
         firedFor: await platform.repo.getSetting(SETTING_KEY.ReminderFired),
         nudgedFor: await platform.repo.getSetting(SETTING_KEY.ReminderNudged),
+        dismissedFor: await platform.repo.getSetting(SETTING_KEY.ReminderDismissed),
       });
       if (cancelled) return;
 

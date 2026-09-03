@@ -23,7 +23,11 @@ const METHODS = new Set([
 export function registerRepoIpc(db: SqliteRepository): void {
   ipcMain.handle(IpcChannel.RepoInvoke, (_event, method: string, args: unknown[]) => {
     if (!METHODS.has(method)) throw new Error(`Unknown repo method: ${method}`);
-    const fn = (db as unknown as Record<string, (...a: unknown[]) => unknown>)[method];
+    const fn = (db as unknown as Record<string, ((...a: unknown[]) => unknown) | undefined>)[
+      method
+    ];
+    // Allowlisted but absent means the store and the list have drifted apart.
+    if (typeof fn !== 'function') throw new Error(`Repo method unavailable: ${method}`);
     return fn.apply(db, Array.isArray(args) ? args : []);
   });
 }

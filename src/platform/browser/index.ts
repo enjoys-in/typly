@@ -12,6 +12,7 @@ import { BrowserNotifications } from './notifications';
 import { BrowserSound } from './sound';
 import { BrowserTts } from './tts';
 import { BrowserShell } from './shell';
+import { BrowserDeviceSync } from './sync';
 
 export function createBrowserPlatform(): Platform {
   return {
@@ -28,5 +29,6 @@ export function createBrowserPlatform(): Platform {
     sound: new BrowserSound(),
     tts: new BrowserTts(),
     shell: new BrowserShell(),
+    sync: new BrowserDeviceSync(),
   };
 }

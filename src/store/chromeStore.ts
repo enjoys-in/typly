@@ -11,9 +11,14 @@ interface ChromeState {
   /** True while a screen has asked to be shown on its own. */
   bare: boolean;
   setBare: (bare: boolean) => void;
+  /** The release-notes panel, which the About panel can also ask for. */
+  whatsNewOpen: boolean;
+  setWhatsNewOpen: (open: boolean) => void;
 }
 
 export const useChromeStore = create<ChromeState>((set) => ({
   bare: false,
   setBare: (bare) => set({ bare }),
+  whatsNewOpen: false,
+  setWhatsNewOpen: (whatsNewOpen) => set({ whatsNewOpen }),
 }));

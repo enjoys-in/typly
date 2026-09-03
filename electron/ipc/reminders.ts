@@ -38,6 +38,7 @@ export function createReminderScheduler(
       practicedToday: db.listHistory().some((t) => dayKey(new Date(t.createdAt)) === dayKey(now)),
       firedFor: db.getSetting(SETTING_KEY.ReminderFired),
       nudgedFor: db.getSetting(SETTING_KEY.ReminderNudged),
+      dismissedFor: db.getSetting(SETTING_KEY.ReminderDismissed),
     });
 
     if (decision.notifyDue) {
@@ -74,5 +75,15 @@ export function createReminderScheduler(
     timer = setInterval(tick, 60_000);
   }
 
-  return { configure };
+  /**
+   * "Not today, thanks", from the tray. The reminder stays on for tomorrow —
+   * only today's nudge is dropped, which is why it is stored per day rather
+   * than by flipping the setting the user chose.
+   */
+  function dismissToday(): void {
+    db.setSetting(SETTING_KEY.ReminderDismissed, dayKey(new Date()));
+    tick();
+  }
+
+  return { configure, dismissToday };
 }

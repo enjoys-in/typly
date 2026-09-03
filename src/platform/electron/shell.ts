@@ -41,6 +41,10 @@ export class ElectronShell implements Shell {
   setProgress(fraction: number | null): void {
     window.bridge?.shell?.setProgress(fraction);
   }
+
+  ready(): void {
+    window.bridge?.shell?.ready();
+  }
 }
 
 /** IPC hands back a structured clone, which may arrive as a plain ArrayBuffer. */

@@ -54,6 +54,13 @@ against the exact scoring your exam uses, and track your progress over time.
 ### Built for focus
 - Text-to-speech, an on-screen **keyboard visualisation**, **blind mode**, and a clean,
   distraction-free UI.
+- **System tray and taskbar** integration on desktop: today's practice at a glance, the
+  daily reminder, quick actions, and live exam progress on the icon.
+
+### Move between your own devices
+- **Pair over Wi-Fi**: the desktop app shows a QR code, the other device scans it and
+  pulls (or pushes) your tests, paragraphs and settings. No account, no server — the two
+  devices talk directly, and pairing closes itself after a few minutes.
 
 ---
 
@@ -76,6 +83,9 @@ browser's local storage. Nothing leaves your device unless you enable AI.
 Typly is **offline-first**. Your practice text, results and settings stay on your
 device. AI features are entirely optional and **bring-your-own-key** — the app works
 fully without them.
+
+Device sync keeps that promise literally: pairing serves your backup on your own local
+network, guarded by a one-time token, for a few minutes — nothing is uploaded anywhere.
 
 ---
 

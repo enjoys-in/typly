@@ -21,4 +21,5 @@ export class BrowserShell implements Shell {
   }
   setStatus(): void {}
   setProgress(): void {}
+  ready(): void {}
 }

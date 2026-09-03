@@ -44,6 +44,15 @@ contextBridge.exposeInMainWorld('bridge', {
     onNavigate: (handler: (route: string) => void) => subscribe(IpcChannel.ShellNavigate, handler),
     setStatus: (status: unknown) => ipcRenderer.send(IpcChannel.ShellStatus, status),
     setProgress: (fraction: number | null) => ipcRenderer.send(IpcChannel.ShellProgress, fraction),
+    ready: () => ipcRenderer.send(IpcChannel.AppReady),
+  },
+  // Direct device-to-device sync over the local network (no server involved).
+  // The bundle crosses as a string: the main process serves it verbatim.
+  sync: {
+    start: (bundle: string, lang: string) => ipcRenderer.invoke(IpcChannel.SyncStart, bundle, lang),
+    stop: () => ipcRenderer.invoke(IpcChannel.SyncStop),
+    onState: (handler: (state: unknown) => void) => subscribe(IpcChannel.SyncState, handler),
+    onIncoming: (handler: (bundle: unknown) => void) => subscribe(IpcChannel.SyncIncoming, handler),
   },
   // Generic, allowlisted AI channel dispatch (coach / grammar / OCR).
   ai: {

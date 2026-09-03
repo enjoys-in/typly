@@ -8,6 +8,7 @@ import { useSampleLibrary } from '@/hooks/useSampleLibrary';
 import { useShellBridge } from '@/hooks/useShellBridge';
 import { loadStoredFonts, loadDesktopFontCache } from '@/ui/fonts';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
+import { WhatsNew } from '@/components/whatsnew/WhatsNew';
 import { PageSkeleton } from '@/ui/Skeleton';
 import { useT } from '@/i18n';
 
@@ -49,6 +50,8 @@ export function AppShell() {
       </main>
       {/* Once per install, pointed at the sidebar links — never over an exam. */}
       {!bare && <OnboardingTour />}
+      {/* Once per release, and reachable from About any time after that. */}
+      {!bare && <WhatsNew />}
     </div>
   );
 }

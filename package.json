@@ -1,8 +1,9 @@
 {
   "name": "typly",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Offline-first typing-exam practice for Indian competitive exams.",
+  "desktopName": "typly.desktop",
   "author": {
     "name": "enjoys",
     "url": "https://enjoys.in"
@@ -14,8 +15,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.electron.json",
     "ocr:assets": "node scripts/fetch-ocr-assets.mjs",
+    "icons": "node scripts/make-icons.mjs",
     "electron:build": "node electron/build.mjs",
     "electron:dev": "bun run electron:build && ELECTRON_RENDERER_URL=http://localhost:5173 electron .",
     "electron:preview": "bun run build && bun run electron:build && electron .",
@@ -38,6 +40,7 @@
     "mnemonist": "^0.40.4",
     "nspell": "^2.1.5",
     "pdfjs-dist": "^4.10.38",
+    "qrcode-generator": "^2.0.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.5",
@@ -96,7 +99,10 @@
         "role": "Viewer"
       }
     ],
-    "protocols": [{ "name": "Typly", "schemes": ["typly"] }],
+    "protocols": [{
+      "name": "Typly",
+      "schemes": ["typly"]
+    }],
     "mac": {
       "category": "public.app-category.education",
       "target": [{
@@ -117,6 +123,12 @@
     },
     "dmg": {
       "title": "${productName} ${version}",
+      "icon": "build/icon.icns",
+      "iconSize": 104,
+      "window": {
+        "width": 540,
+        "height": 380
+      },
       "contents": [
         {
           "x": 140,
@@ -137,7 +149,7 @@
           "arch": ["x64", "arm64"]
         }
       ],
-      "icon": "build/icon.png"
+      "icon": "build/icon.ico"
     },
     "nsis": {
       "oneClick": false,
@@ -149,7 +161,11 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Typly",
       "include": "build/installer.nsh",
-      "uninstallDisplayName": "Typly ${version}"
+      "uninstallDisplayName": "Typly ${version}",
+      "installerIcon": "build/installerIcon.ico",
+      "uninstallerIcon": "build/uninstallerIcon.ico",
+      "installerHeaderIcon": "build/installerIcon.ico",
+      "deleteAppDataOnUninstall": false
     },
     "linux": {
       "target": [
@@ -162,13 +178,15 @@
           "arch": ["x64", "arm64"]
         }
       ],
-      "icon": "build/icon.png",
+      "icon": "build/icons",
       "category": "Education",
       "maintainer": "enjoys (https://enjoys.in)",
       "synopsis": "Offline-first typing-exam practice",
+      "syncDesktopName": true,
       "desktop": {
-        "StartupWMClass": "Typly",
-        "Keywords": "typing;exam;practice;wpm;hindi;ssc;"
+        "entry": {
+          "Keywords": "typing;exam;practice;wpm;hindi;ssc;"
+        }
       },
       "description": "Offline-first typing-exam practice for Indian competitive exams."
     }

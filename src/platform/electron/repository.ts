@@ -32,6 +32,14 @@ interface Bridge {
     onNavigate(handler: (route: string) => void): () => void;
     setStatus(status: ShellStatus): void;
     setProgress(fraction: number | null): void;
+    ready(): void;
+  };
+  /** Local-network device pairing. Desktop only. */
+  sync?: {
+    start(bundle: string, lang: string): Promise<unknown>;
+    stop(): Promise<void>;
+    onState(handler: (state: unknown) => void): () => void;
+    onIncoming(handler: (bundle: unknown) => void): () => void;
   };
 }
 

@@ -1,4 +1,5 @@
 import type {
+  BackupBundle,
   DocumentInput,
   DocumentRow,
   GrammarIssue,
@@ -8,10 +9,14 @@ import type {
   TestRow,
   Mistake,
 } from '@/core/types';
+
+// Re-exported so the many callers that import it from here keep working.
+export type { BackupBundle };
 import type { AiSettings, CoachFeedback, CoachInput } from '@/core/coach/types';
 import type { Profile } from '@/core/profile/profile';
 import type { Lang, SourceType } from '@/core/constants';
 import type { ShellRoute, ShellStatus } from '@/core/ipc/shell';
+import type { SyncState } from '@/core/sync/lan';
 
 export interface PickedFile {
   name: string;
@@ -40,14 +45,6 @@ export interface FullResult {
   result: TestResult;
   mistakes: Mistake[];
   keystrokes: Keystroke[];
-}
-
-export interface BackupBundle {
-  app: string;
-  version: number;
-  exportedAt: string;
-  counts: { tests: number; documents: number };
-  tables: Record<string, unknown[]>;
 }
 
 export interface Repository {
@@ -160,6 +157,25 @@ export interface Shell {
   setStatus(status: ShellStatus): void;
   /** 0..1 while a test runs, or null to clear the taskbar/dock progress bar. */
   setProgress(fraction: number | null): void;
+  /** The interface is on screen — the launch splash can be taken down. */
+  ready(): void;
+}
+
+/**
+ * Moving practice data between two of the user's own devices over the network
+ * they are both already on. Desktop only: serving anything requires a socket,
+ * which a browser tab does not have — on the web every call is inert and
+ * `available()` is false, so the UI can explain itself rather than break.
+ */
+export interface DeviceSync {
+  available(): boolean;
+  /** Publish a backup for pairing. `lang` picks the paired page's language. */
+  start(bundle: BackupBundle, lang: string): Promise<SyncState>;
+  stop(): Promise<void>;
+  /** Pairing state changes, including expiry. Returns an unsubscribe. */
+  onState(handler: (state: SyncState) => void): () => void;
+  /** A backup pushed from the paired device. Returns an unsubscribe. */
+  onIncoming(handler: (bundle: BackupBundle) => void): () => void;
 }
 
 export interface Platform {
@@ -176,4 +192,5 @@ export interface Platform {
   sound: Sound;
   tts: Tts;
   shell: Shell;
+  sync: DeviceSync;
 }

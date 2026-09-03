@@ -17,6 +17,17 @@ export function hhmm(d = new Date()): string {
   return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
+/**
+ * A stored HH:MM setting as a friendly clock reading — `'19:00'` → `'7:00 pm'`.
+ * The same 12-hour wording the app uses for every other time, so the tray menu
+ * and the Settings switch never disagree about when the reminder fires.
+ */
+export function formatClock(time: string): string {
+  const [h = 0, m = 0] = time.split(':').map(Number);
+  const hour = h % 12 || 12;
+  return `${hour}:${String(m).padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`;
+}
+
 /** Minutes from a HH:MM time of day to `now`; negative before that time. */
 export function minutesSince(time: string, now = new Date()): number {
   const [h = 0, m = 0] = time.split(':').map(Number);
@@ -35,6 +46,8 @@ export interface ReminderInput {
   firedFor: string | null;
   /** Day the follow-up nudge has already fired for, as stored. */
   nudgedFor: string | null;
+  /** Day the user said "not today" for, as stored. */
+  dismissedFor?: string | null;
 }
 
 export interface ReminderDecision {
@@ -50,8 +63,13 @@ export interface ReminderDecision {
 
 export function decideReminder(input: ReminderInput): ReminderDecision {
   const today = dayKey(input.now);
+  // Saying "not today" silences the nudge without turning the reminder off, so
+  // it has to be remembered per day rather than as a setting.
   const pending =
-    input.enabled && hhmm(input.now) >= input.time && !input.practicedToday;
+    input.enabled &&
+    hhmm(input.now) >= input.time &&
+    !input.practicedToday &&
+    input.dismissedFor !== today;
   const alreadyFired = input.firedFor === today;
 
   return {

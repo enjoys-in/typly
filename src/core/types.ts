@@ -244,3 +244,17 @@ export interface ExamSnapshot {
   keystrokes: Keystroke[];
   savedAt: string;
 }
+
+/**
+ * Everything the app holds, in one portable file: what "Export" writes, what
+ * "Restore" reads, and what travels between two of your own devices over the
+ * local network. Table names are the store's own, so a bundle can be restored
+ * into either the IndexedDB or the SQLite implementation.
+ */
+export interface BackupBundle {
+  app: string;
+  version: number;
+  exportedAt: string;
+  counts: { tests: number; documents: number };
+  tables: Record<string, unknown[]>;
+}
