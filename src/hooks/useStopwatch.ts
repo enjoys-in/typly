@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 
-// Counts up while `running` — the untimed/practice clock.
-export function useStopwatch(running: boolean): { elapsedMs: number } {
-  const [elapsedMs, setElapsedMs] = useState(0);
+// Counts up while `running` — the untimed/practice clock. `initialMs` carries
+// over the time already spent when resuming an attempt.
+export function useStopwatch(running: boolean, initialMs = 0): { elapsedMs: number } {
+  const [elapsedMs, setElapsedMs] = useState(initialMs);
   const startRef = useRef<number | null>(null);
 
   useEffect(() => {

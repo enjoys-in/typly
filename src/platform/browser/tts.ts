@@ -4,6 +4,10 @@ import { Lang } from '@/core/constants';
 const LOCALE: Record<Lang, string> = {
   [Lang.En]: 'en-US',
   [Lang.Hi]: 'hi-IN',
+  [Lang.Mr]: 'mr-IN',
+  [Lang.Bn]: 'bn-IN',
+  [Lang.Ta]: 'ta-IN',
+  [Lang.Gu]: 'gu-IN',
 };
 
 // Text-to-speech via the Web Speech API. No-ops where unsupported.

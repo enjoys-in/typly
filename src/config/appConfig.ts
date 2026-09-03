@@ -42,6 +42,25 @@ export const THEMES = {
 
 export type ThemeName = keyof typeof THEMES;
 
+/** A single row in the About panel's link list; blank URLs are not rendered. */
+export interface AboutLink {
+  label: string;
+  url: string;
+}
+
+export interface AboutInfo {
+  /** Who built it. */
+  author: string;
+  /** One paragraph on what the app is for. */
+  summary: string;
+  /** Rights line shown at the foot of the panel. */
+  copyright: string;
+  website: AboutLink;
+  github: AboutLink;
+  /** Left blank until a profile URL is set — the panel skips empty links. */
+  linkedin: AboutLink;
+}
+
 export interface AppConfig {
   /** Full product name shown in headers and the browser tab. */
   name: string;
@@ -53,6 +72,8 @@ export interface AppConfig {
   logo: LucideIcon;
   /** Active theme preset. */
   theme: ThemeName;
+  /** Credits and links shown in the About panel. */
+  about: AboutInfo;
 }
 
 export const appConfig: AppConfig = {
@@ -61,7 +82,19 @@ export const appConfig: AppConfig = {
   tagline: 'Exam practice',
   logo: Keyboard,
   theme: 'emerald',
+  about: {
+    author: 'enjoys',
+    summary:
+      'Offline-first typing-exam practice for Indian competitive exams. Bring any passage — paste it, or import an image, PDF or document — and practise against the exact scoring your exam uses, with per-mistake analysis, replays and targeted drills. Everything stays on your device.',
+    copyright: '© 2026 enjoys. All rights reserved.',
+    website: { label: 'enjoys.in', url: 'https://enjoys.in' },
+    github: { label: 'github.com/enjoys-in', url: 'https://github.com/enjoys-in' },
+    linkedin: { label: 'LinkedIn', url: '' },
+  },
 };
+
+/** The app version, injected at build time from package.json. */
+export const APP_VERSION: string = __APP_VERSION__;
 
 export function activeTheme(): ThemeTokens {
   return THEMES[appConfig.theme];

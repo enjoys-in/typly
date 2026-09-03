@@ -3,6 +3,7 @@ import type { EntityTable, Table } from 'dexie';
 import type {
   DocumentInput,
   DocumentRow,
+  Keystroke,
   Mistake,
   SaveTestPayload,
   TestResult,
@@ -25,6 +26,12 @@ interface TimelineRecord {
   wpm: number;
   accuracy: number;
 }
+// One row per test rather than per keystroke: a 10-minute run is thousands of
+// keystrokes, and they are only ever read back as a whole log.
+interface KeystrokeRecord {
+  testId: number;
+  keystrokes: Keystroke[];
+}
 interface DocRecord extends DocumentRow {}
 interface SettingRecord {
   key: string;
@@ -37,6 +44,7 @@ interface RowMap {
   results: ResultRecord;
   mistakes: MistakeRecord;
   timeline: TimelineRecord;
+  keystrokes: KeystrokeRecord;
   documents: DocRecord;
   settings: SettingRecord;
 }
@@ -46,6 +54,7 @@ type Tables = {
   results: EntityTable<ResultRecord, 'testId'>;
   mistakes: EntityTable<MistakeRecord, 'id'>;
   timeline: EntityTable<TimelineRecord, 'id'>;
+  keystrokes: EntityTable<KeystrokeRecord, 'testId'>;
   documents: EntityTable<DocRecord, 'id'>;
   settings: EntityTable<SettingRecord, 'key'>;
 };
@@ -55,12 +64,13 @@ const schema = {
   results: 'testId',
   mistakes: '++id,testId',
   timeline: '++id,testId',
+  keystrokes: 'testId',
   documents: '++id,createdAt',
   settings: 'key',
 } satisfies TableSchema<Tables>;
 
 export class BrowserRepository implements Repository {
-  private idb = new IDB<Tables>(schema, 'typly', 1);
+  private idb = new IDB<Tables>(schema, 'typly', 2);
 
   private table<K extends keyof RowMap>(name: K): Table<RowMap[K]> {
     return this.idb.getRawDb().table(name as string) as unknown as Table<RowMap[K]>;
@@ -88,6 +98,9 @@ export class BrowserRepository implements Repository {
     await this.table('timeline').bulkAdd(
       payload.timeline.map((t) => ({ testId: id, ...t })) as TimelineRecord[],
     );
+    if (payload.keystrokes.length > 0) {
+      await this.table('keystrokes').put({ testId: id, keystrokes: payload.keystrokes });
+    }
     return id;
   }
 
@@ -103,7 +116,7 @@ export class BrowserRepository implements Repository {
     const mistakes = (await this.table('mistakes')
       .filter((m) => (m as MistakeRecord).testId === id)
       .toArray()) as MistakeRecord[];
-    return { row, result, mistakes };
+    return { row, result, mistakes, keystrokes: await this.getKeystrokes(id) };
   }
 
   async saveDocument(doc: DocumentInput): Promise<number> {
@@ -123,6 +136,17 @@ export class BrowserRepository implements Repository {
     return ((await this.table('documents').get(id)) as DocRecord | undefined) ?? null;
   }
 
+  // The paragraph goes, its results stay: past scores are still the user's
+  // history, they just no longer point at a document that exists.
+  async deleteDocument(id: number): Promise<void> {
+    const tests = (await this.table('tests').toArray()) as TestRecord[];
+    const orphaned = tests.filter((t) => t.documentId === id);
+    if (orphaned.length > 0) {
+      await this.table('tests').bulkPut(orphaned.map((t) => ({ ...t, documentId: null })));
+    }
+    await this.table('documents').delete(id);
+  }
+
   async getSetting(key: string): Promise<string | null> {
     const row = (await this.table('settings').get(key)) as SettingRecord | undefined;
     return row?.value ?? null;
@@ -136,12 +160,24 @@ export class BrowserRepository implements Repository {
     return (await this.table('mistakes').toArray()) as Mistake[];
   }
 
+  async getKeystrokes(testId: number): Promise<Keystroke[]> {
+    const row = (await this.table('keystrokes').get(testId)) as KeystrokeRecord | undefined;
+    return row?.keystrokes ?? [];
+  }
+
+  async recentKeystrokes(limit: number): Promise<Keystroke[]> {
+    const recent = (await this.listHistory()).slice(0, limit);
+    const logs = await Promise.all(recent.map((row) => this.getKeystrokes(row.id)));
+    return logs.flat();
+  }
+
   async exportBackup(): Promise<BackupBundle> {
-    const [tests, results, mistakes, timeline, documents, settings] = await Promise.all([
+    const [tests, results, mistakes, timeline, keystrokes, documents, settings] = await Promise.all([
       this.table('tests').toArray(),
       this.table('results').toArray(),
       this.table('mistakes').toArray(),
       this.table('timeline').toArray(),
+      this.table('keystrokes').toArray(),
       this.table('documents').toArray(),
       this.table('settings').toArray(),
     ]);
@@ -150,7 +186,7 @@ export class BrowserRepository implements Repository {
       version: 1,
       exportedAt: new Date().toISOString(),
       counts: { tests: tests.length, documents: documents.length },
-      tables: { tests, results, mistakes, timeline, documents, settings },
+      tables: { tests, results, mistakes, timeline, keystrokes, documents, settings },
     };
   }
 
@@ -161,6 +197,7 @@ export class BrowserRepository implements Repository {
       results?: ResultRecord[];
       mistakes?: MistakeRecord[];
       timeline?: TimelineRecord[];
+      keystrokes?: KeystrokeRecord[];
       documents?: DocRecord[];
       settings?: SettingRecord[];
     };
@@ -221,6 +258,11 @@ export class BrowserRepository implements Repository {
         wpm: tl.wpm,
         accuracy: tl.accuracy,
       } as TimelineRecord);
+    }
+    for (const k of t.keystrokes ?? []) {
+      const testId = testIdMap.get(k.testId);
+      if (testId == null) continue;
+      await this.table('keystrokes').put({ testId, keystrokes: k.keystrokes });
     }
     for (const s of t.settings ?? []) {
       await this.table('settings').put(s);

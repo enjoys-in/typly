@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath, URL } from 'node:url';
 import { aiBackendPlugin } from './server/vite';
+import pkg from './package.json' with { type: 'json' };
 
 export default defineConfig(({ mode }) => {
   // Server-side fallback key; NEVER exposed to the client (no VITE_ prefix).
@@ -13,6 +14,8 @@ export default defineConfig(({ mode }) => {
     // Relative base so the same build loads from a web root and from file:// (Electron).
     base: './',
     plugins: [react(), tailwindcss(), aiBackendPlugin(fallbackKey)],
+    // Version string for the About panel, so it can never drift from the manifest.
+    define: { __APP_VERSION__: JSON.stringify(pkg.version) },
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),

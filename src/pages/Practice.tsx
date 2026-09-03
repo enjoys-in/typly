@@ -15,7 +15,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useExamStore } from '@/store/examStore';
-import { useSettingsStore } from '@/store/settingsStore';
+import { drillBase, useSettingsStore } from '@/store/settingsStore';
 import { generateDrill } from '@/core/practice/generators';
 import { isMacOS } from '@/platform/detect';
 import { PracticeKind, PRACTICE_LABEL, SourceType } from '@/core/constants';
@@ -42,20 +42,11 @@ export function Practice() {
 
   function start(kind: PracticeKind) {
     setConfig({
+      ...drillBase(settings),
       passage: generateDrill(kind, isMacOS()),
       title: `${PRACTICE_LABEL[kind]} drill`,
       documentId: null,
-      lang: settings.lang,
-      board: settings.board,
-      timing: settings.timing,
-      durationSec: settings.durationSec,
       sourceType: SourceType.Text,
-      difficulty: settings.difficulty,
-      examMode: settings.examMode,
-      backspaceEnabled: settings.backspaceEnabled,
-      spaceEnabled: settings.spaceEnabled,
-      enterEnabled: settings.enterEnabled,
-      examLock: settings.examLock,
     });
     navigate('/app/exam');
   }

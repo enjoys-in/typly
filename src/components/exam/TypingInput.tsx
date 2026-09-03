@@ -1,6 +1,7 @@
 import { useState, type KeyboardEvent } from 'react';
 import { toDevanagari } from '@/core/text/hindiPhonetic';
-import { inscriptChar } from '@/core/text/inscript';
+import type { Keymap } from '@/core/text/keymap';
+import { useFlash } from '@/hooks/useFlash';
 
 interface Props {
   typed: string;
@@ -12,16 +13,18 @@ interface Props {
   /** Error-free mode: reject any printable key that isn't the next expected character. */
   enforceCorrect?: boolean;
   expectedChar?: string;
-  /** Hindi phonetic input: type Roman, compare Devanagari against the passage. */
+  /** Phonetic input: type Roman, compare Devanagari against the passage. */
   phonetic?: boolean;
-  /** Hindi InScript input: remap physical keys to Devanagari as you type. */
-  inscript?: boolean;
+  /** Key remapping (InScript, Remington) applied as you type. */
+  keymap?: Keymap | null;
   /** Font family override (Hindi fonts like Mangal / Kruti Dev). */
   fontFamily?: string;
   /** Text scale, kept in step with the passage. */
   fontScale?: number;
   onChange: (next: string) => void;
   onKeyDown: (e: KeyboardEvent<HTMLTextAreaElement>) => void;
+  /** A keystroke the exam rules refused, so the run can report it. */
+  onBlocked?: (key: string) => void;
 }
 
 export function TypingInput({
@@ -34,14 +37,18 @@ export function TypingInput({
   enforceCorrect = false,
   expectedChar,
   phonetic = false,
-  inscript = false,
+  keymap = null,
   fontFamily,
   fontScale = 1,
   onChange,
   onKeyDown,
+  onBlocked,
 }: Props) {
   // In phonetic mode the textarea holds Roman text; `typed` (Devanagari) is derived.
   const [roman, setRoman] = useState('');
+  // A refused key is invisible without this: the field flashes so a blocked
+  // keystroke reads as "not allowed" instead of "the app is broken".
+  const [rejected, flashRejected] = useFlash();
 
   function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     if (phonetic) {
@@ -53,26 +60,32 @@ export function TypingInput({
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
-    // InScript: remap the physical key to Devanagari and insert it ourselves.
-    if (inscript && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1) {
-      const mapped = inscriptChar(e.key);
-      if (mapped !== null) {
+    // Remapped layouts translate the physical key and insert it themselves.
+    if (keymap && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1) {
+      const el = e.currentTarget;
+      const start = el.selectionStart ?? typed.length;
+      const end = el.selectionEnd ?? typed.length;
+      const output = keymap.resolve(e.key, typed.slice(0, start));
+      if (output) {
         e.preventDefault();
-        const el = e.currentTarget;
-        const start = el.selectionStart ?? typed.length;
-        const end = el.selectionEnd ?? typed.length;
-        onKeyDown(e); // log the keystroke before the value grows
-        onChange(typed.slice(0, start) + mapped + typed.slice(end));
+        // A typewriter layout can fold the key into what precedes it (a half
+        // consonant becoming whole), so the output replaces that much text.
+        const from = Math.max(0, start - output.replace);
+        onKeyDown(e); // log the keystroke before the value changes
+        onChange(typed.slice(0, from) + output.text + typed.slice(end));
         return;
       }
     }
+    const remapped = phonetic || keymap !== null;
     const blocked =
       (!backspaceEnabled && (e.key === 'Backspace' || e.key === 'Delete')) ||
       (!spaceEnabled && e.key === ' ') ||
       (!enterEnabled && e.key === 'Enter') ||
-      (!phonetic && !inscript && enforceCorrect && e.key.length === 1 && e.key !== expectedChar);
+      (!remapped && enforceCorrect && e.key.length === 1 && e.key !== expectedChar);
     if (blocked) {
       e.preventDefault();
+      flashRejected();
+      onBlocked?.(e.key);
       return;
     }
     onKeyDown(e);
@@ -88,13 +101,18 @@ export function TypingInput({
       onPaste={(e) => !pasteAllowed && e.preventDefault()}
       onContextMenu={(e) => e.preventDefault()}
       spellCheck={false}
+      aria-invalid={rejected || undefined}
       style={{ fontSize: `${fontScale * 1.125}rem`, fontFamily }}
-      className="h-28 w-full resize-none rounded-control border border-edge bg-field p-4 font-mono outline-none transition-colors focus:border-accent focus:ring-4 focus:ring-accent-ring disabled:opacity-60"
+      className={`h-28 w-full resize-none rounded-control border bg-field p-4 font-mono outline-none transition-colors disabled:opacity-60 ${
+        rejected
+          ? 'border-danger bg-danger-soft ring-4 ring-danger-ring'
+          : 'border-edge focus:border-accent focus:ring-4 focus:ring-accent-ring'
+      }`}
       placeholder={
         phonetic
           ? 'Type in Roman — e.g. namaste'
-          : inscript
-            ? 'Type using the InScript layout'
+          : keymap
+            ? `Type using the ${keymap.label} layout`
             : 'Start typing here…'
       }
     />

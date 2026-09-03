@@ -1,22 +1,19 @@
 import { KEY_ROWS, keyIdForChar, type Finger } from '@/core/keyboard/layout';
-import { INSCRIPT_KEY_FOR_OUTPUT, inscriptLabel } from '@/core/text/inscript';
+import type { Keymap } from '@/core/text/keymap';
 import { FINGER_BG, FINGER_DOT, FINGER_LABEL } from './fingerStyles';
 
 // On-screen keyboard: color-codes keys by finger and highlights the next key to press.
 export function Keyboard({
   nextChar,
   fontFamily,
-  inscript = false,
+  keymap = null,
 }: {
   nextChar?: string;
   fontFamily?: string;
-  inscript?: boolean;
+  /** Remapped layout, so labels and the highlight follow what the keys produce. */
+  keymap?: Keymap | null;
 }) {
-  const target = nextChar
-    ? inscript
-      ? INSCRIPT_KEY_FOR_OUTPUT[nextChar] ?? ''
-      : keyIdForChar(nextChar)
-    : '';
+  const target = nextChar ? (keymap ? keymap.keyForOutput(nextChar) : keyIdForChar(nextChar)) : '';
   return (
     <div className="select-none rounded-panel border border-line bg-surface p-3">
       <div className="mx-auto flex max-w-3xl flex-col gap-1.5">
@@ -34,7 +31,7 @@ export function Keyboard({
                       : FINGER_BG[key.finger]
                   }`}
                 >
-                  {inscript ? inscriptLabel(key.id, key.label) : key.label}
+                  {keymap ? keymap.labelFor(key.id, key.label) : key.label}
                 </span>
               );
             })}

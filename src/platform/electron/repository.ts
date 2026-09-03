@@ -1,9 +1,18 @@
 import type { BackupBundle, FullResult, Repository } from '../ports';
-import type { DocumentInput, DocumentRow, Mistake, SaveTestPayload, TestRow } from '@/core/types';
+import type {
+  DocumentInput,
+  DocumentRow,
+  Keystroke,
+  Mistake,
+  SaveTestPayload,
+  TestRow,
+} from '@/core/types';
 
 interface Bridge {
   platform: string;
   repoAvailable?: boolean;
+  /** Runtime versions, shown in the About panel. Desktop only. */
+  versions?: { electron: string; chrome: string; node: string };
   repo: { invoke(method: string, args: unknown[]): Promise<unknown> };
   fonts?: {
     read(): Promise<Record<string, string>>;
@@ -50,6 +59,9 @@ export class ElectronRepository implements Repository {
   getDocument(id: number): Promise<DocumentRow | null> {
     return this.call('getDocument', [id]);
   }
+  deleteDocument(id: number): Promise<void> {
+    return this.call('deleteDocument', [id]);
+  }
   getSetting(key: string): Promise<string | null> {
     return this.call('getSetting', [key]);
   }
@@ -58,6 +70,12 @@ export class ElectronRepository implements Repository {
   }
   aggregateMistakes(): Promise<Mistake[]> {
     return this.call('aggregateMistakes');
+  }
+  getKeystrokes(testId: number): Promise<Keystroke[]> {
+    return this.call('getKeystrokes', [testId]);
+  }
+  recentKeystrokes(limit: number): Promise<Keystroke[]> {
+    return this.call('recentKeystrokes', [limit]);
   }
   exportBackup(): Promise<BackupBundle> {
     return this.call('exportBackup');

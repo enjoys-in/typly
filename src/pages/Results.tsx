@@ -1,12 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Printer, Share2 } from 'lucide-react';
 import { usePlatform } from '@/platform/PlatformContext';
 import { useExamStore } from '@/store/examStore';
 import { useSettingsStore } from '@/store/settingsStore';
-import { SERIES_ADVANCE_SECONDS, TestStatus } from '@/core/constants';
+import { SETTING_KEY, SERIES_ADVANCE_SECONDS, TestStatus } from '@/core/constants';
 import { profileFor } from '@/core/scoring/examProfiles';
+import { applyDifficulty, applyMode } from '@/core/scoring/scoring';
+import { isDevanagari } from '@/core/text/scripts';
 import { computeBadges, type Badge } from '@/core/achievements/badges';
 import { testsToday } from '@/core/stats';
 import { ResultSummary } from '@/components/result/ResultSummary';
@@ -14,6 +16,11 @@ import { MistakeList } from '@/components/result/MistakeList';
 import { WpmChart } from '@/components/result/WpmChart';
 import { CoachPanel } from '@/components/result/CoachPanel';
 import { CertificateCard } from '@/components/result/CertificateCard';
+import { CutoffCard } from '@/components/result/CutoffCard';
+import { ReplayPlayer } from '@/components/result/ReplayPlayer';
+import { useAsync } from '@/hooks/useAsync';
+import { HindiFont } from '@/core/constants';
+import { FONT_FAMILY } from '@/ui/fonts';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 
@@ -21,11 +28,13 @@ export function Results() {
   const navigate = useNavigate();
   const platform = usePlatform();
   const finished = useExamStore((s) => s.finished);
+  const config = useExamStore((s) => s.config);
   const series = useExamStore((s) => s.series);
   const advanceSeries = useExamStore((s) => s.advanceSeries);
   const clearSeries = useExamStore((s) => s.clearSeries);
   const notify = useSettingsStore((s) => s.notify);
   const dailyGoal = useSettingsStore((s) => s.dailyGoal);
+  const hindiFont = useSettingsStore((s) => s.hindiFont);
 
   const hasNext = !!series && series.index + 1 < series.items.length;
   const [countdown, setCountdown] = useState(SERIES_ADVANCE_SECONDS);
@@ -33,6 +42,21 @@ export function Results() {
   const [goalHit, setGoalHit] = useState(false);
   const [shareNote, setShareNote] = useState<string | null>(null);
   const rewardsDone = useRef(false);
+
+  const board = finished?.payload.examBoard;
+  const savedId = finished?.savedId ?? null;
+  // The rules this run was graded against — difficulty and mode included.
+  const rules = useMemo(() => {
+    if (!board) return null;
+    const base = profileFor(board).rules;
+    return config ? applyMode(applyDifficulty(base, config.difficulty), config.examMode) : base;
+  }, [board, config]);
+
+  // Earlier attempts, so the score can be ranked against the user's own runs.
+  const priorWpm = useAsync(async () => {
+    const rows = await platform.repo.listHistory();
+    return rows.filter((row) => row.id !== savedId && row.netWpm > 0).map((row) => row.netWpm);
+  }, [platform, savedId]);
 
   useEffect(() => {
     if (!finished) navigate('/app', { replace: true });
@@ -65,7 +89,7 @@ export function Results() {
       const earnedNow = badges.filter((b) => b.earned).map((b) => b.id);
       let prev: string[] = [];
       try {
-        prev = JSON.parse((await platform.repo.getSetting('notifiedBadges')) ?? '[]');
+        prev = JSON.parse((await platform.repo.getSetting(SETTING_KEY.NotifiedBadges)) ?? '[]');
       } catch {
         prev = [];
       }
@@ -77,7 +101,7 @@ export function Results() {
             `Achievement unlocked 🏅`,
             fresh.map((b) => b.label).join(', '),
           );
-        await platform.repo.setSetting('notifiedBadges', JSON.stringify(earnedNow));
+        await platform.repo.setSetting(SETTING_KEY.NotifiedBadges, JSON.stringify(earnedNow));
       }
       const today = testsToday(rows);
       if (dailyGoal > 0 && today >= dailyGoal) {
@@ -193,10 +217,35 @@ export function Results() {
         <h2 className="font-semibold">Speed &amp; accuracy over time</h2>
         <WpmChart timeline={finished.payload.timeline} />
       </Card>
+      {rules && (
+        <CutoffCard
+          result={finished.result}
+          rules={rules}
+          examName={profileFor(finished.payload.examBoard).name}
+          history={priorWpm.data ?? []}
+        />
+      )}
       <Card className="space-y-3">
         <h2 className="font-semibold">Mistakes</h2>
         <MistakeList mistakes={finished.mistakes} />
       </Card>
+      {finished.payload.keystrokes.length > 0 && config && (
+        <Card className="space-y-3">
+          <h2 className="font-semibold">Replay</h2>
+          <p className="text-sm text-fg-muted">
+            Watch the attempt back to see where the time went, not just where the errors were.
+          </p>
+          <ReplayPlayer
+            passage={config.passage}
+            keystrokes={finished.payload.keystrokes}
+            fontFamily={
+              isDevanagari(finished.payload.lang) && hindiFont !== HindiFont.System
+                ? FONT_FAMILY[hindiFont]
+                : undefined
+            }
+          />
+        </Card>
+      )}
       <CoachPanel finished={finished} />
       <div className="flex flex-wrap items-center gap-3">
         <Button onClick={again}>New test</Button>

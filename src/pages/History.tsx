@@ -1,15 +1,18 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Play } from 'lucide-react';
+import { Film, Play } from 'lucide-react';
 import { usePlatform } from '@/platform/PlatformContext';
 import { useExamStore } from '@/store/examStore';
+import { useAsync } from '@/hooks/useAsync';
 import type { TestRow } from '@/core/types';
 import { TestStatus } from '@/core/constants';
 import { profileFor } from '@/core/scoring/examProfiles';
 import { ProgressChart } from '@/components/history/ProgressChart';
+import { ReplayModal } from '@/components/result/ReplayModal';
 import { Card } from '@/ui/Card';
 import { DataTable, type Column } from '@/ui/DataTable';
+import { ToggleChip } from '@/ui/ToggleChip';
 
 const COLUMNS: Column<TestRow>[] = [
   {
@@ -68,11 +71,9 @@ export function History() {
   const platform = usePlatform();
   const navigate = useNavigate();
   const setDraft = useExamStore((s) => s.setDraft);
-  const [rows, setRows] = useState<TestRow[] | null>(null);
-
-  useEffect(() => {
-    platform.repo.listHistory().then(setRows);
-  }, [platform]);
+  const [replayId, setReplayId] = useState<number | null>(null);
+  const history = useAsync(() => platform.repo.listHistory(), [platform]);
+  const rows = history.data;
 
   const retest = useCallback(
     async (row: TestRow) => {
@@ -84,6 +85,7 @@ export function History() {
         title: doc.title,
         documentId: doc.id,
         sourceType: doc.sourceType,
+        lang: doc.lang,
       });
       navigate('/app/setup');
     },
@@ -96,16 +98,25 @@ export function History() {
       {
         key: 'actions',
         header: '',
-        width: '7rem',
+        width: '11.5rem',
         align: 'right',
         render: (r) =>
           r.documentId != null ? (
-            <button
-              onClick={() => void retest(r)}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-control bg-accent px-3 py-1.5 text-xs font-semibold text-accent-fg transition-all hover:bg-accent-hover active:scale-95"
-            >
-              <Play size={13} /> Retest
-            </button>
+            <div className="flex justify-end gap-1.5">
+              <ToggleChip
+                active={false}
+                onClick={() => setReplayId(r.id)}
+                title="Watch this attempt play back"
+              >
+                <Film size={13} /> Replay
+              </ToggleChip>
+              <button
+                onClick={() => void retest(r)}
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-control bg-accent px-3 py-1.5 text-xs font-semibold text-accent-fg transition-all hover:bg-accent-hover active:scale-95"
+              >
+                <Play size={13} /> Retest
+              </button>
+            </div>
           ) : null,
       },
     ],
@@ -125,10 +136,11 @@ export function History() {
         columns={columns}
         rows={rows ?? []}
         rowKey={(r) => r.id}
-        loading={rows === null}
+        loading={history.loading}
         empty="No tests yet. Take your first test!"
         maxHeight="32rem"
       />
+      {replayId !== null && <ReplayModal testId={replayId} onClose={() => setReplayId(null)} />}
     </div>
   );
 }

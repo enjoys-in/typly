@@ -1,9 +1,12 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
+import { usePlatform } from '@/platform/PlatformContext';
 import { useExamStore } from '@/store/examStore';
-import { useSettingsStore } from '@/store/settingsStore';
+import { examBase, useSettingsStore } from '@/store/settingsStore';
 import { useAuthStore } from '@/store/authStore';
 import { boardsByCategory, profileFor } from '@/core/scoring/examProfiles';
+import { useAsync } from '@/hooks/useAsync';
 import {
   DEFAULT_DURATIONS_MIN,
   Difficulty,
@@ -15,6 +18,7 @@ import {
   Lang,
   LANG_LABEL,
   MAX_DURATION_MIN,
+  MAX_READING_SEC,
   TimingMode,
 } from '@/core/constants';
 import { Button } from '@/ui/Button';
@@ -39,16 +43,37 @@ const TIMING_OPTIONS: SegmentedOption<TimingMode>[] = [
 
 export function ExamSetup() {
   const navigate = useNavigate();
+  const platform = usePlatform();
   const draft = useExamStore((s) => s.draft);
   const setConfig = useExamStore((s) => s.setConfig);
   const settings = useSettingsStore();
   const account = useAuthStore((s) => s.account);
   const maxMin = account?.guest ? GUEST_MAX_DURATION_MIN : MAX_DURATION_MIN;
   const durationMin = Math.round(settings.durationSec / 60);
+  const [ghostTestId, setGhostTestId] = useState<number | null>(null);
+
+  // Past runs of this same paragraph — the only ones worth racing.
+  const documentId = draft?.documentId ?? null;
+  const rivals = useAsync(async () => {
+    if (documentId == null) return [];
+    const history = await platform.repo.listHistory();
+    return history
+      .filter((row) => row.documentId === documentId && row.grossWpm > 0)
+      .sort((a, b) => b.netWpm - a.netWpm)
+      .slice(0, 5);
+  }, [documentId, platform]);
 
   useEffect(() => {
     if (!draft) navigate('/app/new', { replace: true });
   }, [draft, navigate]);
+
+  // A stored paragraph carries its own language; adopt it so the input method,
+  // font and speech match the script on screen. The select still overrides.
+  useEffect(() => {
+    if (draft && draft.lang !== settings.lang) settings.setLang(draft.lang);
+    // Only on arrival — changing the select afterwards must stick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft?.lang]);
 
   // Enforce the guest/plan duration cap.
   useEffect(() => {
@@ -56,6 +81,10 @@ export function ExamSetup() {
   }, [maxMin, settings]);
 
   if (!draft) return null;
+
+  function setReadingMinutes(min: number) {
+    settings.setReadingSec(Math.min(MAX_READING_SEC, Math.max(0, min * 60)));
+  }
 
   function setMinutes(min: number) {
     const clamped = Math.min(maxMin, Math.max(1, Math.floor(min || 0)));
@@ -65,20 +94,13 @@ export function ExamSetup() {
   function start() {
     if (!draft) return;
     setConfig({
+      ...examBase(settings),
+      durationSec: Math.min(settings.durationSec, maxMin * 60),
       passage: draft.passage,
       title: draft.title,
       documentId: draft.documentId,
-      lang: settings.lang,
-      board: settings.board,
-      timing: settings.timing,
-      durationSec: Math.min(settings.durationSec, maxMin * 60),
       sourceType: draft.sourceType,
-      difficulty: settings.difficulty,
-      examMode: settings.examMode,
-      backspaceEnabled: settings.backspaceEnabled,
-      spaceEnabled: settings.spaceEnabled,
-      enterEnabled: settings.enterEnabled,
-      examLock: settings.examLock,
+      ghostTestId,
     });
     navigate('/app/exam');
   }
@@ -184,6 +206,50 @@ export function ExamSetup() {
                   : `Custom duration up to ${MAX_DURATION_MIN} minutes.`}
               </p>
             </div>
+          </Field>
+        )}
+
+        <Field label="Mock exam">
+          <div className="space-y-3 rounded-panel border border-line p-4">
+            <Toggle
+              label="Instructions before the test"
+              hint="Open with the rules and cut-off, the way a real skill test does."
+              checked={settings.briefing}
+              onChange={settings.setBriefing}
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-medium text-fg">Reading time</span>
+              <input
+                type="number"
+                min={0}
+                max={MAX_READING_SEC / 60}
+                value={Math.round(settings.readingSec / 60)}
+                onChange={(e) => setReadingMinutes(Number(e.target.value))}
+                aria-label="Reading time in minutes"
+                className="select w-20"
+              />
+              <span className="text-sm text-fg-muted">min before the clock starts (0 = none)</span>
+            </div>
+          </div>
+        </Field>
+
+        {rivals.data && rivals.data.length > 0 && (
+          <Field label="Race a past run">
+            <select
+              value={ghostTestId ?? ''}
+              onChange={(e) => setGhostTestId(e.target.value ? Number(e.target.value) : null)}
+              className="select"
+            >
+              <option value="">No ghost</option>
+              {rivals.data.map((row) => (
+                <option key={row.id} value={row.id}>
+                  {row.netWpm} WPM · {row.accuracy}% · {format(new Date(row.createdAt), 'dd MMM')}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-fg-muted">
+              Shows that run's progress live beside yours, so you can see the gap as you type.
+            </p>
           </Field>
         )}
 

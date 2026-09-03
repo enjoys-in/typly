@@ -7,8 +7,9 @@ export interface Countdown {
 }
 
 // Counts down from durationSec while `running`; reports elapsed + remaining + expiry.
-export function useCountdown(durationSec: number, running: boolean): Countdown {
-  const [elapsedMs, setElapsedMs] = useState(0);
+// `initialMs` carries over the time already spent when resuming an attempt.
+export function useCountdown(durationSec: number, running: boolean, initialMs = 0): Countdown {
+  const [elapsedMs, setElapsedMs] = useState(initialMs);
   const startRef = useRef<number | null>(null);
 
   useEffect(() => {

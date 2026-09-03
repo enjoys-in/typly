@@ -1,4 +1,5 @@
-import { Lang } from '../constants';
+import type { Lang } from '../constants';
+import { isLatin } from './scripts';
 
 // Emoji, flags, skin-tone modifiers, variation selectors, ZWJ and keycap combiner.
 // Letters (incl. Devanagari), digits, punctuation and other symbols are preserved.
@@ -21,8 +22,8 @@ export function cleanText(raw: string, lang: Lang): string {
   // Normalize multiple blank lines to a single paragraph break.
   text = text.replace(/\n{3,}/g, '\n\n');
 
-  // English OCR often mangles spacing around punctuation.
-  if (lang === Lang.En) {
+  // Latin-script OCR often mangles spacing around punctuation.
+  if (isLatin(lang)) {
     text = text.replace(/\s+([,.!?;:])/g, '$1');
   }
 

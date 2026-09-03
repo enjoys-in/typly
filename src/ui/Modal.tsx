@@ -1,15 +1,25 @@
 import { useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
+type Size = 'sm' | 'lg';
+
+// `sm` for confirmations, `lg` for a panel that has to show real content.
+const WIDTH: Record<Size, string> = {
+  sm: 'max-w-md',
+  lg: 'max-w-3xl',
+};
+
 // Accessible modal primitive: backdrop + Escape close, portalled to <body>.
 export function Modal({
   children,
   onClose,
   labelledBy,
+  size = 'sm',
 }: {
   children: ReactNode;
   onClose: () => void;
   labelledBy?: string;
+  size?: Size;
 }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -26,7 +36,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}
-        className="relative w-full max-w-md rounded-2xl border border-edge bg-surface p-6 shadow-xl"
+        className={`relative w-full ${WIDTH[size]} rounded-2xl border border-edge bg-surface p-6 shadow-xl`}
       >
         {children}
       </div>

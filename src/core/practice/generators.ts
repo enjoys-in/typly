@@ -69,6 +69,15 @@ function cap(word: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
+function shuffle<T>(items: T[]): T[] {
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j] as T, out[i] as T];
+  }
+  return out;
+}
+
 // A structured single-row drill: single-key warm-ups, whole-hand blocks, cross-hand
 // bigrams, then mixed groups — the "proper" asdf / jkl progression a tutor uses.
 function rowDrill(left: string[], right: string[]): string {
@@ -150,9 +159,23 @@ export function generateWeaknessDrill(keys: string[], words: string[]): string {
   for (const w of words.slice(0, 8)) tokens.push(w, w);
   const pool = keys.length ? keys : HOME_ROW;
   for (let i = 0; i < 26; i++) tokens.push(group(3, 5, pool));
-  for (let i = tokens.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [tokens[i], tokens[j]] = [tokens[j] as string, tokens[i] as string];
+  return shuffle(tokens).join(' ');
+}
+
+/**
+ * A rhythm drill for the transitions that cost the most time. Each slow pair is
+ * repeated as its own burst, then buried inside mixed groups so the hand has to
+ * find it cold — the same progression a tutor uses for a sticky bigram.
+ */
+export function generateSpeedDrill(pairs: string[], keys: string[]): string {
+  const tokens: string[] = [];
+  for (const pair of pairs.slice(0, 10)) {
+    tokens.push(pair.repeat(3), pair.repeat(2), pair);
   }
-  return tokens.join(' ');
+  const pool = keys.length ? keys : HOME_ROW;
+  for (const pair of pairs.slice(0, 10)) {
+    tokens.push(`${group(1, 2, pool)}${pair}${group(1, 2, pool)}`);
+  }
+  for (let i = 0; i < 16; i++) tokens.push(group(3, 5, pool));
+  return shuffle(tokens).join(' ');
 }

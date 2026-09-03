@@ -44,6 +44,52 @@ export function testsThisMonth(rows: TestRow[]): number {
   return realAttempts(rows).filter((r) => isThisMonth(new Date(r.createdAt))).length;
 }
 
+export interface WpmAverages {
+  /** Mean net WPM across every real attempt. */
+  netAll: number;
+  /** Mean gross (unpenalised) WPM across every real attempt. */
+  grossAll: number;
+  /** Mean net WPM over the most recent attempts — the current form. */
+  recentNet: number;
+  /** How many attempts `recentNet` covers. */
+  recentCount: number;
+  /** recentNet minus netAll: positive means improving on your own average. */
+  trend: number;
+  /** Mean net WPM of today's attempts, or null if none yet. */
+  todayNet: number | null;
+  bestNet: number;
+}
+
+function mean(values: number[]): number {
+  return values.length === 0 ? 0 : round1(values.reduce((s, v) => s + v, 0) / values.length);
+}
+
+/**
+ * Every average worth reading at a glance: lifetime, current form, today, best.
+ * Rows are newest-first (as `listHistory` returns them), so "recent" is the head.
+ */
+export function wpmAverages(rows: TestRow[], recent = 10): WpmAverages {
+  const real = realAttempts(rows);
+  const netAll = mean(real.map((r) => r.netWpm));
+  const head = real.slice(0, recent);
+  const recentNet = mean(head.map((r) => r.netWpm));
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const todays = real.filter((r) => format(new Date(r.createdAt), 'yyyy-MM-dd') === today);
+  return {
+    netAll,
+    grossAll: mean(real.map((r) => r.grossWpm)),
+    recentNet,
+    recentCount: head.length,
+    trend: round1(recentNet - netAll),
+    todayNet: todays.length > 0 ? mean(todays.map((r) => r.netWpm)) : null,
+    bestNet: real.reduce((m, r) => Math.max(m, r.netWpm), 0),
+  };
+}
+
+function round1(n: number): number {
+  return Math.round(n * 10) / 10;
+}
+
 // Reward points for a single run: speed + accuracy and pass bonuses.
 export function pointsFor(r: TestRow): number {
   return Math.round(r.netWpm) + (r.accuracy >= 95 ? 20 : 0) + (r.status === TestStatus.Passed ? 30 : 0);

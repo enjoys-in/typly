@@ -1,8 +1,23 @@
 // Central enums + tunables. No magic strings/numbers anywhere else in the app.
 
+// Values are Tesseract language codes, so OCR can pass them straight through.
 export enum Lang {
   En = 'eng',
   Hi = 'hin',
+  Mr = 'mar',
+  Bn = 'ben',
+  Ta = 'tam',
+  Gu = 'guj',
+}
+
+// Writing system a language uses. Input methods, legacy fonts and punctuation
+// cleanup are script-level concerns, not language-level ones.
+export enum Script {
+  Latin = 'latin',
+  Devanagari = 'devanagari',
+  Bengali = 'bengali',
+  Tamil = 'tamil',
+  Gujarati = 'gujarati',
 }
 
 export enum SourceType {
@@ -82,6 +97,7 @@ export enum InputMethod {
   Qwerty = 'qwerty',
   Phonetic = 'phonetic',
   InScript = 'inscript',
+  Remington = 'remington',
 }
 
 export enum HindiFont {
@@ -118,6 +134,15 @@ export const EXAM_ZOOM_MIN = 0.75;
 export const EXAM_ZOOM_MAX = 2;
 export const EXAM_ZOOM_DEFAULT = 1;
 
+// Mock exam: cap on the reading window offered before the clock starts. The
+// default is 0 — a plain test must never gain a wait the user did not ask for.
+export const MAX_READING_SEC = 600;
+// How often an in-progress attempt is checkpointed so a reload can resume it.
+export const SNAPSHOT_SAVE_MS = 5_000;
+// Recent tests scanned when aggregating keystroke timing (whole-history would
+// mean parsing every stored run).
+export const KEYSTROKE_SCAN_TESTS = 20;
+
 export const WARNING_SECONDS = 60; // T-1 min warning
 export const IDLE_SECONDS = 20; // no-typing gap that triggers an idle notification
 export const SERIES_ADVANCE_SECONDS = 4; // countdown before auto-starting the next test in a series
@@ -125,9 +150,34 @@ export const DEFAULT_DURATIONS_MIN = [5, 10, 15, 30] as const;
 export const GUEST_MAX_DURATION_MIN = 30; // guest cap
 export const MAX_DURATION_MIN = 180; // absolute cap for signed-in users
 
+// Keys used with Repository.getSetting / setSetting — never a bare string.
+export const SETTING_KEY = {
+  CompletedLessons: 'completedLessons',
+  CustomLessons: 'customLessons',
+  NotifiedBadges: 'notifiedBadges',
+  ExamSnapshot: 'exam:snapshot',
+  SampleSeeded: 'sample:seeded',
+  SampleDocId: 'sample:documentId',
+  ReminderFired: 'reminderLastFired',
+  ReminderNudged: 'reminderNudgedFor',
+} as const;
+
 export const LANG_LABEL: Record<Lang, string> = {
   [Lang.En]: 'English',
   [Lang.Hi]: 'Hindi',
+  [Lang.Mr]: 'Marathi',
+  [Lang.Bn]: 'Bengali',
+  [Lang.Ta]: 'Tamil',
+  [Lang.Gu]: 'Gujarati',
+};
+
+export const LANG_SCRIPT: Record<Lang, Script> = {
+  [Lang.En]: Script.Latin,
+  [Lang.Hi]: Script.Devanagari,
+  [Lang.Mr]: Script.Devanagari,
+  [Lang.Bn]: Script.Bengali,
+  [Lang.Ta]: Script.Tamil,
+  [Lang.Gu]: Script.Gujarati,
 };
 
 export const DIFFICULTY_LABEL: Record<Difficulty, string> = {
@@ -161,8 +211,9 @@ export const EXAM_MODE_LABEL: Record<ExamMode, string> = {
 
 export const INPUT_METHOD_LABEL: Record<InputMethod, string> = {
   [InputMethod.Qwerty]: 'Standard (QWERTY)',
-  [InputMethod.Phonetic]: 'Hindi phonetic',
-  [InputMethod.InScript]: 'Hindi InScript',
+  [InputMethod.Phonetic]: 'Phonetic (type in Roman)',
+  [InputMethod.InScript]: 'InScript (BIS / Unicode)',
+  [InputMethod.Remington]: 'Remington GAIL (typewriter)',
 };
 
 export const HINDI_FONT_LABEL: Record<HindiFont, string> = {

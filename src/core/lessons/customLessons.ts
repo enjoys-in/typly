@@ -1,3 +1,4 @@
+import { SETTING_KEY } from '../constants';
 import { findLesson, SkillLevel } from './curriculum';
 
 export const CUSTOM_LESSON_PREFIX = 'c-';
@@ -12,7 +13,7 @@ export interface CustomLesson {
   createdAt: string;
 }
 
-const KEY = 'customLessons';
+const KEY = SETTING_KEY.CustomLessons;
 
 export async function loadCustomLessons(
   getSetting: (key: string) => Promise<string | null>,

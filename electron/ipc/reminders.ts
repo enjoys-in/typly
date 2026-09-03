@@ -1,47 +1,77 @@
 import { Notification } from 'electron';
 import type { SqliteRepository } from '../data/db';
-
-function dayKey(d = new Date()): string {
-  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-}
-function hhmm(d = new Date()): string {
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
+import { SETTING_KEY } from '../../src/core/constants';
+import {
+  DEFAULT_REMINDER_TIME,
+  dayKey,
+  decideReminder,
+  REMINDER_MESSAGE,
+} from '../../src/core/reminder/schedule';
 
 // Main-process daily reminder. Runs off a main timer (not the renderer, which is
-// throttled when hidden) and shares `reminderLastFired` with the renderer store.
-export function createReminderScheduler(db: SqliteRepository, onActivate: () => void) {
+// throttled when hidden) and shares its stored flags with the renderer store.
+// The schedule itself lives in src/core/reminder so web and desktop agree.
+export function createReminderScheduler(
+  db: SqliteRepository,
+  onActivate: () => void,
+  /** Called whenever the outstanding-practice state changes (drives the tray). */
+  onPending: (pending: boolean) => void = () => {},
+) {
   let enabled = false;
-  let time = '19:00';
+  let time = DEFAULT_REMINDER_TIME;
   let timer: ReturnType<typeof setInterval> | null = null;
+  let lastPending: boolean | null = null;
+
+  function notify(title: string, body: string): void {
+    if (!Notification.isSupported()) return;
+    const n = new Notification({ title, body });
+    n.on('click', onActivate);
+    n.show();
+  }
 
   function tick() {
-    if (!enabled || hhmm() < time) return;
-    const today = dayKey();
-    if (db.getSetting('reminderLastFired') === today) return;
-    const practiced = db.listHistory().some((t) => dayKey(new Date(t.createdAt)) === today);
-    db.setSetting('reminderLastFired', today);
-    if (!practiced && Notification.isSupported()) {
-      const n = new Notification({
-        title: 'Time to practice ⌨️',
-        body: 'Keep your streak going with a quick typing test.',
-      });
-      n.on('click', onActivate);
-      n.show();
+    const now = new Date();
+    const decision = decideReminder({
+      enabled,
+      time,
+      now,
+      practicedToday: db.listHistory().some((t) => dayKey(new Date(t.createdAt)) === dayKey(now)),
+      firedFor: db.getSetting(SETTING_KEY.ReminderFired),
+      nudgedFor: db.getSetting(SETTING_KEY.ReminderNudged),
+    });
+
+    if (decision.notifyDue) {
+      db.setSetting(SETTING_KEY.ReminderFired, decision.today);
+      notify(REMINDER_MESSAGE.due.title, REMINDER_MESSAGE.due.body);
+    } else if (decision.notifyMissed) {
+      db.setSetting(SETTING_KEY.ReminderNudged, decision.today);
+      notify(REMINDER_MESSAGE.missed.title, REMINDER_MESSAGE.missed.body);
+    }
+
+    // Only touch the tray when the state actually changes.
+    if (decision.pending !== lastPending) {
+      lastPending = decision.pending;
+      onPending(decision.pending);
     }
   }
 
   function configure(nextEnabled: boolean, nextTime: string): void {
     enabled = nextEnabled;
-    time = nextTime || '19:00';
+    time = nextTime || DEFAULT_REMINDER_TIME;
     if (timer) {
       clearInterval(timer);
       timer = null;
     }
-    if (enabled) {
-      tick();
-      timer = setInterval(tick, 60_000);
+    if (!enabled) {
+      // Turning reminders off must clear any nudge already on the tray.
+      if (lastPending) {
+        lastPending = false;
+        onPending(false);
+      }
+      return;
     }
+    tick();
+    timer = setInterval(tick, 60_000);
   }
 
   return { configure };

@@ -1,11 +1,13 @@
 import { create } from 'zustand';
 import type { Repository } from '@/platform/ports';
+import type { SeriesBase } from '@/core/types';
 import {
   Difficulty,
   EXAM_ZOOM_DEFAULT,
   EXAM_ZOOM_MAX,
   EXAM_ZOOM_MIN,
   ExamBoard,
+  MAX_READING_SEC,
   ExamMode,
   HindiFont,
   InputMethod,
@@ -44,8 +46,12 @@ interface SettingsState {
   examMode: ExamMode;
   /** Input method (QWERTY, or Hindi phonetic transliteration). */
   inputMethod: InputMethod;
-  /** Font applied to Hindi passages (Mangal/Kruti Dev/custom upload). */
+  /** Font applied to Devanagari passages (Mangal/Kruti Dev/custom upload). */
   hindiFont: HindiFont;
+  /** Mock exam: show the rules briefing before the passage. */
+  briefing: boolean;
+  /** Mock exam: seconds to read the passage before the clock starts. */
+  readingSec: number;
   setLang: (lang: Lang) => void;
   setBoard: (board: ExamBoard) => void;
   setTiming: (timing: TimingMode) => void;
@@ -68,6 +74,8 @@ interface SettingsState {
   setExamMode: (v: ExamMode) => void;
   setInputMethod: (v: InputMethod) => void;
   setHindiFont: (v: HindiFont) => void;
+  setBriefing: (v: boolean) => void;
+  setReadingSec: (v: number) => void;
 }
 
 /** The persisted slice — every field above except the setters. */
@@ -96,6 +104,8 @@ const DEFAULTS: Persisted = {
   examMode: ExamMode.Standard,
   inputMethod: InputMethod.Qwerty,
   hindiFont: HindiFont.System,
+  briefing: false,
+  readingSec: 0,
 };
 
 // Single row in the Dexie `settings` table, so preferences live in IndexedDB
@@ -126,10 +136,41 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setExamMode: (examMode) => set({ examMode }),
   setInputMethod: (inputMethod) => set({ inputMethod }),
   setHindiFont: (hindiFont) => set({ hindiFont }),
-  // Clamped here so callers can pass raw step arithmetic.
+  setBriefing: (briefing) => set({ briefing }),
+  // Clamped here so callers can pass raw input.
+  setReadingSec: (readingSec) =>
+    set({ readingSec: Math.min(MAX_READING_SEC, Math.max(0, Math.round(readingSec) || 0)) }),
   setExamZoom: (examZoom) =>
     set({ examZoom: Math.min(EXAM_ZOOM_MAX, Math.max(EXAM_ZOOM_MIN, examZoom)) }),
 }));
+
+/**
+ * The exam-settings half of an ExamConfig. Every entry point (setup, series,
+ * drills) builds a run from this, so the mapping lives here once instead of
+ * being retyped at each call site.
+ */
+export function examBase(s: SettingsState): SeriesBase {
+  return {
+    lang: s.lang,
+    board: s.board,
+    timing: s.timing,
+    durationSec: s.durationSec,
+    difficulty: s.difficulty,
+    examMode: s.examMode,
+    backspaceEnabled: s.backspaceEnabled,
+    spaceEnabled: s.spaceEnabled,
+    enterEnabled: s.enterEnabled,
+    examLock: s.examLock,
+    briefing: s.briefing,
+    readingSec: s.readingSec,
+    ghostTestId: null,
+  };
+}
+
+/** Same, for generated drills — a practice drill is never a mock exam. */
+export function drillBase(s: SettingsState): SeriesBase {
+  return { ...examBase(s), briefing: false, readingSec: 0 };
+}
 
 /**
  * Copies only keys that exist in DEFAULTS and match their type, so a stale or

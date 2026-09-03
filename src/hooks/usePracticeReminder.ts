@@ -1,46 +1,58 @@
 import { useEffect } from 'react';
 import { usePlatform } from '@/platform/PlatformContext';
 import { useSettingsStore } from '@/store/settingsStore';
+import { SETTING_KEY } from '@/core/constants';
+import { appConfig } from '@/config/appConfig';
+import { dayKey, decideReminder, REMINDER_MESSAGE } from '@/core/reminder/schedule';
 
-function dayKey(d = new Date()): string {
-  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-}
-
-function hhmm(d = new Date()): string {
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-}
+const BASE_TITLE = `${appConfig.name} — ${appConfig.tagline}`;
+const PENDING_TITLE = `⌨️ Typing pending — ${appConfig.name}`;
 
 // While the app is open, nudge once a day at the chosen time if the user hasn't
-// practiced yet. Desktop stays alive via the tray, so it fires even when hidden.
+// practiced yet, then keep the tab title saying so until they do. Desktop stays
+// alive via the tray, so the main process runs the same schedule there instead.
 export function usePracticeReminder(): void {
   const platform = usePlatform();
   const enabled = useSettingsStore((s) => s.reminderEnabled);
   const time = useSettingsStore((s) => s.reminderTime);
 
   useEffect(() => {
-    // Desktop: let the main process run the timer (survives renderer throttling).
+    // Desktop: let the main process run the timer (survives renderer throttling)
+    // and show the pending state in the tray.
     const desktop = window.bridge?.reminder;
     if (desktop) {
       void desktop.set(enabled, time);
       return;
     }
-    if (!enabled) return;
+    if (!enabled) {
+      document.title = BASE_TITLE;
+      return;
+    }
     let cancelled = false;
 
     async function check() {
-      if (cancelled || hhmm() < time) return;
-      const today = dayKey();
-      // Only handle one reminder per day.
-      if ((await platform.repo.getSetting('reminderLastFired')) === today) return;
+      if (cancelled) return;
+      const now = new Date();
       const history = await platform.repo.listHistory();
-      const practiced = history.some((t) => dayKey(new Date(t.createdAt)) === today);
-      await platform.repo.setSetting('reminderLastFired', today);
-      if (!practiced) {
-        platform.notifications.notify(
-          'Time to practice ⌨️',
-          'Keep your streak going with a quick typing test.',
-        );
+      const decision = decideReminder({
+        enabled: true,
+        time,
+        now,
+        practicedToday: history.some((t) => dayKey(new Date(t.createdAt)) === dayKey(now)),
+        firedFor: await platform.repo.getSetting(SETTING_KEY.ReminderFired),
+        nudgedFor: await platform.repo.getSetting(SETTING_KEY.ReminderNudged),
+      });
+      if (cancelled) return;
+
+      if (decision.notifyDue) {
+        await platform.repo.setSetting(SETTING_KEY.ReminderFired, decision.today);
+        platform.notifications.notify(REMINDER_MESSAGE.due.title, REMINDER_MESSAGE.due.body);
+      } else if (decision.notifyMissed) {
+        await platform.repo.setSetting(SETTING_KEY.ReminderNudged, decision.today);
+        platform.notifications.notify(REMINDER_MESSAGE.missed.title, REMINDER_MESSAGE.missed.body);
       }
+      // The tab title is the web's tray: it keeps asking until practice is done.
+      document.title = decision.pending ? PENDING_TITLE : BASE_TITLE;
     }
 
     void check();
@@ -48,6 +60,7 @@ export function usePracticeReminder(): void {
     return () => {
       cancelled = true;
       window.clearInterval(id);
+      document.title = BASE_TITLE;
     };
   }, [enabled, time, platform]);
 }

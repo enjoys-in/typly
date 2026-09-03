@@ -1,14 +1,25 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { ChevronDown, ChevronRight, ChevronUp, FileText, ListOrdered, Play, Trophy, X } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronRight,
+  ChevronUp,
+  FileText,
+  ListOrdered,
+  Play,
+  Trash2,
+  Trophy,
+  X,
+} from 'lucide-react';
 import { usePlatform } from '@/platform/PlatformContext';
 import { useExamStore } from '@/store/examStore';
-import { useSettingsStore } from '@/store/settingsStore';
+import { examBase, useSettingsStore } from '@/store/settingsStore';
 import type { DocumentRow, TestRow } from '@/core/types';
 import { LANG_LABEL, TestStatus } from '@/core/constants';
 import { Card } from '@/ui/Card';
 import { Button } from '@/ui/Button';
+import { useConfirm } from '@/ui/Confirm';
 import { Segmented, type SegmentedOption } from '@/ui/Segmented';
 import { SkeletonTable } from '@/ui/Skeleton';
 
@@ -22,6 +33,7 @@ const ORDER_OPTIONS: SegmentedOption<'serial' | 'preference'>[] = [
 export function Documents() {
   const platform = usePlatform();
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const setDraft = useExamStore((s) => s.setDraft);
   const startSeries = useExamStore((s) => s.startSeries);
   const settings = useSettingsStore();
@@ -53,6 +65,21 @@ export function Documents() {
     platform.repo.listHistory().then(setHistory);
   }, [platform]);
 
+  async function removeDoc(doc: DocumentRow) {
+    const ok = await confirm({
+      title: `Delete "${doc.title}"?`,
+      message:
+        'The paragraph is removed from your library. Past results keep their scores, but can no longer be retested or replayed.',
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (!ok) return;
+    await platform.repo.deleteDocument(doc.id);
+    setDocs((rows) => (rows ?? []).filter((r) => r.id !== doc.id));
+    setSelectedIds((ids) => ids.filter((id) => id !== doc.id));
+    setOpenId((id) => (id === doc.id ? null : id));
+  }
+
   const attemptsByDoc = useMemo(() => {
     const map = new Map<number, TestRow[]>();
     for (const t of history) {
@@ -70,6 +97,7 @@ export function Documents() {
       title: doc.title,
       documentId: doc.id,
       sourceType: doc.sourceType,
+      lang: doc.lang,
     });
     navigate('/app/setup');
   }
@@ -89,18 +117,7 @@ export function Documents() {
       documentId: d.id,
       sourceType: d.sourceType,
     }));
-    startSeries(items, {
-      lang: settings.lang,
-      board: settings.board,
-      timing: settings.timing,
-      durationSec: settings.durationSec,
-      difficulty: settings.difficulty,
-      examMode: settings.examMode,
-      backspaceEnabled: settings.backspaceEnabled,
-      spaceEnabled: settings.spaceEnabled,
-      enterEnabled: settings.enterEnabled,
-      examLock: settings.examLock,
-    });
+    startSeries(items, examBase(settings));
     navigate('/app/exam');
   }
 
@@ -205,7 +222,7 @@ export function Documents() {
                 <col className="w-24" />
                 <col className="w-20" />
                 <col className="w-24" />
-                <col className="w-28" />
+                <col className="w-36" />
               </colgroup>
               <thead className="sticky top-0 z-10 bg-surface-2 text-xs uppercase tracking-wide text-fg-muted">
                 <tr>
@@ -234,6 +251,7 @@ export function Documents() {
                       onSelect={() => toggleSelect(doc.id)}
                       onToggle={() => setOpenId(open ? null : doc.id)}
                       onRun={() => useForTest(doc)}
+                      onDelete={() => void removeDoc(doc)}
                     />
                   );
                 })}
@@ -255,6 +273,7 @@ function DocRow({
   onSelect,
   onToggle,
   onRun,
+  onDelete,
 }: {
   doc: DocumentRow;
   attempts: TestRow[];
@@ -264,6 +283,7 @@ function DocRow({
   onSelect: () => void;
   onToggle: () => void;
   onRun: () => void;
+  onDelete: () => void;
 }) {
   return (
     <>
@@ -296,11 +316,22 @@ function DocRow({
         <td className="px-3 py-2.5 text-right font-semibold tabular-nums text-accent-text">
           {best > 0 ? best : '—'}
         </td>
-        <td className="px-3 py-2.5 text-right">
-          <Button size="sm" onClick={onRun} title={attempts.length > 0 ? 'Run again' : 'Use for a test'}>
-            <Play size={13} />
-            {attempts.length > 0 ? 'Retest' : 'Start'}
-          </Button>
+        <td className="px-3 py-2.5">
+          <div className="flex items-center justify-end gap-1.5">
+            <Button size="sm" onClick={onRun} title={attempts.length > 0 ? 'Run again' : 'Use for a test'}>
+              <Play size={13} />
+              {attempts.length > 0 ? 'Retest' : 'Start'}
+            </Button>
+            <button
+              type="button"
+              onClick={onDelete}
+              aria-label={`Delete ${doc.title}`}
+              title="Delete this paragraph"
+              className="cursor-pointer rounded-control p-1.5 text-fg-subtle transition-colors hover:bg-danger-soft hover:text-danger-text"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
         </td>
       </tr>
       {open && (

@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Crosshair,
   Dumbbell,
   GraduationCap,
   History as HistoryIcon,
+  Info,
   Library,
   LayoutDashboard,
   LogOut,
@@ -18,6 +20,7 @@ import { usePlatform } from '@/platform/PlatformContext';
 import { useAuthStore } from '@/store/authStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { appConfig } from '@/config/appConfig';
+import { AboutPanel } from './AboutPanel';
 
 const LINKS: { to: string; label: string; icon: LucideIcon; end?: boolean }[] = [
   { to: '/app', label: 'Dashboard', icon: LayoutDashboard, end: true },
@@ -37,6 +40,7 @@ export function Sidebar() {
   const { account, setAccount } = useAuthStore();
   const collapsed = useSettingsStore((s) => s.sidebarCollapsed);
   const setCollapsed = useSettingsStore((s) => s.setSidebarCollapsed);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const Logo = appConfig.logo;
 
   async function logout() {
@@ -121,7 +125,21 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="mt-auto border-t border-line pt-3">
+      <div className="mt-auto pt-3">
+        <button
+          type="button"
+          onClick={() => setAboutOpen(true)}
+          title={collapsed ? 'About' : undefined}
+          className={`flex w-full cursor-pointer items-center rounded-control text-sm font-medium text-fg-muted outline-none transition-colors duration-150 hover:bg-surface-hover hover:text-fg focus-visible:ring-2 focus-visible:ring-accent-ring ${
+            collapsed ? 'h-10 justify-center' : 'gap-3 px-3 py-2.5'
+          }`}
+        >
+          <Info size={18} className="shrink-0" />
+          {!collapsed && 'About'}
+        </button>
+      </div>
+
+      <div className="border-t border-line pt-3">
         <div
           className={`mb-2 flex items-center ${collapsed ? 'justify-center' : 'gap-2 px-1'}`}
           title={collapsed ? (account?.guest ? 'Guest' : (account?.id ?? '')) : undefined}
@@ -146,6 +164,8 @@ export function Sidebar() {
           {!collapsed && 'Log out'}
         </button>
       </div>
+
+      {aboutOpen && <AboutPanel onClose={() => setAboutOpen(false)} />}
     </aside>
   );
 }

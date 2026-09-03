@@ -10,9 +10,12 @@ const METHODS = new Set([
   'saveDocument',
   'listDocuments',
   'getDocument',
+  'deleteDocument',
   'getSetting',
   'setSetting',
   'aggregateMistakes',
+  'getKeystrokes',
+  'recentKeystrokes',
   'exportBackup',
   'importBackup',
 ]);

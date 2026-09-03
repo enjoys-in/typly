@@ -81,3 +81,20 @@ function strip(word: string): string {
 export function countWords(text: string): number {
   return words(text).length;
 }
+
+/**
+ * The slice of `expected` the typist actually reached.
+ *
+ * A timed test ends mid-passage, and comparing the whole passage against a
+ * partial attempt turns every untyped word into a missing-word mistake — which
+ * wipes out net WPM entirely. Scoring compares like with like: the words that
+ * were attempted, and nothing beyond them.
+ */
+export function attemptedSlice(expected: string, typed: string): string {
+  const reached = countWords(typed);
+  if (reached === 0) return '';
+  const matches = [...expected.matchAll(WORD_RE)];
+  if (reached >= matches.length) return expected;
+  const last = matches[reached - 1]!;
+  return expected.slice(0, last.index + last[0].length);
+}

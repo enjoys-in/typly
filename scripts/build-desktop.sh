@@ -86,6 +86,12 @@ bun run build
 echo "==> Bundling Electron main + preload…"
 bun run electron:build
 
+# better-sqlite3 is compiled for Node by default. Without this it fails to load
+# inside Electron and the app silently falls back to browser storage, so the
+# packaged desktop build would ship without its own database.
+echo "==> Rebuilding native modules for Electron…"
+bun run rebuild
+
 echo "==> Packaging with electron-builder…"
 # Produce an unsigned build unless signing is already configured in the env.
 export CSC_IDENTITY_AUTO_DISCOVERY="${CSC_IDENTITY_AUTO_DISCOVERY:-false}"

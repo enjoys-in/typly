@@ -54,7 +54,7 @@ export function NewTest() {
       .saveDocument({ title: finalTitle, lang, sourceType: source, content })
       .catch(() => null);
     setSaving(false);
-    setDraft({ passage: content, title: finalTitle, documentId, sourceType: source });
+    setDraft({ passage: content, title: finalTitle, documentId, sourceType: source, lang });
     navigate('/app/setup');
   }
 

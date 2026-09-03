@@ -2,6 +2,7 @@ import type {
   DocumentInput,
   DocumentRow,
   GrammarIssue,
+  Keystroke,
   SaveTestPayload,
   TestResult,
   TestRow,
@@ -36,6 +37,7 @@ export interface FullResult {
   row: TestRow;
   result: TestResult;
   mistakes: Mistake[];
+  keystrokes: Keystroke[];
 }
 
 export interface BackupBundle {
@@ -53,9 +55,15 @@ export interface Repository {
   saveDocument(doc: DocumentInput): Promise<number>;
   listDocuments(): Promise<DocumentRow[]>;
   getDocument(id: number): Promise<DocumentRow | null>;
+  /** Removes a paragraph; tests that used it keep their scores but lose the link. */
+  deleteDocument(id: number): Promise<void>;
   getSetting(key: string): Promise<string | null>;
   setSetting(key: string, value: string): Promise<void>;
   aggregateMistakes(): Promise<Mistake[]>;
+  /** The keystroke log of one test, for replay and racing. Empty if not stored. */
+  getKeystrokes(testId: number): Promise<Keystroke[]>;
+  /** Keystrokes of the most recent `limit` tests, flattened for timing analysis. */
+  recentKeystrokes(limit: number): Promise<Keystroke[]>;
   exportBackup(): Promise<BackupBundle>;
   importBackup(bundle: BackupBundle): Promise<void>;
 }

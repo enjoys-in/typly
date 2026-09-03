@@ -5,6 +5,9 @@ import type { BackupBundle } from '@/platform/ports';
 import { useAuthStore } from '@/store/authStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { boardsByCategory, profileFor } from '@/core/scoring/examProfiles';
+import { isMethodAvailable } from '@/core/text/keymaps';
+import { MISSED_NUDGE_MINUTES } from '@/core/reminder/schedule';
+import { isElectron } from '@/platform/detect';
 import {
   ExamBoard,
   Difficulty,
@@ -193,21 +196,23 @@ export function Settings() {
         </label>
 
         <label className="flex flex-col gap-2">
-          <span className="text-sm font-medium">Hindi input method</span>
+          <span className="text-sm font-medium">Devanagari input method</span>
           <select
             value={settings.inputMethod}
             onChange={(e) => settings.setInputMethod(e.target.value as InputMethod)}
             className="select"
           >
             {Object.values(InputMethod).map((m) => (
-              <option key={m} value={m}>
+              <option key={m} value={m} disabled={!isMethodAvailable(m)}>
                 {INPUT_METHOD_LABEL[m]}
+                {isMethodAvailable(m) ? '' : ' — layout data not installed'}
               </option>
             ))}
           </select>
           <span className="text-xs text-fg-muted">
-            Phonetic lets you type Hindi in Roman (e.g. namaste → नमस्ते). InScript remaps the
-            keyboard to the government-standard Devanagari layout. Both apply to Hindi tests.
+            Phonetic lets you type in Roman (e.g. namaste → नमस्ते). InScript remaps the keyboard to
+            the government-standard Devanagari layout, Remington GAIL to the typewriter layout. All
+            apply to Hindi and Marathi tests.
           </span>
         </label>
 
@@ -337,6 +342,13 @@ export function Settings() {
               className="select w-32"
             />
           </label>
+        )}
+        {settings.reminderEnabled && (
+          <p className="max-w-2xl text-xs text-fg-muted">
+            Miss it and Typly keeps asking: {MISSED_NUDGE_MINUTES} minutes later you get a second
+            notification, and the {isElectron() ? 'tray icon' : 'browser tab'} shows practice as
+            pending until you finish a test.
+          </p>
         )}
       </Card>
 

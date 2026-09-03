@@ -1,7 +1,7 @@
 {
   "name": "typly",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Offline-first typing-exam practice for Indian competitive exams.",
   "author": {
     "name": "enjoys",
@@ -20,8 +20,8 @@
     "electron:dev": "bun run electron:build && ELECTRON_RENDERER_URL=http://localhost:5173 electron .",
     "electron:preview": "bun run build && bun run electron:build && electron .",
     "rebuild": "electron-builder install-app-deps",
-    "dist": "bun run ocr:assets && bun run build && bun run electron:build && electron-builder --mac",
-    "dist:universal": "bun run ocr:assets && bun run build && bun run electron:build && electron-builder --mac --universal",
+    "dist": "bun run ocr:assets && bun run build && bun run electron:build && bun run rebuild && electron-builder --mac",
+    "dist:universal": "bun run ocr:assets && bun run build && bun run electron:build && bun run rebuild && electron-builder --mac --universal",
     "dist:desktop": "bash scripts/build-desktop.sh"
   },
   "dependencies": {

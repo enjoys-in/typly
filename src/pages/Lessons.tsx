@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, Lock, Play, Plus, Trash2 } from 'lucide-react';
 import { usePlatform } from '@/platform/PlatformContext';
 import { useExamStore } from '@/store/examStore';
-import { useSettingsStore } from '@/store/settingsStore';
+import { drillBase, useSettingsStore } from '@/store/settingsStore';
 import { isMacOS } from '@/platform/detect';
-import { SourceType } from '@/core/constants';
+import { SETTING_KEY, SourceType } from '@/core/constants';
 import {
   LESSONS,
   SKILL_LEVEL_LABEL,
@@ -33,7 +33,7 @@ export function Lessons() {
   const [addingLesson, setAddingLesson] = useState(false);
 
   useEffect(() => {
-    platform.repo.getSetting('completedLessons').then((raw) => {
+    platform.repo.getSetting(SETTING_KEY.CompletedLessons).then((raw) => {
       try {
         setDone(new Set(JSON.parse(raw ?? '[]') as string[]));
       } catch {
@@ -51,20 +51,11 @@ export function Lessons() {
 
   function run(passage: string, title: string, lessonId: string) {
     setConfig({
+      ...drillBase(settings),
       passage,
       title,
       documentId: null,
-      lang: settings.lang,
-      board: settings.board,
-      timing: settings.timing,
-      durationSec: settings.durationSec,
       sourceType: SourceType.Text,
-      difficulty: settings.difficulty,
-      examMode: settings.examMode,
-      backspaceEnabled: settings.backspaceEnabled,
-      spaceEnabled: settings.spaceEnabled,
-      enterEnabled: settings.enterEnabled,
-      examLock: settings.examLock,
       lessonId,
     });
     navigate('/app/exam');

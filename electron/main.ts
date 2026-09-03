@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain, shell, nativeImage } from 'electron';
 import path from 'node:path';
-import { createTray, destroyTray } from './shell/tray';
+import { createTray, destroyTray, setTrayPending } from './shell/tray';
 import { createSplash } from './shell/splash';
 import { SqliteRepository } from './data/db';
 import { registerRepoIpc } from './ipc/repository';
@@ -21,6 +21,13 @@ const DIST_DIR = path.join(__dirname, '../dist');
 registerAppSchemePrivileges();
 
 let mainWindow: BrowserWindow | null = null;
+
+function focusMainWindow(): void {
+  if (!mainWindow) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.show();
+  mainWindow.focus();
+}
 
 function createMainWindow(): BrowserWindow {
   const win = new BrowserWindow({
@@ -59,7 +66,7 @@ function createMainWindow(): BrowserWindow {
   return win;
 }
 
-void app.whenReady().then(() => {
+function bootstrap(): void {
   // Packaged builds get the dock/Finder icon from the bundled .icns; in dev we
   // point the dock at the source icon so it isn't the default Electron logo.
   if (process.platform === 'darwin' && !app.isPackaged) {
@@ -75,10 +82,12 @@ void app.whenReady().then(() => {
   try {
     const db = new SqliteRepository();
     registerRepoIpc(db);
-    reminders = createReminderScheduler(db, () => {
-      mainWindow?.show();
-      mainWindow?.focus();
-    });
+    reminders = createReminderScheduler(
+      db,
+      focusMainWindow,
+      // A missed reminder keeps nudging from the tray until practice is done.
+      setTrayPending,
+    );
     sqliteReady = true;
   } catch (err) {
     console.error('[typly] SQLite unavailable, using IndexedDB fallback:', err);
@@ -106,7 +115,19 @@ void app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0) mainWindow = createMainWindow();
     else mainWindow?.show();
   });
-});
+}
+
+/**
+ * One instance per machine. Without this a second launch starts a rival process
+ * that opens the same SQLite database, so two windows would write the same
+ * history. A second launch focuses the window that already exists.
+ */
+if (app.requestSingleInstanceLock()) {
+  app.on('second-instance', focusMainWindow);
+  void app.whenReady().then(bootstrap);
+} else {
+  app.quit();
+}
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();

@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { usePlatform } from '@/platform/PlatformContext';
 import { usePracticeReminder } from '@/hooks/usePracticeReminder';
+import { useSampleLibrary } from '@/hooks/useSampleLibrary';
 import { loadStoredFonts, loadDesktopFontCache } from '@/ui/fonts';
 import { PageSkeleton } from '@/ui/Skeleton';
 
@@ -11,6 +12,8 @@ export function AppShell() {
   const platform = usePlatform();
 
   usePracticeReminder();
+  // A signed-in (or guest) account gets the demo paragraph on first open.
+  useSampleLibrary();
 
   // Re-register previously uploaded Hindi fonts on load.
   useEffect(() => {

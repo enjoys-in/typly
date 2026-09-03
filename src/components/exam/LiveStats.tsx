@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Gauge, Target, TriangleAlert, Type } from 'lucide-react';
+import { Ban, Gauge, Target, TriangleAlert, Type } from 'lucide-react';
 import { evaluate } from '@/core/typing/typingEngine';
 import { grossWpm } from '@/core/scoring/scoring';
 import { CHARS_PER_WORD } from '@/core/constants';
@@ -13,10 +13,19 @@ interface Props {
   /** Board targets, so the numbers can be read against the cut-off. */
   targetWpm?: number;
   targetAccuracy?: number;
+  /** Keystrokes the exam rules refused, so a blocked key is accounted for. */
+  blocked?: number;
 }
 
 // Live metrics panel shown beside the passage during the test.
-export function LiveStats({ passage, typed, elapsedMs, targetWpm = 0, targetAccuracy = 0 }: Props) {
+export function LiveStats({
+  passage,
+  typed,
+  elapsedMs,
+  targetWpm = 0,
+  targetAccuracy = 0,
+  blocked = 0,
+}: Props) {
   const { correctChars } = useMemo(() => evaluate(passage, typed), [passage, typed]);
   const minutes = Math.max(elapsedMs / 60_000, 1 / 60_000);
   const wpm = Math.round(grossWpm(correctChars, minutes, CHARS_PER_WORD) * 10) / 10;
@@ -67,6 +76,15 @@ export function LiveStats({ passage, typed, elapsedMs, targetWpm = 0, targetAccu
         </span>
         <span className="font-semibold tabular-nums">{countWords(typed)}</span>
       </div>
+
+      {blocked > 0 && (
+        <div className="flex items-center justify-between border-t border-line pt-4 text-sm">
+          <span className="flex items-center gap-2 text-fg-muted" title="Keys the exam rules refused">
+            <Ban size={14} /> Blocked keys
+          </span>
+          <span className="font-semibold tabular-nums text-danger-text">{blocked}</span>
+        </div>
+      )}
     </div>
   );
 }

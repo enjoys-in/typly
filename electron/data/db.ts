@@ -14,6 +14,13 @@ interface TimelinePoint {
   wpm: number;
   accuracy: number;
 }
+interface Keystroke {
+  t: number;
+  key: string;
+  expected: string;
+  correct: boolean;
+  index: number;
+}
 interface TestResultRow {
   grossWpm: number;
   netWpm: number;
@@ -24,6 +31,7 @@ interface TestResultRow {
   correctWords: number;
   wrongWords: number;
   backspaces: number;
+  deletes: number;
   errors: number;
   status: string;
 }
@@ -49,6 +57,7 @@ interface SaveTestPayload {
   result: TestResultRow;
   mistakes: Mistake[];
   timeline: TimelinePoint[];
+  keystrokes: Keystroke[];
 }
 interface DocumentInput {
   title: string;
@@ -65,6 +74,7 @@ interface FullResult {
   row: TestRow;
   result: TestResultRow;
   mistakes: Mistake[];
+  keystrokes: Keystroke[];
 }
 interface BackupBundle {
   app: string;
@@ -82,11 +92,13 @@ CREATE TABLE IF NOT EXISTS tests (
 CREATE TABLE IF NOT EXISTS results (
   testId INTEGER PRIMARY KEY, grossWpm REAL, netWpm REAL, accuracy REAL, charsTyped INTEGER,
   correctChars INTEGER, incorrectChars INTEGER, correctWords INTEGER, wrongWords INTEGER,
-  backspaces INTEGER, errors INTEGER, status TEXT);
+  backspaces INTEGER, deletes INTEGER, errors INTEGER, status TEXT);
 CREATE TABLE IF NOT EXISTS mistakes (
   id INTEGER PRIMARY KEY AUTOINCREMENT, testId INTEGER, category TEXT, expected TEXT, typed TEXT, "index" INTEGER);
 CREATE TABLE IF NOT EXISTS timeline (
   id INTEGER PRIMARY KEY AUTOINCREMENT, testId INTEGER, bucket INTEGER, wpm REAL, accuracy REAL);
+CREATE TABLE IF NOT EXISTS keystrokes (
+  testId INTEGER PRIMARY KEY, log TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS documents (
   id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, lang TEXT, sourceType TEXT, content TEXT,
   charCount INTEGER, createdAt TEXT);
@@ -101,6 +113,17 @@ export class SqliteRepository {
     this.db = new Database(path.join(app.getPath('userData'), 'typly.db'));
     this.db.pragma('journal_mode = WAL');
     this.db.exec(SCHEMA);
+    this.migrate();
+  }
+
+  /** Add columns that arrived after a database was first created. */
+  private migrate(): void {
+    const columns = (this.db.prepare(`PRAGMA table_info(results)`).all() as { name: string }[]).map(
+      (c) => c.name,
+    );
+    if (!columns.includes('deletes')) {
+      this.db.exec(`ALTER TABLE results ADD COLUMN deletes INTEGER`);
+    }
   }
 
   saveTest(payload: SaveTestPayload): number {
@@ -117,14 +140,15 @@ export class SqliteRepository {
       );
       this.db
         .prepare(
-          `INSERT INTO results (testId, grossWpm, netWpm, accuracy, charsTyped, correctChars, incorrectChars, correctWords, wrongWords, backspaces, errors, status)
-           VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+          `INSERT INTO results (testId, grossWpm, netWpm, accuracy, charsTyped, correctChars, incorrectChars, correctWords, wrongWords, backspaces, deletes, errors, status)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
         )
-        .run(id, r.grossWpm, r.netWpm, r.accuracy, r.charsTyped, r.correctChars, r.incorrectChars, r.correctWords, r.wrongWords, r.backspaces, r.errors, r.status);
+        .run(id, r.grossWpm, r.netWpm, r.accuracy, r.charsTyped, r.correctChars, r.incorrectChars, r.correctWords, r.wrongWords, r.backspaces, r.deletes, r.errors, r.status);
       const mStmt = this.db.prepare(`INSERT INTO mistakes (testId, category, expected, typed, "index") VALUES (?,?,?,?,?)`);
       for (const m of p.mistakes) mStmt.run(id, m.category, m.expected, m.typed, m.index);
       const tStmt = this.db.prepare(`INSERT INTO timeline (testId, bucket, wpm, accuracy) VALUES (?,?,?,?)`);
       for (const t of p.timeline) tStmt.run(id, t.bucket, t.wpm, t.accuracy);
+      if (p.keystrokes.length > 0) this.putKeystrokes(id, p.keystrokes);
       return id;
     });
     return tx(payload);
@@ -138,14 +162,15 @@ export class SqliteRepository {
     const row = this.db.prepare(`SELECT * FROM tests WHERE id = ?`).get(id) as TestRow | undefined;
     const result = this.db
       .prepare(
-        `SELECT grossWpm, netWpm, accuracy, charsTyped, correctChars, incorrectChars, correctWords, wrongWords, backspaces, errors, status FROM results WHERE testId = ?`,
+        `SELECT grossWpm, netWpm, accuracy, charsTyped, correctChars, incorrectChars, correctWords, wrongWords,
+                backspaces, COALESCE(deletes, 0) AS deletes, errors, status FROM results WHERE testId = ?`,
       )
       .get(id) as TestResultRow | undefined;
     if (!row || !result) return null;
     const mistakes = this.db
       .prepare(`SELECT category, expected, typed, "index" FROM mistakes WHERE testId = ?`)
       .all(id) as Mistake[];
-    return { row, result, mistakes };
+    return { row, result, mistakes, keystrokes: this.getKeystrokes(id) };
   }
 
   saveDocument(doc: DocumentInput): number {
@@ -168,6 +193,15 @@ export class SqliteRepository {
     return (this.db.prepare(`SELECT * FROM documents WHERE id = ?`).get(id) as DocumentRow | undefined) ?? null;
   }
 
+  // The paragraph goes, its results stay: past scores are still the user's
+  // history, they just no longer point at a document that exists.
+  deleteDocument(id: number): void {
+    this.db.transaction(() => {
+      this.db.prepare(`UPDATE tests SET documentId = NULL WHERE documentId = ?`).run(id);
+      this.db.prepare(`DELETE FROM documents WHERE id = ?`).run(id);
+    })();
+  }
+
   getSetting(key: string): string | null {
     const row = this.db.prepare(`SELECT value FROM settings WHERE key = ?`).get(key) as { value: string } | undefined;
     return row?.value ?? null;
@@ -183,12 +217,54 @@ export class SqliteRepository {
     return this.db.prepare(`SELECT category, expected, typed, "index" FROM mistakes`).all() as Mistake[];
   }
 
+  // Keystroke logs are stored as one JSON document per test: they are thousands
+  // of rows per run and are only ever read back whole.
+  private putKeystrokes(testId: number, log: Keystroke[]): void {
+    this.db
+      .prepare(
+        `INSERT INTO keystrokes (testId, log) VALUES (?, ?)
+         ON CONFLICT(testId) DO UPDATE SET log = excluded.log`,
+      )
+      .run(testId, JSON.stringify(log));
+  }
+
+  getKeystrokes(testId: number): Keystroke[] {
+    const row = this.db.prepare(`SELECT log FROM keystrokes WHERE testId = ?`).get(testId) as
+      | { log: string }
+      | undefined;
+    if (!row) return [];
+    try {
+      return JSON.parse(row.log) as Keystroke[];
+    } catch {
+      return [];
+    }
+  }
+
+  recentKeystrokes(limit: number): Keystroke[] {
+    const rows = this.db
+      .prepare(
+        `SELECT k.log FROM keystrokes k JOIN tests t ON t.id = k.testId
+         ORDER BY t.createdAt DESC LIMIT ?`,
+      )
+      .all(limit) as { log: string }[];
+    return rows.flatMap((r) => {
+      try {
+        return JSON.parse(r.log) as Keystroke[];
+      } catch {
+        return [];
+      }
+    });
+  }
+
   exportBackup(): BackupBundle {
     const tables = {
       tests: this.db.prepare(`SELECT * FROM tests`).all(),
       results: this.db.prepare(`SELECT * FROM results`).all(),
       mistakes: this.db.prepare(`SELECT * FROM mistakes`).all(),
       timeline: this.db.prepare(`SELECT * FROM timeline`).all(),
+      keystrokes: (this.db.prepare(`SELECT testId FROM keystrokes`).all() as { testId: number }[]).map(
+        (r) => ({ testId: r.testId, keystrokes: this.getKeystrokes(r.testId) }),
+      ),
       documents: this.db.prepare(`SELECT * FROM documents`).all(),
       settings: this.db.prepare(`SELECT * FROM settings`).all(),
     };
@@ -208,6 +284,7 @@ export class SqliteRepository {
       results?: (TestResultRow & { testId: number })[];
       mistakes?: (Mistake & { testId: number })[];
       timeline?: (TimelinePoint & { testId: number })[];
+      keystrokes?: { testId: number; keystrokes: Keystroke[] }[];
       documents?: DocumentRow[];
       settings?: { key: string; value: string }[];
     };
@@ -228,12 +305,12 @@ export class SqliteRepository {
         testMap.set(row.id, id);
       }
       const insRes = this.db.prepare(
-        `INSERT INTO results (testId, grossWpm, netWpm, accuracy, charsTyped, correctChars, incorrectChars, correctWords, wrongWords, backspaces, errors, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`,
+        `INSERT INTO results (testId, grossWpm, netWpm, accuracy, charsTyped, correctChars, incorrectChars, correctWords, wrongWords, backspaces, deletes, errors, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
       );
       for (const r of t.results ?? []) {
         const testId = testMap.get(r.testId);
         if (testId == null) continue;
-        insRes.run(testId, r.grossWpm, r.netWpm, r.accuracy, r.charsTyped, r.correctChars, r.incorrectChars, r.correctWords, r.wrongWords, r.backspaces, r.errors, r.status);
+        insRes.run(testId, r.grossWpm, r.netWpm, r.accuracy, r.charsTyped, r.correctChars, r.incorrectChars, r.correctWords, r.wrongWords, r.backspaces, r.deletes ?? 0, r.errors, r.status);
       }
       const insMis = this.db.prepare(`INSERT INTO mistakes (testId, category, expected, typed, "index") VALUES (?,?,?,?,?)`);
       for (const m of t.mistakes ?? []) {
@@ -244,6 +321,10 @@ export class SqliteRepository {
       for (const tl of t.timeline ?? []) {
         const testId = testMap.get(tl.testId);
         if (testId != null) insTl.run(testId, tl.bucket, tl.wpm, tl.accuracy);
+      }
+      for (const k of t.keystrokes ?? []) {
+        const testId = testMap.get(k.testId);
+        if (testId != null) this.putKeystrokes(testId, k.keystrokes ?? []);
       }
       for (const s of t.settings ?? []) this.setSetting(s.key, s.value);
     })();

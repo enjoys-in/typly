@@ -1,10 +1,97 @@
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, History as HistoryIcon, PlusCircle, type LucideIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import {
+  ArrowRight,
+  Crosshair,
+  Dumbbell,
+  History as HistoryIcon,
+  PlusCircle,
+  type LucideIcon,
+} from 'lucide-react';
 import { appConfig } from '@/config/appConfig';
+import { usePlatform } from '@/platform/PlatformContext';
+import { useExamStore } from '@/store/examStore';
+import { useSettingsStore } from '@/store/settingsStore';
+import { useAsync } from '@/hooks/useAsync';
+import { clearExamSnapshot, readExamSnapshot } from '@/hooks/useExamSnapshot';
+import { readSampleDocument, seedSampleLibrary } from '@/hooks/useSampleLibrary';
+import { profileFor } from '@/core/scoring/examProfiles';
+import { weakKeys } from '@/core/analysis/analysis';
+import { currentStreak, realAttempts, testsToday, totalPoints, wpmAverages } from '@/core/stats';
+import { TestStatus } from '@/core/constants';
+import { GoalCard } from '@/components/dashboard/GoalCard';
+import { ResumeCard } from '@/components/dashboard/ResumeCard';
+import { SampleCard } from '@/components/dashboard/SampleCard';
+import { WpmAveragesCard } from '@/components/dashboard/WpmAveragesCard';
+import { Card } from '@/ui/Card';
+import { Button } from '@/ui/Button';
+import { Stat } from '@/ui/Stat';
+import { SkeletonCard } from '@/ui/Skeleton';
 
 export function Dashboard() {
   const navigate = useNavigate();
+  const platform = usePlatform();
+  const dailyGoal = useSettingsStore((s) => s.dailyGoal);
+  const resumeFrom = useExamStore((s) => s.resumeFrom);
+  const setDraft = useExamStore((s) => s.setDraft);
   const Logo = appConfig.logo;
+
+  const overview = useAsync(async () => {
+    // Shares the boot hook's single seeding run, so the demo paragraph is
+    // already there on a first ever load rather than after a refresh.
+    await seedSampleLibrary(platform.repo);
+    return {
+      rows: await platform.repo.listHistory(),
+      mistakes: await platform.repo.aggregateMistakes(),
+      snapshot: await readExamSnapshot(platform.repo),
+      sample: await readSampleDocument(platform.repo),
+    };
+  }, [platform]);
+
+  const summary = useMemo(() => {
+    if (!overview.data) return null;
+    const real = realAttempts(overview.data.rows);
+    if (real.length === 0) return null;
+    const last = real[0]!; // listHistory is newest-first
+    return {
+      count: real.length,
+      last,
+      bestWpm: Math.max(...real.map((r) => r.netWpm)),
+      avgAccuracy: Math.round(real.reduce((sum, r) => sum + r.accuracy, 0) / real.length),
+      points: totalPoints(real),
+      averages: wpmAverages(overview.data.rows),
+      streak: currentStreak(real),
+      today: testsToday(real),
+      weakest: weakKeys(overview.data.mistakes, 5),
+    };
+  }, [overview.data]);
+
+  const snapshot = overview.data?.snapshot ?? null;
+  const sample = overview.data?.sample ?? null;
+
+  function startSample() {
+    if (!sample) return;
+    setDraft({
+      passage: sample.content,
+      title: sample.title,
+      documentId: sample.id,
+      sourceType: sample.sourceType,
+      lang: sample.lang,
+    });
+    navigate('/app/setup');
+  }
+
+  function resume() {
+    if (!snapshot) return;
+    resumeFrom(snapshot);
+    navigate('/app/exam');
+  }
+
+  async function discard() {
+    await clearExamSnapshot(platform.repo);
+    overview.reload();
+  }
 
   return (
     <div className="space-y-7">
@@ -24,6 +111,92 @@ export function Dashboard() {
         </p>
       </section>
 
+      {snapshot && <ResumeCard snapshot={snapshot} onResume={resume} onDiscard={() => void discard()} />}
+
+      {overview.loading ? (
+        <SkeletonCard lines={3} />
+      ) : summary ? (
+        <>
+          <div className="grid gap-5 lg:grid-cols-2">
+            <GoalCard today={summary.today} goal={dailyGoal} streak={summary.streak} />
+            <Card className="grid grid-cols-2 gap-5 sm:grid-cols-4 lg:grid-cols-2">
+              <Stat label="Best WPM" value={String(summary.bestWpm)} accent />
+              <Stat label="Avg accuracy" value={`${summary.avgAccuracy}%`} />
+              <Stat label="Tests" value={String(summary.count)} />
+              <Stat label="Points" value={String(summary.points)} />
+            </Card>
+          </div>
+
+          <WpmAveragesCard averages={summary.averages} />
+
+          <div className="grid gap-5 lg:grid-cols-2">
+            <Card className="space-y-3">
+              <h2 className="text-base font-semibold">Last test</h2>
+              <div className="flex items-baseline justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium">{profileFor(summary.last.examBoard).name}</p>
+                  <p className="text-xs text-fg-muted">
+                    {format(new Date(summary.last.createdAt), 'dd MMM yyyy, HH:mm')}
+                  </p>
+                </div>
+                <span
+                  className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                    summary.last.status === TestStatus.Passed
+                      ? 'bg-accent-soft text-accent-soft-fg'
+                      : 'bg-danger-soft text-danger-soft-fg'
+                  }`}
+                >
+                  {summary.last.status === TestStatus.Passed ? 'Passed' : 'Failed'}
+                </span>
+              </div>
+              <div className="flex gap-6 border-t border-line pt-3">
+                <Stat label="Net WPM" value={String(summary.last.netWpm)} accent />
+                <Stat label="Accuracy" value={`${summary.last.accuracy}%`} />
+                <Stat label="Errors" value={String(summary.last.errors)} />
+              </div>
+              <Button variant="secondary" size="sm" onClick={() => navigate('/app/history')}>
+                <HistoryIcon size={14} /> All results
+              </Button>
+            </Card>
+
+            <Card className="space-y-3">
+              <h2 className="text-base font-semibold">Weakest keys</h2>
+              {summary.weakest.length === 0 ? (
+                <p className="text-sm text-fg-muted">
+                  No mistakes recorded yet — nothing to drill. Keep it that way.
+                </p>
+              ) : (
+                <>
+                  <div className="flex flex-wrap gap-2">
+                    {summary.weakest.map((k) => (
+                      <span
+                        key={k.key}
+                        className="rounded-full bg-surface-2 px-3 py-1 font-mono text-sm font-semibold tabular-nums"
+                      >
+                        {k.key}
+                        <span className="ml-2 font-sans text-xs text-fg-muted">×{k.count}</span>
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-sm text-fg-muted">
+                    The Trainer builds a drill from these, and from the transitions that cost you
+                    the most time.
+                  </p>
+                </>
+              )}
+              <Button variant="secondary" size="sm" onClick={() => navigate('/app/trainer')}>
+                <Crosshair size={14} /> Open Trainer
+              </Button>
+            </Card>
+          </div>
+        </>
+      ) : (
+        <>
+          {sample && <SampleCard document={sample} onStart={startSample} />}
+          <FlowStrip />
+        </>
+      )}
+
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         <ActionCard
           icon={PlusCircle}
@@ -33,20 +206,18 @@ export function Dashboard() {
           onClick={() => navigate('/app/new')}
         />
         <ActionCard
-          icon={HistoryIcon}
+          icon={Dumbbell}
           tone="accent"
-          title="Review history"
-          desc="See your past results, WPM, and accuracy."
-          onClick={() => navigate('/app/history')}
+          title="Practice drills"
+          desc="Rows, numbers, symbols and shortcuts, generated fresh."
+          onClick={() => navigate('/app/practice')}
         />
       </div>
-
-      <FlowStrip />
     </div>
   );
 }
 
-/* Static walkthrough of the existing flow — presentation only, nothing wired. */
+/* Static walkthrough of the flow — shown until there is real history to report. */
 const STEPS = [
   { title: 'Add a passage', desc: 'Paste text, or drop an image, PDF or .docx.' },
   { title: 'Pick the exam', desc: 'Choose the board, duration and language.' },
