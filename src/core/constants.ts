@@ -72,6 +72,11 @@ export enum Difficulty {
 
 export enum PracticeKind {
   Words = 'words',
+  Bigrams = 'bigrams',
+  Alternating = 'alternating',
+  SameFinger = 'same_finger',
+  LongWords = 'long_words',
+  Mixed = 'mixed',
   Capitals = 'capitals',
   Numbers = 'numbers',
   Symbols = 'symbols',
@@ -189,8 +194,52 @@ export const DIFFICULTY_LABEL: Record<Difficulty, string> = {
   [Difficulty.Hard]: 'Hard',
 };
 
+/**
+ * How demanding a drill is. Shown as a quiet chip on the card rather than used
+ * to group them — the list stays one flat set the user can pick from.
+ */
+export enum DrillDifficulty {
+  Easy = 'easy',
+  Medium = 'medium',
+  Hard = 'hard',
+  VeryHard = 'veryHard',
+}
+
+/** Ordering weight, easiest first. */
+export const DRILL_DIFFICULTY_ORDER: Record<DrillDifficulty, number> = {
+  [DrillDifficulty.Easy]: 0,
+  [DrillDifficulty.Medium]: 1,
+  [DrillDifficulty.Hard]: 2,
+  [DrillDifficulty.VeryHard]: 3,
+};
+
+export const PRACTICE_DIFFICULTY: Record<PracticeKind, DrillDifficulty> = {
+  [PracticeKind.HomeRow]: DrillDifficulty.Easy,
+  [PracticeKind.Words]: DrillDifficulty.Easy,
+  [PracticeKind.TopRow]: DrillDifficulty.Medium,
+  [PracticeKind.BottomRow]: DrillDifficulty.Medium,
+  [PracticeKind.Capitals]: DrillDifficulty.Medium,
+  [PracticeKind.Punctuation]: DrillDifficulty.Medium,
+  [PracticeKind.Numbers]: DrillDifficulty.Medium,
+  [PracticeKind.Sentences]: DrillDifficulty.Medium,
+  [PracticeKind.AllRows]: DrillDifficulty.Hard,
+  [PracticeKind.Bigrams]: DrillDifficulty.Hard,
+  [PracticeKind.Alternating]: DrillDifficulty.Hard,
+  [PracticeKind.Numpad]: DrillDifficulty.Hard,
+  [PracticeKind.Symbols]: DrillDifficulty.Hard,
+  [PracticeKind.LongWords]: DrillDifficulty.Hard,
+  [PracticeKind.SameFinger]: DrillDifficulty.VeryHard,
+  [PracticeKind.Shortcuts]: DrillDifficulty.VeryHard,
+  [PracticeKind.Mixed]: DrillDifficulty.VeryHard,
+};
+
 export const PRACTICE_LABEL: Record<PracticeKind, string> = {
   [PracticeKind.Words]: 'Common words',
+  [PracticeKind.Bigrams]: 'Tricky letter pairs',
+  [PracticeKind.Alternating]: 'Alternating hands',
+  [PracticeKind.SameFinger]: 'Same-finger jumps',
+  [PracticeKind.LongWords]: 'Long words',
+  [PracticeKind.Mixed]: 'Everything at once',
   [PracticeKind.Capitals]: 'Capital letters',
   [PracticeKind.Numbers]: 'Numbers',
   [PracticeKind.TopRow]: 'Top row',

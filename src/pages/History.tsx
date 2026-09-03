@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
 import { Film, Play } from 'lucide-react';
 import { usePlatform } from '@/platform/PlatformContext';
 import { useExamStore } from '@/store/examStore';
@@ -14,15 +13,17 @@ import { Card } from '@/ui/Card';
 import { DataTable, type Column } from '@/ui/DataTable';
 import { ToggleChip } from '@/ui/ToggleChip';
 import { useT } from '@/i18n';
+import { useDateFormat } from '@/hooks/useDateFormat';
+import type { DateFormatter } from '@/core/format/datetime';
 import type { TKey } from '@/i18n/en';
 
-function columnsFor(t: (key: TKey) => string): Column<TestRow>[] {
+function columnsFor(t: (key: TKey) => string, d: DateFormatter): Column<TestRow>[] {
   return [
     {
       key: 'date',
       header: t('history.colDate'),
-      width: '9.5rem',
-      render: (r) => format(new Date(r.createdAt), 'dd MMM, HH:mm'),
+      width: '13rem',
+      render: (r) => d.dateTime(r.createdAt),
     },
     {
       key: 'exam',
@@ -77,6 +78,7 @@ export function History() {
   const setDraft = useExamStore((s) => s.setDraft);
   const [replayId, setReplayId] = useState<number | null>(null);
   const t = useT();
+  const d = useDateFormat();
   const history = useAsync(() => platform.repo.listHistory(), [platform]);
   const rows = history.data;
 
@@ -99,7 +101,7 @@ export function History() {
 
   const columns = useMemo<Column<TestRow>[]>(
     () => [
-      ...columnsFor(t),
+      ...columnsFor(t, d),
       {
         key: 'actions',
         header: '',
@@ -125,7 +127,7 @@ export function History() {
           ) : null,
       },
     ],
-    [retest, t],
+    [retest, t, d],
   );
 
   return (

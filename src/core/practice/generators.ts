@@ -41,6 +41,39 @@ const BOTTOM_RIGHT = ['n', 'm', ',', '.', '/'];
 // Vertical finger columns (same finger, three rows) — the classic q-a-z ladder drill.
 const FINGER_COLUMNS = ['qaz', 'wsx', 'edc', 'rfv', 'tgb', 'yhn', 'ujm', 'ik,', 'ol.', 'p;/'];
 
+// The letter pairs that cost English typists the most time: awkward rolls,
+// same-hand reaches, and the q-u pairing that has no alternative.
+const HARD_BIGRAMS = [
+  'th', 'ch', 'sh', 'ph', 'gh', 'qu', 'wh', 'ck', 'ng', 'nk',
+  'br', 'cr', 'dr', 'fr', 'gr', 'pr', 'tr', 'bl', 'cl', 'fl', 'gl', 'pl', 'sl',
+  'sc', 'sk', 'sm', 'sn', 'sp', 'st', 'sw', 'tw', 'dw', 'mp', 'nd', 'nt', 'rd',
+];
+
+// Words that alternate hands almost every keystroke — the easiest rhythm to
+// build speed on, and the drill that teaches it.
+const ALTERNATING_WORDS = [
+  'the', 'and', 'with', 'their', 'them', 'title', 'right', 'field', 'world',
+  'height', 'signal', 'theory', 'social', 'profit', 'ritual', 'visual', 'orient',
+  'blame', 'chair', 'flame', 'giant', 'ideal', 'laugh', 'ocean', 'panel', 'shape',
+];
+
+// Sequences that hit the same finger twice in a row — the slowest motion on a
+// keyboard, and the one that hides in ordinary words.
+const SAME_FINGER = [
+  'ed', 'de', 'ki', 'ik', 'ju', 'uj', 'lo', 'ol', 'ft', 'tf', 'gr', 'rg',
+  'hy', 'yh', 'nu', 'un', 'my', 'ym', 'cd', 'dc', 'xs', 'sx', 'wz', 'zw',
+  'deed', 'kick', 'juju', 'loll', 'fifty', 'gravy', 'hymn', 'nun', 'myth',
+];
+
+// Long words, where a single mistyped letter costs the whole word.
+const LONG_WORDS = [
+  'government', 'development', 'information', 'organisation', 'responsibility',
+  'administration', 'communication', 'international', 'qualification', 'infrastructure',
+  'recommendation', 'representative', 'characteristic', 'constitutional', 'understanding',
+  'examination', 'application', 'requirement', 'appointment', 'certificate',
+  'department', 'employment', 'management', 'settlement', 'statement',
+];
+
 const SENTENCES = [
   'The quick brown fox jumps over the lazy dog.',
   'Pack my box with five dozen liquor jugs.',
@@ -146,6 +179,34 @@ export function generateDrill(kind: PracticeKind, isMac = false): string {
       return times(24, () => pick(isMac ? MAC_SHORTCUTS : WIN_SHORTCUTS)).join(' ');
     case PracticeKind.Sentences:
       return times(5, () => pick(SENTENCES)).join(' ');
+    case PracticeKind.Bigrams:
+      // Each pair three times, then inside a nonsense word, so the motion is
+      // learnt and then used cold.
+      return shuffle(
+        HARD_BIGRAMS.flatMap((pair) => [pair.repeat(3), `${group(1, 2, HOME_ROW)}${pair}${group(1, 2, HOME_ROW)}`]),
+      )
+        .slice(0, 40)
+        .join(' ');
+    case PracticeKind.Alternating:
+      return times(40, () => pick(ALTERNATING_WORDS)).join(' ');
+    case PracticeKind.SameFinger:
+      return shuffle(SAME_FINGER.flatMap((seq) => [seq, seq.repeat(2)]))
+        .slice(0, 40)
+        .join(' ');
+    case PracticeKind.LongWords:
+      return times(24, () => pick(LONG_WORDS)).join(' ');
+    case PracticeKind.Mixed:
+      // Words, figures, punctuation and symbols in one stream — closest to the
+      // mixed content a real exam passage throws at you.
+      return times(36, () => {
+        const r = Math.random();
+        if (r < 0.4) return pick(WORDS);
+        if (r < 0.55) return cap(pick(WORDS));
+        if (r < 0.7) return String(Math.floor(Math.random() * 10000));
+        if (r < 0.82) return pick(WORDS) + pick(PUNCT);
+        if (r < 0.92) return pick(LONG_WORDS);
+        return group(2, 3, SYMBOLS);
+      }).join(' ');
     default: {
       const _exhaustive: never = kind;
       return _exhaustive;

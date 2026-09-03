@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
 import {
   ChevronDown,
   ChevronRight,
@@ -32,6 +31,7 @@ import { Card } from '@/ui/Card';
 import { Button } from '@/ui/Button';
 import { useConfirm } from '@/ui/Confirm';
 import { useT } from '@/i18n';
+import { useDateFormat } from '@/hooks/useDateFormat';
 import { Segmented, type SegmentedOption } from '@/ui/Segmented';
 import { SkeletonTable } from '@/ui/Skeleton';
 
@@ -440,6 +440,7 @@ function DocRow({
 
 function Leaderboard({ attempts }: { attempts: TestRow[] }) {
   const t = useT();
+  const d = useDateFormat();
   const ranked = [...attempts].sort((a, b) => b.netWpm - a.netWpm);
   if (ranked.length === 0) {
     return <p className="text-sm text-fg-muted">{t('library.noAttempts')}</p>;
@@ -454,7 +455,7 @@ function Leaderboard({ attempts }: { attempts: TestRow[] }) {
           {ranked.map((a, i) => (
             <tr key={a.id} className="tabular-nums">
               <td className="w-10 py-2 font-bold text-fg-subtle">#{i + 1}</td>
-              <td className="py-2">{format(new Date(a.createdAt), 'dd MMM, HH:mm')}</td>
+              <td className="py-2">{d.dateTime(a.createdAt)}</td>
               <td className="py-2 font-semibold text-accent-text">{a.netWpm} WPM</td>
               <td className="py-2 text-fg-muted">{a.accuracy}%</td>
               <td className="py-2">

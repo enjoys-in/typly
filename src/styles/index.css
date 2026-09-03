@@ -321,6 +321,13 @@ button,
   }
 }
 
+/* The name in the dashboard greeting — the one word on that band that is
+   about the person, so it gets the brightest ink. */
+.brand-hero-name {
+  color: #fff;
+  text-shadow: 0 1px 12px rgb(0 0 0 / 0.25);
+}
+
 /* Print only the result report (#print-area), hiding app chrome. */
 @media print {
   body * {

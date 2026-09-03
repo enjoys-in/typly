@@ -862,4 +862,22 @@ export const hi: Record<TKey, string> = {
   'setup.modeAria': 'परीक्षा मोड',
   'setup.timingAria': 'समय पद्धति',
   'setup.difficultyAria': 'कठिनाई',
+
+  // New drills
+  'practice.bigrams': 'कठिन अक्षर-जोड़',
+  'practice.alternating': 'बदलते हाथ',
+  'practice.same_finger': 'एक ही उँगली की छलांग',
+  'practice.long_words': 'लंबे शब्द',
+  'practice.mixed': 'सब कुछ एक साथ',
+  'practiceDesc.bigrams': 'जिन जोड़ों पर हाथ अटकता है: th, qu, ck, str।',
+  'practiceDesc.alternating': 'हर कुंजी पर हाथ बदलने वाले शब्द — गति यहीं से आती है।',
+  'practiceDesc.same_finger': 'कीबोर्ड की सबसे धीमी गति: एक ही उँगली, दो बार।',
+  'practiceDesc.long_words': 'लंबे शब्द, जहाँ एक ग़लत अक्षर पूरा शब्द बिगाड़ देता है।',
+  'practiceDesc.mixed': 'शब्द, अंक, चिह्न और प्रतीक एक ही प्रवाह में — असली अनुच्छेद जैसा।',
+
+  // Drill difficulty chip
+  'drill.easy': 'आसान',
+  'drill.medium': 'मध्यम',
+  'drill.hard': 'कठिन',
+  'drill.veryHard': 'बहुत कठिन',
 };

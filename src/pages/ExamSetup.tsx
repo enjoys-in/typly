@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
 import { usePlatform } from '@/platform/PlatformContext';
 import { useExamStore } from '@/store/examStore';
 import { examBase, useSettingsStore } from '@/store/settingsStore';
@@ -25,6 +24,7 @@ import { Segmented, type SegmentedOption } from '@/ui/Segmented';
 import { Card } from '@/ui/Card';
 import { Toggle } from '@/ui/Toggle';
 import { useT } from '@/i18n';
+import { useDateFormat } from '@/hooks/useDateFormat';
 
 export function ExamSetup() {
   const navigate = useNavigate();
@@ -41,6 +41,7 @@ export function ExamSetup() {
   const durationMin = Math.round(settings.durationSec / 60);
   const [ghostTestId, setGhostTestId] = useState<number | null>(null);
   const t = useT();
+  const d = useDateFormat();
 
   const difficultyOptions: SegmentedOption<Difficulty>[] = Object.values(Difficulty).map((d) => ({
     value: d,
@@ -293,7 +294,7 @@ export function ExamSetup() {
               <option value="">{t('setup.ghostNone')}</option>
               {rivals.data.map((row) => (
                 <option key={row.id} value={row.id}>
-                  {row.netWpm} WPM · {row.accuracy}% · {format(new Date(row.createdAt), 'dd MMM')}
+                  {row.netWpm} WPM · {row.accuracy}% · {d.dateShort(row.createdAt)}
                 </option>
               ))}
             </select>

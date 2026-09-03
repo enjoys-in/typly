@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
-import { format } from 'date-fns';
 import { ArrowRight, Minus, TrendingDown, TrendingUp } from 'lucide-react';
 import type { TestRow } from '@/core/types';
 import { Stat } from '@/ui/Stat';
 import { useT } from '@/i18n';
+import { useDateFormat } from '@/hooks/useDateFormat';
 
 const W = 640;
 const H = 220;
@@ -19,6 +19,7 @@ interface Point {
 // user can compare test-to-test and see how much they improved. Inline SVG, no dep.
 export function ProgressChart({ rows }: { rows: TestRow[] }) {
   const t = useT();
+  const d = useDateFormat();
   // History comes newest-first; compare chronologically (oldest → newest).
   const points = useMemo<Point[]>(
     () =>
@@ -63,7 +64,7 @@ export function ProgressChart({ rows }: { rows: TestRow[] }) {
           <p className="text-3xl font-bold tabular-nums">
             {first.netWpm} <span className="text-base font-normal text-fg-subtle">WPM</span>
           </p>
-          <p className="text-xs text-fg-subtle">{format(new Date(first.date), 'dd MMM')}</p>
+          <p className="text-xs text-fg-subtle">{d.dateShort(first.date)}</p>
         </div>
         <ArrowRight className="text-fg-subtle" />
         <div>
@@ -71,7 +72,7 @@ export function ProgressChart({ rows }: { rows: TestRow[] }) {
           <p className="text-accent-text text-3xl font-bold tabular-nums">
             {last.netWpm} <span className="text-base font-normal text-fg-subtle">WPM</span>
           </p>
-          <p className="text-xs text-fg-subtle">{format(new Date(last.date), 'dd MMM')}</p>
+          <p className="text-xs text-fg-subtle">{d.dateShort(last.date)}</p>
         </div>
         <div className="flex flex-col gap-1.5">
           <Delta value={wpmDelta} unit=" WPM" label={t('chart.speed')} />

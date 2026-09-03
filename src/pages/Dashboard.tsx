@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
 import {
   ArrowRight,
   Crosshair,
@@ -26,6 +25,7 @@ import { TestStatus } from '@/core/constants';
 import { firstName } from '@/core/profile/profile';
 import { greetingFor } from '@/core/profile/greeting';
 import { useT } from '@/i18n';
+import { useDateFormat } from '@/hooks/useDateFormat';
 import { GoalCard } from '@/components/dashboard/GoalCard';
 import { ResumeCard } from '@/components/dashboard/ResumeCard';
 import { SampleCard } from '@/components/dashboard/SampleCard';
@@ -43,6 +43,7 @@ export function Dashboard() {
   const setDraft = useExamStore((s) => s.setDraft);
   const account = useAuthStore((s) => s.account);
   const t = useT();
+  const d = useDateFormat();
   const startPaperRun = usePaperRun();
   const Logo = appConfig.logo;
 
@@ -125,17 +126,28 @@ export function Dashboard() {
             {appConfig.name}
           </span>
         </div>
-        {who && (
-          <p className="relative mt-6 text-sm font-medium text-white/85">
-            {greetingLine}, {who}
-          </p>
-        )}
-        <h1 className={`relative text-3xl font-bold tracking-tight ${who ? 'mt-1' : 'mt-6'}`}>
-          {t('dashboard.title')}
-        </h1>
-        <p className="relative mt-1.5 max-w-sm text-sm leading-relaxed text-white/75">
-          {t('dashboard.tagline')}
-        </p>
+        {/* Two headings on one line: what the page is, and who it is for. The
+            greeting sits opposite the title and reads as its equal — it is the
+            first thing a returning user looks at. It wraps under the title on
+            narrow windows rather than shrinking. */}
+        <div className="relative mt-6 flex flex-wrap items-end justify-between gap-x-8 gap-y-2">
+          <div className="min-w-0">
+            <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.title')}</h1>
+            <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-white/75">
+              {t('dashboard.tagline')}
+            </p>
+          </div>
+          {who && (
+            <p
+              className="min-w-0 text-3xl leading-tight font-bold tracking-tight text-white/95 sm:text-[2rem] sm:text-right lg:text-4xl"
+              // The name can be long; let it wrap rather than overflow the band.
+              style={{ overflowWrap: 'anywhere' }}
+            >
+              {greetingLine},{' '}
+              <span className="brand-hero-name whitespace-nowrap">{who}</span>
+            </p>
+          )}
+        </div>
       </section>
 
       {snapshot && <ResumeCard snapshot={snapshot} onResume={resume} onDiscard={() => void discard()} />}
@@ -163,7 +175,7 @@ export function Dashboard() {
                 <div>
                   <p className="text-sm font-medium">{profileFor(summary.last.examBoard).name}</p>
                   <p className="text-xs text-fg-muted">
-                    {format(new Date(summary.last.createdAt), 'dd MMM yyyy, HH:mm')}
+                    {d.dateTime(summary.last.createdAt)}
                   </p>
                 </div>
                 <span

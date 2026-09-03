@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { format } from 'date-fns';
 import { Lock } from 'lucide-react';
 import type { FinishedExam } from '@/store/examStore';
 import { useAuthStore } from '@/store/authStore';
@@ -9,6 +8,7 @@ import { appConfig, activeTheme } from '@/config/appConfig';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { useT } from '@/i18n';
+import { useDateFormat } from '@/hooks/useDateFormat';
 
 const W = 1200;
 const H = 820;
@@ -33,13 +33,14 @@ function roundRect(
 export function CertificateCard({ finished }: { finished: FinishedExam }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const t = useT();
+  const d = useDateFormat();
   const account = useAuthStore((s) => s.account);
   // Pre-filled from the profile, still editable per certificate.
   const [name, setName] = useState(account?.name ?? '');
   const unlocked = featuresFor(account);
   const result = finished.result;
   const examName = profileFor(finished.payload.examBoard).name;
-  const dateStr = format(new Date(finished.payload.createdAt), 'dd MMMM yyyy');
+  const dateStr = d.date(finished.payload.createdAt);
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;

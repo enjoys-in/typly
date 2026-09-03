@@ -859,6 +859,24 @@ export const en = {
   'setup.modeAria': 'Exam mode',
   'setup.timingAria': 'Timing mode',
   'setup.difficultyAria': 'Difficulty',
+
+  // New drills
+  'practice.bigrams': 'Tricky letter pairs',
+  'practice.alternating': 'Alternating hands',
+  'practice.same_finger': 'Same-finger jumps',
+  'practice.long_words': 'Long words',
+  'practice.mixed': 'Everything at once',
+  'practiceDesc.bigrams': 'The pairs English typists stumble on: th, qu, ck, str.',
+  'practiceDesc.alternating': 'Words that switch hands every keystroke — where speed comes from.',
+  'practiceDesc.same_finger': 'The slowest motion on a keyboard: the same finger, twice.',
+  'practiceDesc.long_words': 'Long words, where one wrong letter costs the whole word.',
+  'practiceDesc.mixed': 'Words, figures, marks and symbols in one stream, like a real passage.',
+
+  // Drill difficulty chip
+  'drill.easy': 'Easy',
+  'drill.medium': 'Medium',
+  'drill.hard': 'Hard',
+  'drill.veryHard': 'Very hard',
 } as const;
 
 export type TKey = keyof typeof en;

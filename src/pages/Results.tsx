@@ -20,6 +20,7 @@ import { CutoffCard } from '@/components/result/CutoffCard';
 import { PaperReport } from '@/components/result/PaperReport';
 import { ReplayPlayer } from '@/components/result/ReplayPlayer';
 import { useAsync } from '@/hooks/useAsync';
+import { useDateFormat } from '@/hooks/useDateFormat';
 import { HindiFont } from '@/core/constants';
 import { FONT_FAMILY } from '@/ui/fonts';
 import { Button } from '@/ui/Button';
@@ -28,6 +29,7 @@ import { translate, useT } from '@/i18n';
 
 export function Results() {
   const t = useT();
+  const d = useDateFormat();
   const navigate = useNavigate();
   const platform = usePlatform();
   const finished = useExamStore((s) => s.finished);
@@ -213,7 +215,7 @@ export function Results() {
           <h2 className="text-xl font-bold">{t('result.printHeading')}</h2>
           <p className="text-sm">
             {profileFor(finished.payload.examBoard).name} ·{' '}
-            {format(new Date(finished.payload.createdAt), 'dd MMM yyyy, HH:mm')}
+            {d.dateTime(finished.payload.createdAt)}
           </p>
         </div>
         <Card>

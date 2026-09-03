@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { format } from 'date-fns';
 import { Award, Flame, Lock, Medal, Sparkles, Target, Trophy } from 'lucide-react';
 import { usePlatform } from '@/platform/PlatformContext';
 import { useSettingsStore } from '@/store/settingsStore';
@@ -20,6 +19,7 @@ import { ProgressBar } from '@/ui/ProgressBar';
 import { Skeleton, SkeletonCard } from '@/ui/Skeleton';
 import { Stat } from '@/ui/Stat';
 import { useT } from '@/i18n';
+import { useDateFormat } from '@/hooks/useDateFormat';
 
 export function Progress() {
   const platform = usePlatform();
@@ -170,6 +170,7 @@ export function Progress() {
 const RANK_TINT = ['text-amber-500', 'text-slate-400', 'text-orange-500'];
 
 function Leaderboard({ runs }: { runs: TestRow[] }) {
+  const d = useDateFormat();
   return (
     <ol>
       {runs.map((r, i) => (
@@ -183,7 +184,7 @@ function Leaderboard({ runs }: { runs: TestRow[] }) {
           <span className="w-14 text-lg font-bold text-accent-text">{r.netWpm}</span>
           <span className="hidden w-14 text-sm text-fg-muted sm:inline">{r.accuracy}%</span>
           <span className="flex-1 truncate text-sm">{profileFor(r.examBoard).name}</span>
-          <span className="text-xs text-fg-subtle">{format(new Date(r.createdAt), 'dd MMM')}</span>
+          <span className="text-xs text-fg-subtle">{d.dateShort(r.createdAt)}</span>
         </li>
       ))}
     </ol>

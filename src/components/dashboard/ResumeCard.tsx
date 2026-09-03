@@ -1,4 +1,3 @@
-import { formatDistanceToNow } from 'date-fns';
 import { Play, RotateCcw, Trash2 } from 'lucide-react';
 import type { ExamSnapshot } from '@/core/types';
 import { profileFor } from '@/core/scoring/examProfiles';
@@ -6,6 +5,7 @@ import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { ProgressBar } from '@/ui/ProgressBar';
 import { useT } from '@/i18n';
+import { useDateFormat } from '@/hooks/useDateFormat';
 
 interface Props {
   snapshot: ExamSnapshot;
@@ -16,6 +16,7 @@ interface Props {
 /** An attempt that was interrupted, offered back instead of silently lost. */
 export function ResumeCard({ snapshot, onResume, onDiscard }: Props) {
   const t = useT();
+  const d = useDateFormat();
   const { config, typed, savedAt } = snapshot;
   const progress = config.passage.length ? (typed.length / config.passage.length) * 100 : 0;
 
@@ -29,7 +30,7 @@ export function ResumeCard({ snapshot, onResume, onDiscard }: Props) {
           <p className="truncate text-sm text-fg-muted">
             {t('resume.left', {
               title: config.title || profileFor(config.board).name,
-              ago: formatDistanceToNow(new Date(savedAt), { addSuffix: true }),
+              ago: d.ago(savedAt),
             })}
           </p>
         </div>
