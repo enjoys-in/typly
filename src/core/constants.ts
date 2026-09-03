@@ -10,6 +10,11 @@ export enum Lang {
   Gu = 'guj',
 }
 
+/** Guards a language read back from storage. */
+export function isLang(value: unknown): value is Lang {
+  return typeof value === 'string' && (Object.values(Lang) as string[]).includes(value);
+}
+
 // Writing system a language uses. Input methods, legacy fonts and punctuation
 // cleanup are script-level concerns, not language-level ones.
 export enum Script {
@@ -52,6 +57,11 @@ export enum ExamBoard {
   LdcUdc = 'ldc_udc',
   Upsssc = 'upsssc',
   Custom = 'custom',
+}
+
+/** Guards a board read back from storage, which may predate a rename. */
+export function isExamBoard(value: unknown): value is ExamBoard {
+  return typeof value === 'string' && (Object.values(ExamBoard) as string[]).includes(value);
 }
 
 export enum TestStatus {
@@ -172,6 +182,8 @@ export const SETTING_KEY = {
   TourDone: 'tour:done',
   /** Newest release whose changes have been shown, or 'off' to stop asking. */
   ChangelogSeen: 'changelog:seen',
+  /** The exam being prepared for: board and date, as JSON. */
+  ExamTarget: 'exam:target',
 } as const;
 
 export const LANG_LABEL: Record<Lang, string> = {

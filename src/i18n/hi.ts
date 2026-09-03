@@ -889,6 +889,8 @@ export const hi: Record<TKey, string> = {
   'whatsNew.close': 'बंद करें',
 
   // Changelog lines, newest release first (see i18n/changelog.ts)
+  'changelog.countdown':
+    'अपनी परीक्षा की तारीख़ डालें और देखें कि सुधार की मौजूदा रफ़्तार समय रहते कट-ऑफ़ पार कराती है या नहीं — रोज़ का रिमाइंडर भी अब यही बताता है।',
   'changelog.deviceSync':
     'अपने ही Wi-Fi पर कोड स्कैन करके दूसरे डिवाइस से सिंक करें — कोई खाता नहीं, कोई सर्वर नहीं।',
   'changelog.splash':
@@ -984,4 +986,36 @@ export const hi: Record<TKey, string> = {
   'settings.dndOn': 'सूचनाएँ रोकी जा रही हैं। रिमाइंडर याद है और इसे बंद करने पर फिर चालू हो जाएगा।',
 
   'nav.language': 'भाषा',
+
+  // Exam countdown and readiness forecast
+  'countdown.setTitle': 'आपकी परीक्षा कब है?',
+  'countdown.setLead':
+    'तारीख़ डालें और Typly उसकी उलटी गिनती करेगा — और बताएगा कि सुधार की आपकी मौजूदा रफ़्तार समय रहते कट-ऑफ़ पार कराती है या नहीं।',
+  'countdown.exam': 'परीक्षा',
+  'countdown.date': 'परीक्षा की तारीख़',
+  'countdown.lang': 'टाइपिंग भाषा',
+  'countdown.save': 'तारीख़ सेट करें',
+  'countdown.cancel': 'रद्द करें',
+  'countdown.change': 'बदलें',
+  'countdown.clear': 'हटाएँ',
+  'countdown.badDate': 'अगले कुछ वर्षों के भीतर की तारीख़ चुनें।',
+  'countdown.daysLeft': '{days} दिन बचे',
+  'countdown.tomorrow': 'कल',
+  'countdown.today': 'आज',
+  'countdown.gone': 'परीक्षा का दिन बीत चुका',
+  'countdown.yourSpeed': 'आपकी गति',
+  'countdown.yourAccuracy': 'आपकी सटीकता',
+  'countdown.trend': 'रुझान',
+  'countdown.perDay': 'WPM प्रतिदिन',
+  'countdown.needed': '{value} चाहिए',
+  'countdown.verdictReady': 'आप कट-ऑफ़ पार कर चुके हैं। इसे बनाए रखें — रोज़ एक टेस्ट काफ़ी है।',
+  'countdown.verdictOnTrack':
+    'इस रुझान पर आप {date} के आसपास कट-ऑफ़ पार कर लेंगे — यानी लगभग {days} दिन में, परीक्षा से पहले।',
+  'countdown.verdictBehind':
+    'यह रुझान समय रहते कट-ऑफ़ तक नहीं पहुँचता। आप {wpm} WPM पीछे हैं, यानी यहाँ से लगभग +{perDay} WPM प्रतिदिन चाहिए।',
+  'countdown.verdictNoData':
+    'इस परीक्षा की भाषा में एक टेस्ट दें, तभी कट-ऑफ़ के मुक़ाबले आपकी स्थिति दिखेगी।',
+  'countdown.verdictPassed': 'वह तारीख़ बीत गई। नई उलटी गिनती शुरू करने के लिए अगली तारीख़ डालें।',
+  'countdown.habit': 'रोज़ लगभग {minutes} मिनट, पिछले 14 में से {days} दिन।',
+  'countdown.habitNone': 'पिछले दो हफ़्तों में कोई अभ्यास नहीं — पूर्वानुमान मानता है कि आप फिर शुरू करेंगे।',
 };

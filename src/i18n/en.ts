@@ -886,6 +886,8 @@ export const en = {
   'whatsNew.close': 'Close',
 
   // Changelog lines, newest release first (see i18n/changelog.ts)
+  'changelog.countdown':
+    'Set your exam date and see whether your current rate of improvement clears the cut-off in time — the daily reminder now says so too.',
   'changelog.deviceSync':
     'Sync to another device over your own Wi-Fi by scanning a code — no account, no server.',
   'changelog.splash':
@@ -981,6 +983,38 @@ export const en = {
   'settings.dndOn': 'Notifications are being held. The reminder is remembered and resumes when you turn this off.',
 
   'nav.language': 'Language',
+
+  // Exam countdown and readiness forecast
+  'countdown.setTitle': 'When is your exam?',
+  'countdown.setLead':
+    'Set the date and Typly counts down to it — and works out whether your current rate of improvement gets you past the cut-off in time.',
+  'countdown.exam': 'Exam',
+  'countdown.date': 'Exam date',
+  'countdown.lang': 'Typing language',
+  'countdown.save': 'Set date',
+  'countdown.cancel': 'Cancel',
+  'countdown.change': 'Change',
+  'countdown.clear': 'Remove',
+  'countdown.badDate': 'Pick a date within the next few years.',
+  'countdown.daysLeft': '{days} days left',
+  'countdown.tomorrow': 'Tomorrow',
+  'countdown.today': 'Today',
+  'countdown.gone': 'Exam day has passed',
+  'countdown.yourSpeed': 'Your speed',
+  'countdown.yourAccuracy': 'Your accuracy',
+  'countdown.trend': 'Trend',
+  'countdown.perDay': 'WPM per day',
+  'countdown.needed': '{value} needed',
+  'countdown.verdictReady': 'You are already past the cut-off. Keep it steady — one test a day holds it.',
+  'countdown.verdictOnTrack':
+    'On this trend you clear the cut-off around {date} — about {days} days from now, and before exam day.',
+  'countdown.verdictBehind':
+    'This trend does not reach the cut-off in time. You are {wpm} WPM short, which is about +{perDay} WPM a day from here.',
+  'countdown.verdictNoData':
+    'Take a test in this exam’s language to see where you stand against its cut-off.',
+  'countdown.verdictPassed': 'That date has gone. Set the next one to start a new countdown.',
+  'countdown.habit': 'About {minutes} minutes a day, on {days} of the last 14.',
+  'countdown.habitNone': 'No practice in the last two weeks — the forecast assumes you start again.',
 } as const;
 
 export type TKey = keyof typeof en;

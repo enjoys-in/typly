@@ -5,8 +5,9 @@ import {
   DEFAULT_REMINDER_TIME,
   dayKey,
   decideReminder,
-  REMINDER_MESSAGE,
+  reminderMessage,
 } from '../../src/core/reminder/schedule';
+import { countdownFrom } from '../../src/core/exam/countdown';
 
 // Main-process daily reminder. Runs off a main timer (not the renderer, which is
 // throttled when hidden) and shares its stored flags with the renderer store.
@@ -31,22 +32,26 @@ export function createReminderScheduler(
 
   function tick() {
     const now = new Date();
+    const history = db.listHistory();
     const decision = decideReminder({
       enabled,
       time,
       now,
-      practicedToday: db.listHistory().some((t) => dayKey(new Date(t.createdAt)) === dayKey(now)),
+      practicedToday: history.some((t) => dayKey(new Date(t.createdAt)) === dayKey(now)),
       firedFor: db.getSetting(SETTING_KEY.ReminderFired),
       nudgedFor: db.getSetting(SETTING_KEY.ReminderNudged),
       dismissedFor: db.getSetting(SETTING_KEY.ReminderDismissed),
     });
 
-    if (decision.notifyDue) {
-      db.setSetting(SETTING_KEY.ReminderFired, decision.today);
-      notify(REMINDER_MESSAGE.due.title, REMINDER_MESSAGE.due.body);
-    } else if (decision.notifyMissed) {
-      db.setSetting(SETTING_KEY.ReminderNudged, decision.today);
-      notify(REMINDER_MESSAGE.missed.title, REMINDER_MESSAGE.missed.body);
+    if (decision.notifyDue || decision.notifyMissed) {
+      // The same wording as the web timer, exam countdown included.
+      const countdown = countdownFrom(db.getSetting(SETTING_KEY.ExamTarget), history, now);
+      const message = reminderMessage(decision.notifyDue ? 'due' : 'missed', countdown);
+      db.setSetting(
+        decision.notifyDue ? SETTING_KEY.ReminderFired : SETTING_KEY.ReminderNudged,
+        decision.today,
+      );
+      notify(message.title, message.body);
     }
 
     // Only touch the tray when the state actually changes.

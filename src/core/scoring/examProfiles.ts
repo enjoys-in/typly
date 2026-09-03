@@ -155,6 +155,16 @@ export function profileFor(board: ExamBoard): ExamProfile {
   return EXAM_PROFILES[board] ?? EXAM_PROFILES[ExamBoard.Custom];
 }
 
+/**
+ * The exam's name with its paper dropped — "SSC CHSL — DEST (LDC/DEO)" becomes
+ * "SSC CHSL". Full names are right on a setup screen and far too long for a
+ * notification title or a countdown headline.
+ */
+export function shortNameFor(board: ExamBoard): string {
+  const [head] = profileFor(board).name.split('—');
+  return (head ?? '').trim() || profileFor(board).name;
+}
+
 // Boards grouped by category (insertion order preserved) for grouped <select> menus.
 export function boardsByCategory(): { category: string; boards: ExamBoard[] }[] {
   const groups: { category: string; boards: ExamBoard[] }[] = [];

@@ -4,8 +4,10 @@ import { TestStatus } from './constants';
 
 const DAY_MS = 86_400_000;
 
-// Attempts where something was actually typed (gross > 0) — ignores abandoned tests.
-export function realAttempts(rows: TestRow[]): TestRow[] {
+// Attempts where something was actually typed (gross > 0) — ignores abandoned
+// tests. Generic in the row so the desktop store's looser row type (which comes
+// straight out of SQLite, with plain strings for the enums) can use it too.
+export function realAttempts<T extends { grossWpm: number }>(rows: T[]): T[] {
   return rows.filter((r) => r.grossWpm > 0);
 }
 

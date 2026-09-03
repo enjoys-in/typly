@@ -96,6 +96,50 @@ export const REMINDER_MESSAGE = {
   },
 } as const;
 
+/** What the exam countdown contributes to a nudge, when a date has been set. */
+export interface ReminderCountdown {
+  /** Calendar days to exam day. */
+  daysLeft: number;
+  /** Short exam name, e.g. "SSC CHSL". */
+  examName: string;
+  /** Net WPM still missing from the cut-off; zero once it is met. */
+  wpmGap: number;
+}
+
+/**
+ * The nudge, said in terms of the exam when there is one.
+ *
+ * "Time to practice" is a nag. "68 days to SSC CHSL, you are 4 WPM short" is a
+ * reason — the same notification, carrying the one fact that makes opening the
+ * app worth it. With no exam set, or one already sat, it falls back to the
+ * plain wording.
+ */
+export function reminderMessage(
+  kind: 'due' | 'missed',
+  countdown: ReminderCountdown | null,
+): { title: string; body: string } {
+  if (!countdown || countdown.daysLeft < 0) return REMINDER_MESSAGE[kind];
+
+  const { daysLeft, examName, wpmGap } = countdown;
+  const title =
+    daysLeft === 0
+      ? `${examName} is today`
+      : daysLeft === 1
+        ? `${examName} is tomorrow`
+        : `${daysLeft} days to ${examName}`;
+
+  if (kind === 'missed') {
+    return { title, body: "Today's practice is still pending — 10 minutes holds your trend." };
+  }
+  return {
+    title,
+    body:
+      wpmGap > 0
+        ? `You are ${wpmGap} WPM short of the cut-off. One test today keeps you on trend.`
+        : 'You are at the cut-off — one test today keeps it there.',
+  };
+}
+
 /** Tray tooltip/title while practice is outstanding. */
 export const TRAY_PENDING_TOOLTIP = 'Typly — missing you, typing practice pending';
 export const TRAY_PENDING_TITLE = 'Typing pending';

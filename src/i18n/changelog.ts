@@ -23,6 +23,7 @@ export const RELEASES: readonly Release[] = [
     version: '0.3.0',
     date: '2026-09-04',
     items: [
+      'changelog.countdown',
       'changelog.deviceSync',
       'changelog.dnd',
       'changelog.sidebarLanguage',

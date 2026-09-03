@@ -19,13 +19,16 @@ import { usePaperRun } from '@/hooks/usePaperRun';
 import { clearExamSnapshot, readExamSnapshot } from '@/hooks/useExamSnapshot';
 import { readSampleDocument, seedSampleLibrary } from '@/hooks/useSampleLibrary';
 import { profileFor } from '@/core/scoring/examProfiles';
+import { readinessFor } from '@/core/exam/readiness';
+import { parseTarget, serializeTarget, type ExamTarget } from '@/core/exam/target';
 import { weakKeys } from '@/core/analysis/analysis';
 import { currentStreak, realAttempts, testsToday, totalPoints, wpmAverages } from '@/core/stats';
-import { TestStatus } from '@/core/constants';
+import { SETTING_KEY, TestStatus } from '@/core/constants';
 import { firstName } from '@/core/profile/profile';
 import { greetingFor } from '@/core/profile/greeting';
 import { useT } from '@/i18n';
 import { useDateFormat } from '@/hooks/useDateFormat';
+import { ExamCountdownCard } from '@/components/dashboard/ExamCountdownCard';
 import { GoalCard } from '@/components/dashboard/GoalCard';
 import { ResumeCard } from '@/components/dashboard/ResumeCard';
 import { SampleCard } from '@/components/dashboard/SampleCard';
@@ -39,6 +42,10 @@ export function Dashboard() {
   const navigate = useNavigate();
   const platform = usePlatform();
   const dailyGoal = useSettingsStore((s) => s.dailyGoal);
+  const board = useSettingsStore((s) => s.board);
+  const setBoard = useSettingsStore((s) => s.setBoard);
+  const lang = useSettingsStore((s) => s.lang);
+  const setLang = useSettingsStore((s) => s.setLang);
   const resumeFrom = useExamStore((s) => s.resumeFrom);
   const setDraft = useExamStore((s) => s.setDraft);
   const account = useAuthStore((s) => s.account);
@@ -56,6 +63,7 @@ export function Dashboard() {
       mistakes: await platform.repo.aggregateMistakes(),
       snapshot: await readExamSnapshot(platform.repo),
       sample: await readSampleDocument(platform.repo),
+      target: parseTarget(await platform.repo.getSetting(SETTING_KEY.ExamTarget)),
     };
   }, [platform]);
 
@@ -79,6 +87,14 @@ export function Dashboard() {
 
   const snapshot = overview.data?.snapshot ?? null;
   const sample = overview.data?.sample ?? null;
+  const target = overview.data?.target ?? null;
+
+  // The forecast is pure arithmetic over history, so it is recomputed rather
+  // than stored: nothing to go stale, nothing to migrate.
+  const readiness = useMemo(() => {
+    if (!target || !overview.data) return null;
+    return readinessFor(target, profileFor(target.board), overview.data.rows);
+  }, [target, overview.data]);
 
   // Greet by name only when there is one, so an account saved before profiles
   // existed sees exactly the hero it saw before.
@@ -90,6 +106,21 @@ export function Dashboard() {
   const greetingLine = greeting.returning
     ? t('greeting.returning')
     : t(`greeting.${greeting.daypart}`);
+
+  async function saveTarget(next: ExamTarget) {
+    await platform.repo.setSetting(SETTING_KEY.ExamTarget, serializeTarget(next));
+    // Practise against the exam you are actually sitting: the target becomes
+    // the default profile and language for new tests, which is what declaring
+    // an exam means.
+    setBoard(next.board);
+    setLang(next.lang);
+    overview.reload();
+  }
+
+  async function clearTarget() {
+    await platform.repo.setSetting(SETTING_KEY.ExamTarget, '');
+    overview.reload();
+  }
 
   function startSample() {
     if (!sample) return;
@@ -151,6 +182,20 @@ export function Dashboard() {
       </section>
 
       {snapshot && <ResumeCard snapshot={snapshot} onResume={resume} onDiscard={() => void discard()} />}
+
+      {/* Directly under the hero: the countdown is the one thing on this page
+          that looks forward, and the reason the daily reminder is worth acting
+          on. It shows the prompt to set a date until there is one. */}
+      {!overview.loading && (
+        <ExamCountdownCard
+          target={target}
+          readiness={readiness}
+          defaultBoard={board}
+          defaultLang={lang}
+          onSave={(next) => void saveTarget(next)}
+          onClear={() => void clearTarget()}
+        />
+      )}
 
       {overview.loading ? (
         <SkeletonCard lines={3} />

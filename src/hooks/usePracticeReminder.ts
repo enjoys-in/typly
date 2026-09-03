@@ -3,7 +3,8 @@ import { usePlatform } from '@/platform/PlatformContext';
 import { useSettingsStore } from '@/store/settingsStore';
 import { SETTING_KEY } from '@/core/constants';
 import { appConfig } from '@/config/appConfig';
-import { dayKey, decideReminder, REMINDER_MESSAGE } from '@/core/reminder/schedule';
+import { dayKey, decideReminder, reminderMessage } from '@/core/reminder/schedule';
+import { countdownFrom } from '@/core/exam/countdown';
 
 const BASE_TITLE = `${appConfig.name} — ${appConfig.tagline}`;
 const PENDING_TITLE = `⌨️ Typing pending — ${appConfig.name}`;
@@ -49,12 +50,20 @@ export function usePracticeReminder(): void {
       });
       if (cancelled) return;
 
-      if (decision.notifyDue) {
-        await platform.repo.setSetting(SETTING_KEY.ReminderFired, decision.today);
-        platform.notifications.notify(REMINDER_MESSAGE.due.title, REMINDER_MESSAGE.due.body);
-      } else if (decision.notifyMissed) {
-        await platform.repo.setSetting(SETTING_KEY.ReminderNudged, decision.today);
-        platform.notifications.notify(REMINDER_MESSAGE.missed.title, REMINDER_MESSAGE.missed.body);
+      if (decision.notifyDue || decision.notifyMissed) {
+        // Said in terms of the exam being sat, when one has been set.
+        const countdown = countdownFrom(
+          await platform.repo.getSetting(SETTING_KEY.ExamTarget),
+          history,
+          now,
+        );
+        const kind = decision.notifyDue ? 'due' : 'missed';
+        const message = reminderMessage(kind, countdown);
+        await platform.repo.setSetting(
+          decision.notifyDue ? SETTING_KEY.ReminderFired : SETTING_KEY.ReminderNudged,
+          decision.today,
+        );
+        platform.notifications.notify(message.title, message.body);
       }
       // The tab title is the web's tray: it keeps asking until practice is done.
       document.title = decision.pending ? PENDING_TITLE : BASE_TITLE;

@@ -46,6 +46,10 @@ against the exact scoring your exam uses, and track your progress over time.
   provider you choose.
 
 ### Track your progress
+- **Exam countdown with a readiness forecast** — set "SSC CHSL · 12 Nov" and the dashboard
+  reads *68 days left · net 31 WPM against 35 needed · on this trend you clear it around
+  20 Oct*. Pure local arithmetic over your own history, and it makes the daily reminder a
+  reason rather than a nag.
 - History, per-minute WPM charts, cross-test progress, **badges**, **streaks**, a
   **daily goal**, and a shareable **certificate**.
 - **Replay** any attempt keystroke by keystroke to see where the time actually went.
