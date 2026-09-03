@@ -1,27 +1,84 @@
-import { ArrowRight, Mail, ShieldCheck } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowRight, Mail, ShieldCheck, Sparkles, User } from 'lucide-react';
+import {
+  isAcceptableEmail,
+  isValidName,
+  MAX_NAME_LENGTH,
+  type Profile,
+} from '@/core/profile/profile';
 import { Button } from '@/ui/Button';
 
 const META = ['English + हिन्दी', 'Image · PDF · DOCX · Text', 'macOS desktop & web'];
 
 interface Props {
-  onGuest: () => void;
+  onGuest: (profile: Profile) => void;
   busy?: boolean;
 }
 
 /** Right-hand sign-in column. Guest-first; email sign-in lands with the backend. */
 export function AuthCard({ onGuest, busy = false }: Props) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [touched, setTouched] = useState(false);
+  const nameOk = isValidName(name);
+  const emailOk = isAcceptableEmail(email);
+  const canStart = nameOk && emailOk && !busy;
+
+  function start() {
+    setTouched(true);
+    if (!nameOk || !emailOk) return;
+    onGuest({ name, ...(email.trim() ? { email } : {}) });
+  }
+
   return (
     <section className="flex flex-col items-center justify-center gap-10 p-6 sm:p-10">
       <div className="rise-in w-full max-w-sm">
         <h2 className="text-2xl font-bold tracking-tight">Get started</h2>
         <p className="mt-2 text-sm leading-relaxed text-fg-muted">
-          No sign-up, no setup. Every feature is unlocked and your results stay on this device.
+          No sign-up, no setup. Just your name, so the app knows who it is coaching — your results
+          stay on this device.
         </p>
 
-        <Button size="lg" className="mt-7 w-full" onClick={onGuest} disabled={busy}>
-          {busy ? 'Opening…' : 'Continue as guest'}
-          {!busy && <ArrowRight size={16} />}
-        </Button>
+        <form
+          className="mt-6 space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            start();
+          }}
+        >
+          <Field
+            id="profile-name"
+            icon={User}
+            label="Your name"
+            hint="Shown on your dashboard and printed on certificates."
+            value={name}
+            onChange={setName}
+            placeholder="e.g. Komal"
+            maxLength={MAX_NAME_LENGTH}
+            autoFocus
+            invalid={touched && !nameOk}
+            error="Please enter at least two characters."
+          />
+
+          <Field
+            id="profile-email"
+            icon={Mail}
+            label="Email"
+            optional
+            hint="Unlocks long sessions, certificate downloads and progress exports. Stored on this device only — nothing is sent."
+            value={email}
+            onChange={setEmail}
+            placeholder="you@example.com"
+            type="email"
+            invalid={touched && !emailOk}
+            error="That does not look like an email address."
+          />
+
+          <Button type="submit" size="lg" className="w-full" disabled={!canStart}>
+            {busy ? 'Opening…' : 'Start practising'}
+            {!busy && <ArrowRight size={16} />}
+          </Button>
+        </form>
 
         <div className="my-6 flex items-center gap-3">
           <span className="h-px flex-1 bg-line" />
@@ -68,6 +125,86 @@ export function AuthCard({ onGuest, busy = false }: Props) {
         </a>
       </div>
     </section>
+  );
+}
+
+interface FieldProps {
+  id: string;
+  icon: typeof User;
+  label: string;
+  hint: string;
+  value: string;
+  onChange: (next: string) => void;
+  placeholder: string;
+  type?: string;
+  maxLength?: number;
+  optional?: boolean;
+  autoFocus?: boolean;
+  invalid?: boolean;
+  error?: string;
+}
+
+/** Labelled text input with its hint and inline error, wired for screen readers. */
+function Field({
+  id,
+  icon: Icon,
+  label,
+  hint,
+  value,
+  onChange,
+  placeholder,
+  type = 'text',
+  maxLength,
+  optional = false,
+  autoFocus = false,
+  invalid = false,
+  error,
+}: FieldProps) {
+  const hintId = `${id}-hint`;
+  const errorId = `${id}-error`;
+
+  return (
+    <div className="space-y-1.5">
+      <label htmlFor={id} className="flex items-center gap-2 text-sm font-medium">
+        <Icon size={14} className="shrink-0 text-fg-subtle" />
+        {label}
+        {optional ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-bold tracking-wide text-accent-soft-fg uppercase">
+            <Sparkles size={10} /> Optional
+          </span>
+        ) : (
+          <span className="text-danger-text" aria-hidden>
+            *
+          </span>
+        )}
+      </label>
+      <input
+        id={id}
+        type={type}
+        value={value}
+        autoFocus={autoFocus}
+        maxLength={maxLength}
+        required={!optional}
+        placeholder={placeholder}
+        aria-describedby={invalid && error ? errorId : hintId}
+        aria-invalid={invalid || undefined}
+        onChange={(e) => onChange(e.target.value)}
+        className={`w-full rounded-control border bg-field px-3 py-2.5 text-sm outline-none transition-colors focus-visible:ring-4 ${
+          invalid
+            ? 'border-danger-border focus-visible:border-danger focus-visible:ring-danger-ring'
+            : 'border-edge focus-visible:border-accent focus-visible:ring-accent-ring'
+        }`}
+      />
+      {invalid && error ? (
+        <p id={errorId} role="alert" className="text-xs text-danger-text">
+          {error}
+        </p>
+      ) : (
+        <p id={hintId} className="text-xs leading-relaxed text-fg-subtle">
+          {hint}
+        </p>
+      )}
+    </div>
   );
 }
 

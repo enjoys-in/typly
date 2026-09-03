@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { format } from 'date-fns';
+import { Lock } from 'lucide-react';
 import type { FinishedExam } from '@/store/examStore';
+import { useAuthStore } from '@/store/authStore';
 import { profileFor } from '@/core/scoring/examProfiles';
+import { featuresFor } from '@/core/profile/profile';
 import { appConfig, activeTheme } from '@/config/appConfig';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
@@ -28,7 +31,10 @@ function roundRect(
 
 export function CertificateCard({ finished }: { finished: FinishedExam }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [name, setName] = useState('');
+  const account = useAuthStore((s) => s.account);
+  // Pre-filled from the profile, still editable per certificate.
+  const [name, setName] = useState(account?.name ?? '');
+  const unlocked = featuresFor(account);
   const result = finished.result;
   const examName = profileFor(finished.payload.examBoard).name;
   const dateStr = format(new Date(finished.payload.createdAt), 'dd MMMM yyyy');
@@ -126,7 +132,7 @@ export function CertificateCard({ finished }: { finished: FinishedExam }) {
 
   function download() {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !unlocked.certificateDownload) return;
     canvas.toBlob((blob) => {
       if (!blob) return;
       const url = URL.createObjectURL(blob);
@@ -144,7 +150,9 @@ export function CertificateCard({ finished }: { finished: FinishedExam }) {
       <div>
         <h2 className="font-semibold">Certificate</h2>
         <p className="mt-0.5 text-xs text-fg-muted">
-          You passed — add your name and download a shareable certificate.
+          {unlocked.certificateDownload
+            ? 'You passed — here is a shareable certificate.'
+            : 'You passed. Add your email in Settings to download it as an image.'}
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-3">
@@ -153,9 +161,13 @@ export function CertificateCard({ finished }: { finished: FinishedExam }) {
           onChange={(e) => setName(e.target.value)}
           placeholder="Your name"
           maxLength={40}
+          aria-label="Name on the certificate"
           className="select min-w-40 flex-1"
         />
-        <Button onClick={download}>Download certificate</Button>
+        <Button onClick={download} disabled={!unlocked.certificateDownload}>
+          {!unlocked.certificateDownload && <Lock size={14} />}
+          Download certificate
+        </Button>
       </div>
       <canvas
         ref={canvasRef}

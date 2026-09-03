@@ -8,6 +8,7 @@ import { preprocessImageForOcr } from '@/platform/browser/imagePreprocess';
 import { AiRequestError } from '@/platform/browser/aiTransport';
 import { RATE_LIMIT_STATUS } from '@/core/ai/rateLimit';
 import { currentAiSettings, isAiEnabled, useAiSettingsStore } from '@/store/aiSettingsStore';
+import { sourceForFile } from '@/core/text/fileKind';
 import { Lang, SourceType } from '@/core/constants';
 import { Button } from '@/ui/Button';
 import { ProgressBar } from '@/ui/ProgressBar';
@@ -16,6 +17,14 @@ import { OcrReview } from './OcrReview';
 interface Props {
   lang: Lang;
   onText: (text: string, source: SourceType) => void;
+  /**
+   * A file handed over by the OS ("Open with Typly", or a double-clicked .txt).
+   * It goes through exactly the same extraction as a dropped file — progress,
+   * OCR verification and all.
+   */
+  incoming?: { name: string; bytes: Uint8Array } | null;
+  /** Called once `incoming` has been picked up, so it is never re-imported. */
+  onIncomingTaken?: () => void;
 }
 
 type Phase = 'idle' | SourceType.Image | SourceType.Pdf | SourceType.Docx;
@@ -31,7 +40,7 @@ function fmt(ms: number): string {
   return s >= 60 ? `${Math.floor(s / 60)}m ${s % 60}s` : `${s}s`;
 }
 
-export function TextUploader({ lang, onText }: Props) {
+export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }: Props) {
   const platform = usePlatform();
   const ai = useAiSettingsStore();
   const [pasted, setPasted] = useState('');
@@ -78,6 +87,24 @@ export function TextUploader({ lang, onText }: Props) {
     const id = setInterval(() => setVerifyMs(Date.now() - start), 1000);
     return () => clearInterval(id);
   }, [verifyLabel]);
+
+  // A file the OS asked Typly to open. Keyed on the byte buffer's identity so
+  // re-renders — and StrictMode's double mount — can't import it twice.
+  const importedRef = useRef<Uint8Array | null>(null);
+  useEffect(() => {
+    if (!incoming || importedRef.current === incoming.bytes) return;
+    importedRef.current = incoming.bytes;
+    onIncomingTaken?.();
+    const source = sourceForFile(incoming.name);
+    if (!source) {
+      setError(`Typly can't read "${incoming.name}". Paste the text instead.`);
+      return;
+    }
+    void process(source, incoming.bytes);
+    // Deliberately keyed on the file alone: the extraction should use the
+    // language and AI settings in force when the file landed.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [incoming]);
 
   async function extract(source: Exclude<Phase, 'idle'>, bytes: Uint8Array): Promise<void> {
     setError(null);
@@ -219,16 +246,7 @@ export function TextUploader({ lang, onText }: Props) {
     if (working) return;
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
-    const name = file.name.toLowerCase();
-    const source = file.type.startsWith('image/')
-      ? SourceType.Image
-      : file.type === 'application/pdf'
-        ? SourceType.Pdf
-        : name.endsWith('.docx')
-          ? SourceType.Docx
-          : file.type === 'text/plain' || name.endsWith('.txt')
-            ? SourceType.Text
-            : null;
+    const source = sourceForFile(file.name, file.type);
     if (!source) {
       setError('Unsupported file. Drop an image, PDF, .docx or .txt — or paste text.');
       return;

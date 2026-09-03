@@ -1,4 +1,5 @@
 import type { BackupBundle, FullResult, Repository } from '../ports';
+import type { ShellStatus } from '@/core/ipc/shell';
 import type {
   DocumentInput,
   DocumentRow,
@@ -23,6 +24,14 @@ interface Bridge {
   };
   ai?: {
     invoke(channel: string, payload: unknown): Promise<{ status: number; body: unknown }>;
+  };
+  /** Tray / dock / taskbar integration and "Open with Typly". Desktop only. */
+  shell?: {
+    pendingFile(): Promise<{ name: string; bytes: Uint8Array } | null>;
+    onOpenFile(handler: (file: { name: string; bytes: Uint8Array }) => void): () => void;
+    onNavigate(handler: (route: string) => void): () => void;
+    setStatus(status: ShellStatus): void;
+    setProgress(fraction: number | null): void;
   };
 }
 

@@ -20,6 +20,7 @@ import {
   LANG_LABEL,
 } from '@/core/constants';
 import { AiSettingsCard } from '@/components/settings/AiSettingsCard';
+import { ProfileCard } from '@/components/settings/ProfileCard';
 import { LanguageToolsCard } from '@/components/settings/LanguageToolsCard';
 import { StorageCard } from '@/components/settings/StorageCard';
 import { ThemeCard } from '@/components/settings/ThemeCard';
@@ -142,6 +143,8 @@ export function Settings() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Settings</h1>
+
+      <ProfileCard />
 
       {/* Masonry two columns on wide screens so cards pack tightly, less scrolling. */}
       <div className="columns-1 gap-6 *:mb-6 *:break-inside-avoid lg:columns-2">

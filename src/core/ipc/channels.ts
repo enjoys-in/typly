@@ -7,6 +7,16 @@ export const enum IpcChannel {
   FontsRead = 'fonts:read',
   FontsWrite = 'fonts:write',
   ReminderSet = 'reminder:set',
+  /** Main → renderer: a file the OS asked Typly to open. */
+  FileOpened = 'file:opened',
+  /** Renderer → main: hand over a file that arrived before the UI was ready. */
+  FilePending = 'file:pending',
+  /** Renderer → main: what the tray, dock badge and jump list should say. */
+  ShellStatus = 'shell:status',
+  /** Renderer → main: 0..1 exam progress for the taskbar/dock progress bar. */
+  ShellProgress = 'shell:progress',
+  /** Main → renderer: a route picked from the tray, dock menu or jump list. */
+  ShellNavigate = 'shell:navigate',
   AiCoach = 'ai:coach',
   AiGrammar = 'ai:grammar',
   AiOcr = 'ai:ocrVision',

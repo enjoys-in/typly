@@ -1,6 +1,8 @@
 import type { LucideIcon } from 'lucide-react';
 
-export interface SegmentedOption<T extends string> {
+// String or number values, so numeric choices (a chunk size, a duration) can
+// use the same control without stringifying at every call site.
+export interface SegmentedOption<T extends string | number> {
   value: T;
   label: string;
   icon?: LucideIcon;
@@ -8,7 +10,7 @@ export interface SegmentedOption<T extends string> {
   title?: string;
 }
 
-interface Props<T extends string> {
+interface Props<T extends string | number> {
   options: SegmentedOption<T>[];
   value: T;
   onChange: (value: T) => void;
@@ -21,7 +23,7 @@ interface Props<T extends string> {
  * The one segmented control. Previously this pattern existed three times with
  * three different looks — an accent fill, a slate fill, and a pair of Buttons.
  */
-export function Segmented<T extends string>({
+export function Segmented<T extends string | number>({
   options,
   value,
   onChange,

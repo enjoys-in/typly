@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { appConfig } from '@/config/appConfig';
 import { usePlatform } from '@/platform/PlatformContext';
+import { useAuthStore } from '@/store/authStore';
 import { useExamStore } from '@/store/examStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useAsync } from '@/hooks/useAsync';
@@ -19,7 +20,9 @@ import { readSampleDocument, seedSampleLibrary } from '@/hooks/useSampleLibrary'
 import { profileFor } from '@/core/scoring/examProfiles';
 import { weakKeys } from '@/core/analysis/analysis';
 import { currentStreak, realAttempts, testsToday, totalPoints, wpmAverages } from '@/core/stats';
-import { TestStatus } from '@/core/constants';
+import { DAYPART_GREETING, RETURNING_GREETING, TestStatus } from '@/core/constants';
+import { firstName } from '@/core/profile/profile';
+import { greetingFor } from '@/core/profile/greeting';
 import { GoalCard } from '@/components/dashboard/GoalCard';
 import { ResumeCard } from '@/components/dashboard/ResumeCard';
 import { SampleCard } from '@/components/dashboard/SampleCard';
@@ -35,6 +38,7 @@ export function Dashboard() {
   const dailyGoal = useSettingsStore((s) => s.dailyGoal);
   const resumeFrom = useExamStore((s) => s.resumeFrom);
   const setDraft = useExamStore((s) => s.setDraft);
+  const account = useAuthStore((s) => s.account);
   const Logo = appConfig.logo;
 
   const overview = useAsync(async () => {
@@ -69,6 +73,17 @@ export function Dashboard() {
 
   const snapshot = overview.data?.snapshot ?? null;
   const sample = overview.data?.sample ?? null;
+
+  // Greet by name only when there is one, so an account saved before profiles
+  // existed sees exactly the hero it saw before.
+  const who = firstName(account?.name ?? '');
+  const greeting = useMemo(
+    () => greetingFor(new Date(), overview.data?.rows[0]?.createdAt ?? null),
+    [overview.data],
+  );
+  const greetingLine = greeting.returning
+    ? RETURNING_GREETING
+    : (DAYPART_GREETING[greeting.daypart] ?? '');
 
   function startSample() {
     if (!sample) return;
@@ -105,7 +120,14 @@ export function Dashboard() {
             {appConfig.name}
           </span>
         </div>
-        <h1 className="relative mt-6 text-3xl font-bold tracking-tight">Dashboard</h1>
+        {who && (
+          <p className="relative mt-6 text-sm font-medium text-white/85">
+            {greetingLine}, {who}
+          </p>
+        )}
+        <h1 className={`relative text-3xl font-bold tracking-tight ${who ? 'mt-1' : 'mt-6'}`}>
+          Dashboard
+        </h1>
         <p className="relative mt-1.5 max-w-sm text-sm leading-relaxed text-white/75">
           Turn any image, PDF, or paragraph into a typing exam.
         </p>

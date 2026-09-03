@@ -11,6 +11,7 @@ import { BrowserAiCoach } from './coach';
 import { BrowserNotifications } from './notifications';
 import { BrowserSound } from './sound';
 import { BrowserTts } from './tts';
+import { BrowserShell } from './shell';
 
 export function createBrowserPlatform(): Platform {
   return {
@@ -26,5 +27,6 @@ export function createBrowserPlatform(): Platform {
     notifications: new BrowserNotifications(),
     sound: new BrowserSound(),
     tts: new BrowserTts(),
+    shell: new BrowserShell(),
   };
 }

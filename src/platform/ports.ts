@@ -9,7 +9,9 @@ import type {
   Mistake,
 } from '@/core/types';
 import type { AiSettings, CoachFeedback, CoachInput } from '@/core/coach/types';
+import type { Profile } from '@/core/profile/profile';
 import type { Lang, SourceType } from '@/core/constants';
+import type { ShellRoute, ShellStatus } from '@/core/ipc/shell';
 
 export interface PickedFile {
   name: string;
@@ -77,12 +79,18 @@ export interface Account {
   id: string;
   guest: boolean;
   plan?: string;
+  /** Optional on the type so accounts stored before profiles existed stay valid. */
+  name?: string;
+  email?: string;
 }
 
 export interface Auth {
   current(): Promise<Account | null>;
-  continueAsGuest(): Promise<Account>;
+  /** A name is asked for up front; the email is optional and unlocks extras. */
+  continueAsGuest(profile: Profile): Promise<Account>;
   login(email: string, password: string): Promise<Account>;
+  /** Merge changes into the stored account, e.g. from the Settings profile card. */
+  updateProfile(patch: Partial<Profile>): Promise<Account | null>;
   logout(): Promise<void>;
 }
 
@@ -123,6 +131,32 @@ export interface Tts {
   stop(): void;
 }
 
+/** A file the OS handed to the app ("Open with Typly", or a launch argument). */
+export interface OpenedFile {
+  name: string;
+  bytes: Uint8Array;
+}
+
+/**
+ * The desktop shell around the app — system tray, dock/taskbar and file
+ * associations. Every method is a no-op on the web, so callers never branch on
+ * the platform.
+ */
+export interface Shell {
+  /** True only where a real OS shell is wired up (the desktop build). */
+  available(): boolean;
+  /** A file that arrived before the UI was listening, consumed once. */
+  takeOpenedFile(): Promise<OpenedFile | null>;
+  /** Files opened while the app is already running. Returns an unsubscribe. */
+  onOpenFile(handler: (file: OpenedFile) => void): () => void;
+  /** Routes chosen from the tray, dock menu or jump list. */
+  onNavigate(handler: (route: ShellRoute) => void): () => void;
+  /** Publish what the tray menu, tooltip and dock badge should say. */
+  setStatus(status: ShellStatus): void;
+  /** 0..1 while a test runs, or null to clear the taskbar/dock progress bar. */
+  setProgress(fraction: number | null): void;
+}
+
 export interface Platform {
   files: FilePicker;
   pdf: PdfReader;
@@ -136,4 +170,5 @@ export interface Platform {
   notifications: Notifications;
   sound: Sound;
   tts: Tts;
+  shell: Shell;
 }

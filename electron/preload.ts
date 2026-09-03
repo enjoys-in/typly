@@ -5,6 +5,17 @@ import { IpcChannel, AI_CHANNELS } from '../src/core/ipc/channels';
 const repoAvailable = ipcRenderer.sendSync(IpcChannel.RepoAvailable) === true;
 const aiChannels = new Set<string>(AI_CHANNELS);
 
+/**
+ * One-way main→renderer subscription. The event object never crosses into the
+ * renderer (it carries a sender the sandbox has no business with) — only the
+ * payload does — and the returned function detaches the exact listener.
+ */
+function subscribe<T>(channel: string, handler: (payload: T) => void): () => void {
+  const listener = (_event: unknown, payload: T) => handler(payload);
+  ipcRenderer.on(channel, listener);
+  return () => ipcRenderer.off(channel, listener);
+}
+
 // Minimal, safe surface exposed to the sandboxed renderer. `window.bridge` marks
 // the desktop runtime (see src/platform/detect.ts) and forwards Repository calls
 // to the main-process better-sqlite3 store over one allowlisted IPC channel.
@@ -23,6 +34,16 @@ contextBridge.exposeInMainWorld('bridge', {
   fonts: {
     read: () => ipcRenderer.invoke(IpcChannel.FontsRead),
     write: (slot: string, dataUrl: string) => ipcRenderer.invoke(IpcChannel.FontsWrite, slot, dataUrl),
+  },
+  // OS shell: files opened with Typly, tray/dock navigation, and the practice
+  // status the tray menu and dock badge are drawn from.
+  shell: {
+    pendingFile: () => ipcRenderer.invoke(IpcChannel.FilePending),
+    onOpenFile: (handler: (file: { name: string; bytes: Uint8Array }) => void) =>
+      subscribe(IpcChannel.FileOpened, handler),
+    onNavigate: (handler: (route: string) => void) => subscribe(IpcChannel.ShellNavigate, handler),
+    setStatus: (status: unknown) => ipcRenderer.send(IpcChannel.ShellStatus, status),
+    setProgress: (fraction: number | null) => ipcRenderer.send(IpcChannel.ShellProgress, fraction),
   },
   // Generic, allowlisted AI channel dispatch (coach / grammar / OCR).
   ai: {

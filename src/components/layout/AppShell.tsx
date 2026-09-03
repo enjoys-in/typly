@@ -4,7 +4,9 @@ import { Sidebar } from './Sidebar';
 import { usePlatform } from '@/platform/PlatformContext';
 import { usePracticeReminder } from '@/hooks/usePracticeReminder';
 import { useSampleLibrary } from '@/hooks/useSampleLibrary';
+import { useShellBridge } from '@/hooks/useShellBridge';
 import { loadStoredFonts, loadDesktopFontCache } from '@/ui/fonts';
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { PageSkeleton } from '@/ui/Skeleton';
 
 export function AppShell() {
@@ -14,6 +16,9 @@ export function AppShell() {
   usePracticeReminder();
   // A signed-in (or guest) account gets the demo paragraph on first open.
   useSampleLibrary();
+  // Tray / dock / jump-list routes in, practice status out, files opened with
+  // Typly routed to New Test. Inert on the web.
+  useShellBridge();
 
   // Re-register previously uploaded Hindi fonts on load.
   useEffect(() => {
@@ -33,6 +38,8 @@ export function AppShell() {
           </Suspense>
         </div>
       </main>
+      {/* Once per install, pointed at the sidebar links. */}
+      <OnboardingTour />
     </div>
   );
 }

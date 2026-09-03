@@ -156,11 +156,26 @@ export const SETTING_KEY = {
   CustomLessons: 'customLessons',
   NotifiedBadges: 'notifiedBadges',
   ExamSnapshot: 'exam:snapshot',
+  /** Where you left off in every split document, as one JSON map. */
+  LibraryProgress: 'library:progress',
   SampleSeeded: 'sample:seeded',
   SampleDocId: 'sample:documentId',
   ReminderFired: 'reminderLastFired',
   ReminderNudged: 'reminderNudgedFor',
+  TourDone: 'tour:done',
 } as const;
+
+// How the dashboard opens, by time of day. Kept here with the other copy so a
+// translation only ever touches one place.
+export const DAYPART_GREETING: Record<string, string> = {
+  lateNight: 'Still up',
+  morning: 'Good morning',
+  afternoon: 'Good afternoon',
+  evening: 'Good evening',
+  night: 'Winding down',
+};
+
+export const RETURNING_GREETING = 'Welcome back';
 
 export const LANG_LABEL: Record<Lang, string> = {
   [Lang.En]: 'English',

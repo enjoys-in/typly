@@ -20,6 +20,7 @@ import { usePlatform } from '@/platform/PlatformContext';
 import { useAuthStore } from '@/store/authStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { appConfig } from '@/config/appConfig';
+import { firstName, initialOf } from '@/core/profile/profile';
 import { AboutPanel } from './AboutPanel';
 
 const LINKS: { to: string; label: string; icon: LucideIcon; end?: boolean }[] = [
@@ -49,7 +50,13 @@ export function Sidebar() {
     navigate('/', { replace: true });
   }
 
-  const initial = account?.guest ? 'G' : (account?.id[0]?.toUpperCase() ?? '?');
+  // Fall back to the old behaviour for accounts saved before profiles existed.
+  const label = account?.name ? firstName(account.name) : account?.guest ? 'Guest' : account?.id;
+  const initial = account?.name
+    ? initialOf(account.name)
+    : account?.guest
+      ? 'G'
+      : (account?.id[0]?.toUpperCase() ?? '?');
 
   return (
     <aside
@@ -142,16 +149,12 @@ export function Sidebar() {
       <div className="border-t border-line pt-3">
         <div
           className={`mb-2 flex items-center ${collapsed ? 'justify-center' : 'gap-2 px-1'}`}
-          title={collapsed ? (account?.guest ? 'Guest' : (account?.id ?? '')) : undefined}
+          title={collapsed ? (label ?? '') : undefined}
         >
           <span className="brand-accent-gradient flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white">
             {initial}
           </span>
-          {!collapsed && (
-            <span className="truncate text-sm text-fg-muted">
-              {account?.guest ? 'Guest' : account?.id}
-            </span>
-          )}
+          {!collapsed && <span className="truncate text-sm text-fg-muted">{label}</span>}
         </div>
         <button
           onClick={logout}

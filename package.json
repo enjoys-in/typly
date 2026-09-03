@@ -75,6 +75,28 @@
     "files": ["dist/**", "dist-electron/**", "package.json"],
     "asarUnpack": ["**/*.node", "dist/tesseract/**"],
     "artifactName": "${productName}-${version}-${arch}.${ext}",
+    "fileAssociations": [
+      {
+        "ext": ["txt", "text", "md", "markdown", "log", "csv"],
+        "name": "Text passage",
+        "description": "Open as a Typly typing test",
+        "role": "Viewer",
+        "mimeType": "text/plain"
+      },
+      {
+        "ext": ["pdf"],
+        "name": "PDF passage",
+        "description": "Open as a Typly typing test",
+        "role": "Viewer"
+      },
+      {
+        "ext": ["docx"],
+        "name": "Word passage",
+        "description": "Open as a Typly typing test",
+        "role": "Viewer"
+      }
+    ],
+    "protocols": [{ "name": "Typly", "schemes": ["typly"] }],
     "mac": {
       "category": "public.app-category.education",
       "target": [{
@@ -144,6 +166,10 @@
       "category": "Education",
       "maintainer": "enjoys (https://enjoys.in)",
       "synopsis": "Offline-first typing-exam practice",
+      "desktop": {
+        "StartupWMClass": "Typly",
+        "Keywords": "typing;exam;practice;wpm;hindi;ssc;"
+      },
       "description": "Offline-first typing-exam practice for Indian competitive exams."
     }
   }

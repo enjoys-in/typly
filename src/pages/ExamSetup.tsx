@@ -5,7 +5,9 @@ import { usePlatform } from '@/platform/PlatformContext';
 import { useExamStore } from '@/store/examStore';
 import { examBase, useSettingsStore } from '@/store/settingsStore';
 import { useAuthStore } from '@/store/authStore';
+import { featuresFor } from '@/core/profile/profile';
 import { boardsByCategory, profileFor } from '@/core/scoring/examProfiles';
+import { seriesFrom } from '@/core/library/parts';
 import { useAsync } from '@/hooks/useAsync';
 import {
   DEFAULT_DURATIONS_MIN,
@@ -46,9 +48,13 @@ export function ExamSetup() {
   const platform = usePlatform();
   const draft = useExamStore((s) => s.draft);
   const setConfig = useExamStore((s) => s.setConfig);
+  const startSeries = useExamStore((s) => s.startSeries);
   const settings = useSettingsStore();
   const account = useAuthStore((s) => s.account);
-  const maxMin = account?.guest ? GUEST_MAX_DURATION_MIN : MAX_DURATION_MIN;
+  // An email lifts the guest session cap — the address is how someone tells the
+  // app who they are, and long mock exams are the reward for doing so.
+  const unlocked = featuresFor(account);
+  const maxMin = !account?.guest || unlocked.longSessions ? MAX_DURATION_MIN : GUEST_MAX_DURATION_MIN;
   const durationMin = Math.round(settings.durationSec / 60);
   const [ghostTestId, setGhostTestId] = useState<number | null>(null);
 
@@ -82,6 +88,9 @@ export function ExamSetup() {
 
   if (!draft) return null;
 
+  const split = draft.split && draft.split.parts.length > 1 ? draft.split : null;
+  const remaining = split ? split.parts.length - split.startIndex : 0;
+
   function setReadingMinutes(min: number) {
     settings.setReadingSec(Math.min(MAX_READING_SEC, Math.max(0, min * 60)));
   }
@@ -93,9 +102,19 @@ export function ExamSetup() {
 
   function start() {
     if (!draft) return;
-    setConfig({
+    const base = {
       ...examBase(settings),
       durationSec: Math.min(settings.durationSec, maxMin * 60),
+    };
+    // A split document runs as a series: finishing one part starts the next,
+    // and each finished part is recorded so the run can be picked up later.
+    if (split) {
+      startSeries(seriesFrom(draft), base);
+      navigate('/app/exam');
+      return;
+    }
+    setConfig({
+      ...base,
       passage: draft.passage,
       title: draft.title,
       documentId: draft.documentId,
@@ -108,6 +127,19 @@ export function ExamSetup() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Exam Setup</h1>
+      {split && (
+        <Card className="border-accent-border bg-accent-soft">
+          <p className="text-sm font-semibold">
+            {draft.title} · part {split.startIndex + 1} of {split.parts.length}
+          </p>
+          <p className="mt-1 text-sm text-fg-muted">
+            These settings apply to every part.{' '}
+            {remaining > 1
+              ? `The ${remaining} remaining passages run back-to-back, and each one you finish is remembered.`
+              : 'This is the last passage in the document.'}
+          </p>
+        </Card>
+      )}
       <Card className="space-y-5">
         <Field label="Exam profile">
           <select
@@ -201,9 +233,9 @@ export function ExamSetup() {
                 <span className="text-sm text-fg-muted">min</span>
               </div>
               <p className="text-xs text-fg-muted">
-                {account?.guest
-                  ? `Guest mode: up to ${GUEST_MAX_DURATION_MIN} minutes.`
-                  : `Custom duration up to ${MAX_DURATION_MIN} minutes.`}
+                {maxMin === MAX_DURATION_MIN
+                  ? `Custom duration up to ${MAX_DURATION_MIN} minutes.`
+                  : `Up to ${GUEST_MAX_DURATION_MIN} minutes — add your email in Settings for full-length mock exams.`}
               </p>
             </div>
           </Field>

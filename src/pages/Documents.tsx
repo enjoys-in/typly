@@ -16,6 +16,17 @@ import { usePlatform } from '@/platform/PlatformContext';
 import { useExamStore } from '@/store/examStore';
 import { examBase, useSettingsStore } from '@/store/settingsStore';
 import type { DocumentRow, TestRow } from '@/core/types';
+import { DocumentParts } from '@/components/library/DocumentParts';
+import { isLongPassage, splitTexts } from '@/core/text/splitter';
+import { draftFor, planFor } from '@/core/library/parts';
+import {
+  clearProgress,
+  percentDone,
+  readProgressMap,
+  startProgress,
+  type PartProgress,
+  type ProgressMap,
+} from '@/core/library/progress';
 import { LANG_LABEL, TestStatus } from '@/core/constants';
 import { Card } from '@/ui/Card';
 import { Button } from '@/ui/Button';
@@ -40,6 +51,8 @@ export function Documents() {
   const [docs, setDocs] = useState<DocumentRow[] | null>(null);
   const [history, setHistory] = useState<TestRow[]>([]);
   const [openId, setOpenId] = useState<number | null>(null);
+  // Where the user left off in each split document, keyed by document id.
+  const [progress, setProgress] = useState<ProgressMap>({});
   const [order, setOrder] = useState<SeriesOrder>('serial');
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
@@ -63,7 +76,35 @@ export function Documents() {
   useEffect(() => {
     platform.repo.listDocuments().then(setDocs);
     platform.repo.listHistory().then(setHistory);
+    readProgressMap((key) => platform.repo.getSetting(key)).then(setProgress);
   }, [platform]);
+
+  const getSetting = (key: string) => platform.repo.getSetting(key);
+  const setSetting = (key: string, value: string) => platform.repo.setSetting(key, value);
+
+  // Cut a long paragraph into parts (or re-cut it at a different length).
+  async function splitDoc(doc: DocumentRow, chunkChars: number) {
+    const parts = splitTexts(doc.content, chunkChars);
+    if (parts.length < 2) return;
+    const entry = await startProgress(getSetting, setSetting, doc.id, chunkChars, parts.length);
+    setProgress((map) => ({ ...map, [String(doc.id)]: entry }));
+  }
+
+  async function resetSplit(doc: DocumentRow) {
+    await clearProgress(getSetting, setSetting, doc.id);
+    setProgress(({ [String(doc.id)]: _dropped, ...rest }) => rest);
+  }
+
+  // Resume a split document, from its next unfinished part or a chosen one.
+  function startPart(doc: DocumentRow, index?: number) {
+    const plan = planFor(doc, progress[String(doc.id)] ?? null);
+    if (!plan) {
+      runDocument(doc);
+      return;
+    }
+    setDraft(draftFor(doc, { ...plan, startIndex: index ?? plan.startIndex }));
+    navigate('/app/setup');
+  }
 
   async function removeDoc(doc: DocumentRow) {
     const ok = await confirm({
@@ -75,6 +116,9 @@ export function Documents() {
     });
     if (!ok) return;
     await platform.repo.deleteDocument(doc.id);
+    // The split progress would otherwise outlive the paragraph it describes.
+    await clearProgress(getSetting, setSetting, doc.id).catch(() => {});
+    setProgress(({ [String(doc.id)]: _dropped, ...rest }) => rest);
     setDocs((rows) => (rows ?? []).filter((r) => r.id !== doc.id));
     setSelectedIds((ids) => ids.filter((id) => id !== doc.id));
     setOpenId((id) => (id === doc.id ? null : id));
@@ -91,7 +135,7 @@ export function Documents() {
     return map;
   }, [history]);
 
-  function useForTest(doc: DocumentRow) {
+  function runDocument(doc: DocumentRow) {
     setDraft({
       passage: doc.content,
       title: doc.title,
@@ -248,9 +292,15 @@ export function Documents() {
                       best={best}
                       open={open}
                       selected={selectedIds.includes(doc.id)}
+                      progress={progress[String(doc.id)] ?? null}
                       onSelect={() => toggleSelect(doc.id)}
                       onToggle={() => setOpenId(open ? null : doc.id)}
-                      onRun={() => useForTest(doc)}
+                      // Resumes the next unfinished part, or runs the whole
+                      // paragraph when it was never split.
+                      onRun={() => startPart(doc)}
+                      onStartPart={(index) => startPart(doc, index)}
+                      onSplit={(chunkChars) => void splitDoc(doc, chunkChars)}
+                      onReset={() => void resetSplit(doc)}
                       onDelete={() => void removeDoc(doc)}
                     />
                   );
@@ -270,9 +320,13 @@ function DocRow({
   best,
   open,
   selected,
+  progress,
   onSelect,
   onToggle,
   onRun,
+  onStartPart,
+  onSplit,
+  onReset,
   onDelete,
 }: {
   doc: DocumentRow;
@@ -280,11 +334,18 @@ function DocRow({
   best: number;
   open: boolean;
   selected: boolean;
+  /** Split progress, or null when the paragraph is a single passage. */
+  progress: PartProgress | null;
   onSelect: () => void;
   onToggle: () => void;
   onRun: () => void;
+  onStartPart: (index: number) => void;
+  onSplit: (chunkChars: number) => void;
+  onReset: () => void;
   onDelete: () => void;
 }) {
+  const done = progress ? percentDone(progress) : null;
+  const splittable = !progress && isLongPassage(doc.content);
   return (
     <>
       <tr className="transition-colors hover:bg-surface-hover">
@@ -308,6 +369,22 @@ function DocRow({
               <ChevronRight size={16} className="shrink-0" />
             )}
             <span className="truncate">{doc.title}</span>
+            {progress && (
+              <span
+                className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-bold tracking-wide text-accent-soft-fg uppercase tabular-nums"
+                title={`${done}% of the parts finished`}
+              >
+                {progress.done.length}/{progress.parts}
+              </span>
+            )}
+            {splittable && (
+              <span
+                className="shrink-0 rounded-full bg-surface-3 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-fg-muted uppercase"
+                title="Long enough to split into shorter sittings — open the row to cut it up"
+              >
+                Long
+              </span>
+            )}
           </button>
         </td>
         <td className="truncate px-3 py-2.5 text-fg-muted">{LANG_LABEL[doc.lang]}</td>
@@ -336,7 +413,14 @@ function DocRow({
       </tr>
       {open && (
         <tr>
-          <td colSpan={7} className="bg-surface-2 px-3 py-4">
+          <td colSpan={7} className="space-y-4 bg-surface-2 px-3 py-4">
+            <DocumentParts
+              doc={doc}
+              progress={progress}
+              onStart={onStartPart}
+              onSplit={onSplit}
+              onReset={onReset}
+            />
             <Leaderboard attempts={attempts} />
           </td>
         </tr>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { WifiOff } from 'lucide-react';
 import { usePlatform } from '@/platform/PlatformContext';
 import { useAuthStore } from '@/store/authStore';
+import type { Profile } from '@/core/profile/profile';
 import { AuthCard } from '@/components/landing/AuthCard';
 import { BrandPanel } from '@/components/landing/BrandPanel';
 
@@ -24,10 +25,10 @@ export function Login() {
     if (account) navigate('/app', { replace: true });
   }, [account, navigate]);
 
-  async function continueAsGuest() {
+  async function continueAsGuest(profile: Profile) {
     setBusy(true);
     try {
-      setAccount(await platform.auth.continueAsGuest());
+      setAccount(await platform.auth.continueAsGuest(profile));
     } finally {
       setBusy(false);
     }

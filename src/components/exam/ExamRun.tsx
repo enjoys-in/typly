@@ -20,6 +20,7 @@ import { attemptedSlice, findMistakes, countWords } from '@/core/typing/diff';
 import { score, applyDifficulty, applyMode } from '@/core/scoring/scoring';
 import { profileFor } from '@/core/scoring/examProfiles';
 import { resolveLessonTargets } from '@/core/lessons/customLessons';
+import { markPartDone } from '@/core/library/progress';
 import { keymapFor, isPhonetic } from '@/core/text/keymaps';
 import { isDevanagari } from '@/core/text/scripts';
 import {
@@ -231,6 +232,18 @@ export function ExamRun({ config, resume }: Props) {
       };
 
       const savedId = await platform.repo.saveTest(payload).catch(() => null);
+
+      // One part of a split document: remember it, so the library and the
+      // dashboard resume at the *next* passage rather than this one.
+      if (config.documentId != null && config.partIndex != null) {
+        await markPartDone(
+          (key) => platform.repo.getSetting(key),
+          (key, value) => platform.repo.setSetting(key, value),
+          config.documentId,
+          config.partIndex,
+        ).catch(() => {});
+      }
+
       setFinished({ payload, result, mistakes, savedId });
       navigate('/app/result');
     },
@@ -240,6 +253,22 @@ export function ExamRun({ config, resume }: Props) {
   useEffect(() => {
     if (isCountdown && countdown.expired && active) void finish('time');
   }, [isCountdown, countdown.expired, active, finish]);
+
+  // Passage progress on the dock / taskbar icon, so a running test stays
+  // visible from another window. Stepped to whole percent, so a fast typist
+  // doesn't push an IPC message per keystroke.
+  const progressPct = config.passage.length
+    ? Math.floor((typed.length / config.passage.length) * 100)
+    : 0;
+  useEffect(() => {
+    if (typing) platform.shell.setProgress(progressPct / 100);
+  }, [typing, progressPct, platform]);
+  // However the run ends — submitted, abandoned or navigated away from — the
+  // icon goes back to normal.
+  useEffect(() => {
+    const shell = platform.shell;
+    return () => shell.setProgress(null);
+  }, [platform]);
 
   // Reading time is over — the clock takes over from here.
   useEffect(() => {

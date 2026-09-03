@@ -1,13 +1,17 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { TextUploader } from '@/components/uploader/TextUploader';
 import { TextInfoPanel } from '@/components/uploader/TextInfoPanel';
+import { NO_SPLIT, PassageSplitPanel } from '@/components/uploader/PassageSplitPanel';
 import { GrammarPanel } from '@/components/grammar/GrammarPanel';
 import { usePlatform } from '@/platform/PlatformContext';
 import { useExamStore } from '@/store/examStore';
+import { useIncomingStore } from '@/store/incomingStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { stripEmoji } from '@/core/text/ocrCleanup';
+import { isLongPassage, splitTexts, suggestChunkChars } from '@/core/text/splitter';
+import { startProgress } from '@/core/library/progress';
 import { SourceType } from '@/core/constants';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
@@ -23,16 +27,23 @@ export function NewTest() {
   const platform = usePlatform();
   const { lang } = useSettingsStore();
   const setDraft = useExamStore((s) => s.setDraft);
+  const incoming = useIncomingStore((s) => s.file);
+  const takeIncoming = useIncomingStore((s) => s.takeFile);
   const [passage, setPassage] = useState('');
   const [title, setTitle] = useState('');
   const [source, setSource] = useState<SourceType>(SourceType.Text);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  // 0 = run the text as one passage; otherwise the chunk size to split it into.
+  const [chunkChars, setChunkChars] = useState<number>(NO_SPLIT);
 
   function handleText(text: string, src: SourceType) {
     setPassage(text);
     setSource(src);
     setTitle(deriveTitle(text));
+    // Long imports default to being split — that is almost always what someone
+    // pasting a whole chapter wants, and the toggle is right there to undo it.
+    setChunkChars(isLongPassage(text) ? suggestChunkChars(text.trim().length) : NO_SPLIT);
   }
 
   // Back to the paste / upload step with a clean slate.
@@ -40,21 +51,47 @@ export function NewTest() {
     setPassage('');
     setTitle('');
     setEditing(false);
+    setChunkChars(NO_SPLIT);
   }
 
   const isEmpty = passage.trim().length === 0;
   const hasText = passage.length > 0;
+  const splittable = hasText && isLongPassage(passage);
+  const suggested = useMemo(() => suggestChunkChars(passage.trim().length), [passage]);
+  const partCount = useMemo(
+    () => (chunkChars > 0 ? splitTexts(passage, chunkChars).length : 1),
+    [passage, chunkChars],
+  );
 
   async function proceed() {
     const content = stripEmoji(passage).trim();
     const finalTitle = title.trim() || deriveTitle(content);
+    // The whole text is saved as one document; the split is a view over it, so
+    // the parts can be recomputed (and the progress kept) at any time.
+    const parts = chunkChars > 0 ? splitTexts(content, chunkChars) : [];
     setSaving(true);
-    // Save the paragraph to the library so it can be reused / retested.
     const documentId = await platform.repo
       .saveDocument({ title: finalTitle, lang, sourceType: source, content })
       .catch(() => null);
+    // Record the split so the Library and the Dashboard can resume it later.
+    if (documentId != null && parts.length > 1) {
+      await startProgress(
+        (key) => platform.repo.getSetting(key),
+        (key, value) => platform.repo.setSetting(key, value),
+        documentId,
+        chunkChars,
+        parts.length,
+      ).catch(() => {});
+    }
     setSaving(false);
-    setDraft({ passage: content, title: finalTitle, documentId, sourceType: source, lang });
+    setDraft({
+      passage: parts.length > 1 ? parts[0]! : content,
+      title: finalTitle,
+      documentId,
+      sourceType: source,
+      lang,
+      split: parts.length > 1 ? { chunkChars, parts, startIndex: 0 } : null,
+    });
     navigate('/app/setup');
   }
 
@@ -73,7 +110,12 @@ export function NewTest() {
           so the continue action stays above the fold instead of below a dropzone. */}
       {!hasText ? (
         <Card>
-          <TextUploader lang={lang} onText={handleText} />
+          <TextUploader
+            lang={lang}
+            onText={handleText}
+            incoming={incoming}
+            onIncomingTaken={takeIncoming}
+          />
         </Card>
       ) : (
         <Card className="space-y-5">
@@ -117,13 +159,22 @@ export function NewTest() {
               </p>
             )}
           </div>
+          {splittable && (
+            <PassageSplitPanel
+              text={passage}
+              chunkChars={chunkChars}
+              onChange={setChunkChars}
+              suggested={suggested}
+            />
+          )}
+
           <GrammarPanel text={passage} lang={lang} onApply={setPassage} />
           <div className="flex items-center justify-between gap-3 border-t border-line pt-5">
             <span className="text-xs text-danger-text">
               {isEmpty ? 'Paragraph text is required to continue.' : ''}
             </span>
             <Button disabled={isEmpty || saving} onClick={proceed}>
-              {saving ? 'Saving…' : 'Save & continue'}
+              {saving ? 'Saving…' : partCount > 1 ? `Save & split into ${partCount}` : 'Save & continue'}
             </Button>
           </div>
         </Card>

@@ -156,17 +156,40 @@ export interface ExamConfig {
   ghostTestId: number | null;
   /** Set when this run is a curriculum lesson, so completion can be recorded. */
   lessonId?: string | null;
+  /** Position in a split document, so finishing marks that part done. */
+  partIndex?: number | null;
+  /** How many parts the document was split into. */
+  partCount?: number | null;
 }
 
 /** Passage-specific fields for one item in a test series. */
-export type SeriesItem = Pick<ExamConfig, 'passage' | 'title' | 'documentId' | 'sourceType'>;
+export type SeriesItem = Pick<
+  ExamConfig,
+  'passage' | 'title' | 'documentId' | 'sourceType' | 'partIndex' | 'partCount'
+>;
 /** Shared config applied to every item in a series. */
-export type SeriesBase = Omit<ExamConfig, 'passage' | 'title' | 'documentId' | 'sourceType'>;
+export type SeriesBase = Omit<
+  ExamConfig,
+  'passage' | 'title' | 'documentId' | 'sourceType' | 'partIndex' | 'partCount'
+>;
 
 export interface Series {
   items: SeriesItem[];
   index: number;
   base: SeriesBase;
+}
+
+/**
+ * A long text cut into exam-sized passages. Only the chunk size and the part
+ * texts travel with the draft — the split itself is reproducible from the
+ * stored document, so nothing here has to be persisted.
+ */
+export interface DraftSplit {
+  chunkChars: number;
+  /** Part texts, in order, as produced by the passage splitter. */
+  parts: string[];
+  /** The part this run begins at — where the user left off. */
+  startIndex: number;
 }
 
 /** A passage waiting for its exam settings to be chosen. */
@@ -177,6 +200,8 @@ export interface Draft {
   sourceType: SourceType;
   /** Language the passage was saved in; Setup adopts it as the exam language. */
   lang: Lang;
+  /** Set when the passage is one part of a split document. */
+  split?: DraftSplit | null;
 }
 
 export interface FinishedExam {
