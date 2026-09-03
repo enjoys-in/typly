@@ -26,6 +26,17 @@ const PADDING = 8;
 const CARD_WIDTH = 320;
 const GAP = 14;
 
+/** The spotlight hole for an element: its box, with a little breathing room. */
+function boxOf(el: Element): Box {
+  const r = el.getBoundingClientRect();
+  return {
+    top: r.top - PADDING,
+    left: r.left - PADDING,
+    width: r.width + PADDING * 2,
+    height: r.height + PADDING * 2,
+  };
+}
+
 /**
  * A guided walkthrough: dim the page, cut a hole around the step's target, and
  * explain it. Generic on purpose — it takes selectors and copy, and knows
@@ -42,17 +53,17 @@ export function Tour({ steps, onDone }: Props) {
     if (!step) return;
     const el = document.querySelector(step.target);
     if (!el) {
+      // The target may mount a frame after the tour does; try again next frame
+      // before falling back to a centred card.
       setBox(null);
+      requestAnimationFrame(() => {
+        const late = document.querySelector(step.target);
+        if (late) setBox(boxOf(late));
+      });
       return;
     }
     el.scrollIntoView({ block: 'nearest', behavior: 'auto' });
-    const r = el.getBoundingClientRect();
-    setBox({
-      top: r.top - PADDING,
-      left: r.left - PADDING,
-      width: r.width + PADDING * 2,
-      height: r.height + PADDING * 2,
-    });
+    setBox(boxOf(el));
   }, [step]);
 
   useLayoutEffect(measure, [measure]);

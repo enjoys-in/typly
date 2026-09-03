@@ -30,8 +30,12 @@ export function AppShell() {
   }, [platform]);
   return (
     <div className="flex h-full">
+      {/* First stop for a keyboard user: past the whole sidebar in one press. */}
+      <a href="#main" className="sr-only skip-link">
+        Skip to main content
+      </a>
       {!bare && <Sidebar />}
-      <main className="h-full flex-1 overflow-y-auto">
+      <main id="main" tabIndex={-1} className="h-full flex-1 overflow-y-auto outline-none">
         <div className={bare ? 'px-4 py-4' : 'px-6 py-8 sm:px-8'}>
           {/* Suspense sits inside the shell so a route change only skeletons the
               content area — the sidebar never flashes. Keyed on the path so each

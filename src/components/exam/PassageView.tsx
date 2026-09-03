@@ -59,12 +59,15 @@ export function PassageView({
   // the typist on any passage taller than the panel.
   useEffect(() => {
     if (!caret) return;
-    caretRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    caretRef.current?.scrollIntoView({ block: 'nearest', behavior: still ? 'auto' : 'smooth' });
   }, [caret, cursor]);
 
   return (
     <div
       onMouseDown={(e) => e.preventDefault()}
+      role="region"
+      aria-label="Passage to type"
       className={`scroll-area relative rounded-panel border border-line bg-surface ${className}`}
     >
       {toolbar && (

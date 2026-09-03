@@ -91,9 +91,16 @@ export function TypingInput({
     onKeyDown(e);
   }
 
+  const label = phonetic
+    ? 'Type the passage in Roman letters'
+    : keymap
+      ? `Type the passage using the ${keymap.label} layout`
+      : 'Type the passage here';
+
   return (
     <textarea
       autoFocus
+      aria-label={label}
       disabled={disabled}
       value={phonetic ? roman : typed}
       onChange={handleChange}

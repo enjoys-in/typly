@@ -22,9 +22,10 @@ export function AuthCard({ onGuest, busy = false }: Props) {
   const [touched, setTouched] = useState(false);
   const nameOk = isValidName(name);
   const emailOk = isAcceptableEmail(email);
-  const canStart = nameOk && emailOk && !busy;
 
   function start() {
+    // Always reachable: a disabled button with no message leaves the user
+    // guessing which field it is unhappy about.
     setTouched(true);
     if (!nameOk || !emailOk) return;
     onGuest({ name, ...(email.trim() ? { email } : {}) });
@@ -41,6 +42,10 @@ export function AuthCard({ onGuest, busy = false }: Props) {
 
         <form
           className="mt-6 space-y-4"
+          // The fields keep `required` for assistive tech, but the browser's own
+          // validation is switched off: it blocks submit before our handler runs,
+          // so our messages would never appear. One validator, one voice.
+          noValidate
           onSubmit={(e) => {
             e.preventDefault();
             start();
@@ -58,6 +63,7 @@ export function AuthCard({ onGuest, busy = false }: Props) {
             autoFocus
             invalid={touched && !nameOk}
             error="Please enter at least two characters."
+            onBlur={() => setTouched(true)}
           />
 
           <Field
@@ -72,9 +78,10 @@ export function AuthCard({ onGuest, busy = false }: Props) {
             type="email"
             invalid={touched && !emailOk}
             error="That does not look like an email address."
+            onBlur={() => setTouched(true)}
           />
 
-          <Button type="submit" size="lg" className="w-full" disabled={!canStart}>
+          <Button type="submit" size="lg" className="w-full" disabled={busy}>
             {busy ? 'Opening…' : 'Start practising'}
             {!busy && <ArrowRight size={16} />}
           </Button>
@@ -142,6 +149,8 @@ interface FieldProps {
   autoFocus?: boolean;
   invalid?: boolean;
   error?: string;
+  /** Called when the field loses focus, so an error can appear then too. */
+  onBlur?: () => void;
 }
 
 /** Labelled text input with its hint and inline error, wired for screen readers. */
@@ -159,6 +168,7 @@ function Field({
   autoFocus = false,
   invalid = false,
   error,
+  onBlur,
 }: FieldProps) {
   const hintId = `${id}-hint`;
   const errorId = `${id}-error`;
@@ -189,6 +199,7 @@ function Field({
         aria-describedby={invalid && error ? errorId : hintId}
         aria-invalid={invalid || undefined}
         onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
         className={`w-full rounded-control border bg-field px-3 py-2.5 text-sm outline-none transition-colors focus-visible:ring-4 ${
           invalid
             ? 'border-danger-border focus-visible:border-danger focus-visible:ring-danger-ring'

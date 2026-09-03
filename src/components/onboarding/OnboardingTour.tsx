@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePlatform } from '@/platform/PlatformContext';
 import { SETTING_KEY } from '@/core/constants';
 import { Tour, type TourStep } from './Tour';
@@ -26,22 +26,30 @@ const STEPS: TourStep[] = [
 ];
 
 /**
- * Runs the walkthrough once per install. The flag is written as soon as the
- * tour opens, so a reload mid-tour does not start it again.
+ * Runs the walkthrough once per install.
+ *
+ * The flag is written when the tour is *finished or skipped*, not when it
+ * opens. Writing it up front looked tidier but meant that any remount between
+ * the read and the open — a re-render of the shell, an effect running twice —
+ * left the flag set with the tour never having appeared.
  */
 export function OnboardingTour() {
   const platform = usePlatform();
   const [open, setOpen] = useState(false);
+  // Read by the unmount handler, which must not close over a stale `open`.
+  const shown = useRef(false);
+  shown.current = shown.current || open;
+
+  const markDone = useCallback(() => {
+    void platform.repo.setSetting(SETTING_KEY.TourDone, 'true').catch(() => {});
+  }, [platform]);
 
   useEffect(() => {
     let alive = true;
     void platform.repo
       .getSetting(SETTING_KEY.TourDone)
       .then((done) => {
-        if (!alive || done) return;
-        // The sidebar has to be on screen before the first step can point at it.
-        window.setTimeout(() => alive && setOpen(true), 600);
-        return platform.repo.setSetting(SETTING_KEY.TourDone, 'true');
+        if (alive && !done) setOpen(true);
       })
       .catch(() => {});
     return () => {
@@ -49,7 +57,18 @@ export function OnboardingTour() {
     };
   }, [platform]);
 
-  const close = useCallback(() => setOpen(false), []);
+  // Seen counts as done, whether it was finished, skipped, or simply left
+  // behind by navigating on — nobody should meet this twice.
+  useEffect(() => {
+    return () => {
+      if (shown.current) markDone();
+    };
+  }, [markDone]);
+
+  const close = useCallback(() => {
+    setOpen(false);
+    markDone();
+  }, [markDone]);
 
   return open ? <Tour steps={STEPS} onDone={close} /> : null;
 }

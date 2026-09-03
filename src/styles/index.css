@@ -200,6 +200,63 @@ body {
   }
 }
 
+/* Keyboard focus safety net.
+   `:where()` carries no specificity, so any component that styles its own focus
+   still wins — this only catches whatever would otherwise show nothing. And it
+   is `:focus-visible`, not `:focus`: a ring appears when tabbing or using
+   assistive tech, never from a mouse click or while typing in a field. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Anything the OS asks to keep still, keeps still. The targeted rules above
+   (skeleton sheen, typing caret) stay for clarity; this covers the rest,
+   including smooth scrolling driven from JavaScript. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Visible only to screen readers — skip links, and labels for controls whose
+   meaning is carried by an icon. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* A skip link that stays hidden until it is focused. */
+.skip-link:focus-visible {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  width: auto;
+  height: auto;
+  padding: 0.5rem 0.875rem;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  border-radius: var(--radius-control, 0.5rem);
+  background: var(--surface);
+  color: var(--fg);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.25);
+}
+
 /* Smooth default transitions for interactive elements. */
 a,
 button,

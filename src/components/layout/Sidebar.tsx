@@ -98,7 +98,7 @@ export function Sidebar() {
         )}
       </div>
 
-      <nav className="flex flex-col gap-1">
+      <nav aria-label="Main" className="flex flex-col gap-1">
         {LINKS.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
