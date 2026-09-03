@@ -24,8 +24,10 @@ import { HindiFont } from '@/core/constants';
 import { FONT_FAMILY } from '@/ui/fonts';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
+import { useT } from '@/i18n';
 
 export function Results() {
+  const t = useT();
   const navigate = useNavigate();
   const platform = usePlatform();
   const finished = useExamStore((s) => s.finished);
@@ -152,7 +154,7 @@ export function Results() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">Result</h1>
+        <h1 className="text-2xl font-bold">{t('result.title')}</h1>
         {series && (
           <span className="rounded-full bg-surface-3 px-3 py-1 text-xs font-semibold text-fg-muted">
             Series · test {series.index + 1} of {series.items.length}
@@ -230,13 +232,13 @@ export function Results() {
         <PaperReport paper={finished.paper} />
       ) : (
         <Card className="space-y-3">
-          <h2 className="font-semibold">Mistakes</h2>
+          <h2 className="font-semibold">{t('result.mistakes')}</h2>
           <MistakeList mistakes={finished.mistakes} />
         </Card>
       )}
       {finished.payload.keystrokes.length > 0 && config && (
         <Card className="space-y-3">
-          <h2 className="font-semibold">Replay</h2>
+          <h2 className="font-semibold">{t('result.replay')}</h2>
           <p className="text-sm text-fg-muted">
             Watch the attempt back to see where the time went, not just where the errors were.
           </p>
@@ -253,15 +255,15 @@ export function Results() {
       )}
       <CoachPanel finished={finished} />
       <div className="flex flex-wrap items-center gap-3">
-        <Button onClick={again}>New test</Button>
+        <Button onClick={again}>{t('result.newTest')}</Button>
         <Button variant="secondary" onClick={() => navigate('/app/history')}>
-          View history
+          {t('result.viewHistory')}
         </Button>
         <Button variant="ghost" onClick={printReport}>
-          <Printer size={16} /> Print
+          <Printer size={16} /> {t('result.print')}
         </Button>
         <Button variant="ghost" onClick={shareResult}>
-          <Share2 size={16} /> Share
+          <Share2 size={16} /> {t('result.share')}
         </Button>
         {shareNote && <span className="text-xs text-fg-muted">{shareNote}</span>}
       </div>

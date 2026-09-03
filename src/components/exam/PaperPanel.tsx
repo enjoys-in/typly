@@ -2,6 +2,7 @@ import { FileText, ScanLine, SpellCheck, Undo2 } from 'lucide-react';
 import { LANG_LABEL } from '@/core/constants';
 import type { Lang } from '@/core/constants';
 import { isLatin } from '@/core/text/scripts';
+import { useT } from '@/i18n';
 
 interface Props {
   lang: Lang;
@@ -16,6 +17,7 @@ interface Props {
  * passage on screen the scoring is not self-evident.
  */
 export function PaperPanel({ lang, words, chars, backspaces }: Props) {
+  const t = useT();
   // Spelling and grammar are dictionary-driven, and only English ships one.
   const checkable = isLatin(lang);
 
@@ -26,22 +28,21 @@ export function PaperPanel({ lang, words, chars, backspaces }: Props) {
           <ScanLine size={20} />
         </span>
         <div>
-          <h2 className="text-base font-semibold">Type from your paper</h2>
+          <h2 className="text-base font-semibold">{t('paper.heading')}</h2>
           <p className="mt-1 text-sm leading-relaxed text-fg-muted">
-            There is no passage on screen — read from the sheet in front of you and type it below.
-            The clock started with your first keystroke.
+            {t('paper.body')}
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <Count icon={FileText} label="Words" value={words} />
-        <Count icon={SpellCheck} label="Characters" value={chars} />
-        <Count icon={Undo2} label="Corrections" value={backspaces} />
+        <Count icon={FileText} label={t('stats.words')} value={words} />
+        <Count icon={SpellCheck} label={t('stats.characters')} value={chars} />
+        <Count icon={Undo2} label={t('stats.corrections')} value={backspaces} />
       </div>
 
       <div className="space-y-1.5 border-t border-line pt-4 text-xs text-fg-muted">
-        <p className="font-semibold tracking-wide uppercase">Scored on</p>
+        <p className="font-semibold tracking-wide uppercase">{t('paper.scoredOn')}</p>
         <p className="leading-relaxed">
           Words and speed from what you type, corrections from your backspaces, and mistakes from{' '}
           {checkable

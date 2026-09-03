@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore';
 import type { Profile } from '@/core/profile/profile';
 import { AuthCard } from '@/components/landing/AuthCard';
 import { BrandPanel } from '@/components/landing/BrandPanel';
+import { useT } from '@/i18n';
 
 export function Login() {
   const platform = usePlatform();
@@ -54,11 +55,13 @@ export function Login() {
 
 /** Slim window strip: drag handle on desktop, status line everywhere. */
 function TopBar() {
+  const t = useT();
+
   return (
     <header className="drag-region flex h-10 shrink-0 items-center justify-end border-b border-line px-4">
       <span className="flex items-center gap-1.5 text-[11px] font-medium text-fg-subtle">
         <WifiOff size={12} />
-        Works offline
+        {t('landing.worksOffline')}
       </span>
     </header>
   );

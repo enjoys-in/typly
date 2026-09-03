@@ -41,6 +41,7 @@ import {
   TimingMode,
 } from '@/core/constants';
 import { FONT_FAMILY, isLegacyFont } from '@/ui/fonts';
+import { useT } from '@/i18n';
 import { PassageView } from './PassageView';
 import { PaperPanel } from './PaperPanel';
 import { TypingInput } from './TypingInput';
@@ -97,6 +98,7 @@ export function ExamRun({ config, resume }: Props) {
   const setShowStats = useSettingsStore((s) => s.setShowStats);
 
   const setBare = useChromeStore((s) => s.setBare);
+  const t = useT();
 
   const [phase, setPhase] = useState<Phase>(() => initialPhase(config, resume));
   // Captured once: the checkpoint is consumed below, but the run stays labelled.
@@ -568,9 +570,9 @@ export function ExamRun({ config, resume }: Props) {
           )}
           {paused && (
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-panel bg-canvas/85 backdrop-blur-sm">
-              <p className="text-xl font-bold">Paused</p>
+              <p className="text-xl font-bold">{t('exam.paused')}</p>
               <Button onClick={togglePause}>
-                <Play size={16} /> Resume
+                <Play size={16} /> {t('exam.resume')}
               </Button>
             </div>
           )}
@@ -599,23 +601,23 @@ export function ExamRun({ config, resume }: Props) {
       <div className="flex shrink-0 items-center justify-between">
         {nonStop ? (
           <span className="text-xs font-semibold text-danger-text">
-            Non-stop mode · pausing disabled
+            {t('exam.nonStop')}
           </span>
         ) : (
           <Button variant="secondary" onClick={togglePause} disabled={!typing}>
             {paused ? (
               <>
-                <Play size={16} /> Resume
+                <Play size={16} /> {t('exam.resume')}
               </>
             ) : (
               <>
-                <Pause size={16} /> Pause
+                <Pause size={16} /> {t('exam.pause')}
               </>
             )}
           </Button>
         )}
         <Button onClick={() => void finish('manual')}>
-          End &amp; submit
+          {t('exam.endSubmit')}
           <ArrowRight size={16} />
         </Button>
       </div>

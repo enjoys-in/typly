@@ -20,9 +20,10 @@ import { readSampleDocument, seedSampleLibrary } from '@/hooks/useSampleLibrary'
 import { profileFor } from '@/core/scoring/examProfiles';
 import { weakKeys } from '@/core/analysis/analysis';
 import { currentStreak, realAttempts, testsToday, totalPoints, wpmAverages } from '@/core/stats';
-import { DAYPART_GREETING, RETURNING_GREETING, TestStatus } from '@/core/constants';
+import { TestStatus } from '@/core/constants';
 import { firstName } from '@/core/profile/profile';
 import { greetingFor } from '@/core/profile/greeting';
+import { useT } from '@/i18n';
 import { GoalCard } from '@/components/dashboard/GoalCard';
 import { ResumeCard } from '@/components/dashboard/ResumeCard';
 import { SampleCard } from '@/components/dashboard/SampleCard';
@@ -39,6 +40,7 @@ export function Dashboard() {
   const resumeFrom = useExamStore((s) => s.resumeFrom);
   const setDraft = useExamStore((s) => s.setDraft);
   const account = useAuthStore((s) => s.account);
+  const t = useT();
   const Logo = appConfig.logo;
 
   const overview = useAsync(async () => {
@@ -82,8 +84,8 @@ export function Dashboard() {
     [overview.data],
   );
   const greetingLine = greeting.returning
-    ? RETURNING_GREETING
-    : (DAYPART_GREETING[greeting.daypart] ?? '');
+    ? t('greeting.returning')
+    : t(`greeting.${greeting.daypart}`);
 
   function startSample() {
     if (!sample) return;
@@ -126,10 +128,10 @@ export function Dashboard() {
           </p>
         )}
         <h1 className={`relative text-3xl font-bold tracking-tight ${who ? 'mt-1' : 'mt-6'}`}>
-          Dashboard
+          {t('dashboard.title')}
         </h1>
         <p className="relative mt-1.5 max-w-sm text-sm leading-relaxed text-white/75">
-          Turn any image, PDF, or paragraph into a typing exam.
+          {t('dashboard.tagline')}
         </p>
       </section>
 
@@ -142,10 +144,10 @@ export function Dashboard() {
           <div className="grid gap-5 lg:grid-cols-2">
             <GoalCard today={summary.today} goal={dailyGoal} streak={summary.streak} />
             <Card className="grid grid-cols-2 gap-5 sm:grid-cols-4 lg:grid-cols-2">
-              <Stat label="Best WPM" value={String(summary.bestWpm)} accent />
-              <Stat label="Avg accuracy" value={`${summary.avgAccuracy}%`} />
-              <Stat label="Tests" value={String(summary.count)} />
-              <Stat label="Points" value={String(summary.points)} />
+              <Stat label={t('dashboard.bestWpm')} value={String(summary.bestWpm)} accent />
+              <Stat label={t('dashboard.avgAccuracy')} value={`${summary.avgAccuracy}%`} />
+              <Stat label={t('dashboard.tests')} value={String(summary.count)} />
+              <Stat label={t('dashboard.points')} value={String(summary.points)} />
             </Card>
           </div>
 
@@ -153,7 +155,7 @@ export function Dashboard() {
 
           <div className="grid gap-5 lg:grid-cols-2">
             <Card className="space-y-3">
-              <h2 className="text-base font-semibold">Last test</h2>
+              <h2 className="text-base font-semibold">{t('dashboard.lastTest')}</h2>
               <div className="flex items-baseline justify-between gap-3">
                 <div>
                   <p className="text-sm font-medium">{profileFor(summary.last.examBoard).name}</p>
@@ -168,24 +170,24 @@ export function Dashboard() {
                       : 'bg-danger-soft text-danger-soft-fg'
                   }`}
                 >
-                  {summary.last.status === TestStatus.Passed ? 'Passed' : 'Failed'}
+                  {t(summary.last.status === TestStatus.Passed ? 'dashboard.passed' : 'dashboard.failed')}
                 </span>
               </div>
               <div className="flex gap-6 border-t border-line pt-3">
-                <Stat label="Net WPM" value={String(summary.last.netWpm)} accent />
-                <Stat label="Accuracy" value={`${summary.last.accuracy}%`} />
-                <Stat label="Errors" value={String(summary.last.errors)} />
+                <Stat label={t('dashboard.netWpm')} value={String(summary.last.netWpm)} accent />
+                <Stat label={t('dashboard.accuracy')} value={`${summary.last.accuracy}%`} />
+                <Stat label={t('dashboard.errors')} value={String(summary.last.errors)} />
               </div>
               <Button variant="secondary" size="sm" onClick={() => navigate('/app/history')}>
-                <HistoryIcon size={14} /> All results
+                <HistoryIcon size={14} /> {t('dashboard.allResults')}
               </Button>
             </Card>
 
             <Card className="space-y-3">
-              <h2 className="text-base font-semibold">Weakest keys</h2>
+              <h2 className="text-base font-semibold">{t('dashboard.weakestKeys')}</h2>
               {summary.weakest.length === 0 ? (
                 <p className="text-sm text-fg-muted">
-                  No mistakes recorded yet — nothing to drill. Keep it that way.
+                  {t('dashboard.noMistakes')}
                 </p>
               ) : (
                 <>
@@ -201,13 +203,12 @@ export function Dashboard() {
                     ))}
                   </div>
                   <p className="text-sm text-fg-muted">
-                    The Trainer builds a drill from these, and from the transitions that cost you
-                    the most time.
+                    {t('dashboard.trainerNote')}
                   </p>
                 </>
               )}
               <Button variant="secondary" size="sm" onClick={() => navigate('/app/trainer')}>
-                <Crosshair size={14} /> Open Trainer
+                <Crosshair size={14} /> {t('dashboard.openTrainer')}
               </Button>
             </Card>
           </div>

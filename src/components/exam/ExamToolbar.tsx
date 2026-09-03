@@ -9,6 +9,7 @@ import {
 import type { ExamConfig, ExamProfile, Series } from '@/core/types';
 import { EXAM_MODE_LABEL, ExamMode } from '@/core/constants';
 import { ToggleChip } from '@/ui/ToggleChip';
+import { useT } from '@/i18n';
 import { LayoutSwitcher, type ExamLayout } from './LayoutSwitcher';
 
 interface Props {
@@ -53,6 +54,7 @@ export function ExamToolbar({
   fullscreen,
   timer,
 }: Props) {
+  const t = useT();
   const isSplit = layout === 'split';
 
   return (
@@ -61,7 +63,7 @@ export function ExamToolbar({
         <h1 className="text-lg font-semibold">{profile.name}</h1>
         {series && (
           <span className={`${chip} bg-surface-3 text-fg-muted`}>
-            Test {series.index + 1} of {series.items.length}
+            {t('exam.testOf', { current: series.index + 1, total: series.items.length })}
           </span>
         )}
         {config.examMode !== ExamMode.Standard && (
@@ -74,11 +76,11 @@ export function ExamToolbar({
             className={`${chip} inline-flex items-center gap-1.5 bg-surface-3 text-fg-muted`}
             title="Restored from where you left off"
           >
-            <RotateCcw size={12} /> Resumed
+            <RotateCcw size={12} /> {t('exam.resumed')}
           </span>
         )}
         {examDay ? (
-          <span className={`${chip} bg-danger-soft text-danger-soft-fg`}>Exam day</span>
+          <span className={`${chip} bg-danger-soft text-danger-soft-fg`}>{t('exam.examDay')}</span>
         ) : (
           <LayoutSwitcher layout={layout} onChange={onLayout} />
         )}
@@ -101,7 +103,7 @@ export function ExamToolbar({
               }
             >
               <KeyboardIcon size={14} />
-              {keyboardVisible ? 'Hide keyboard' : 'Show keyboard'}
+              {t(keyboardVisible ? 'exam.hideKeyboard' : 'exam.showKeyboard')}
             </ToggleChip>
 
             {/* Redundant while the full keyboard is up, so it is disabled there. */}
@@ -118,7 +120,7 @@ export function ExamToolbar({
               }
             >
               <SquareDot size={14} />
-              Show keys
+              {t('exam.showKeys')}
             </ToggleChip>
 
             <ToggleChip
@@ -127,7 +129,7 @@ export function ExamToolbar({
               title={showStats ? 'Hide the live metrics panel' : 'Show the live metrics panel'}
             >
               <Activity size={14} />
-              {showStats ? 'Hide stats' : 'Show stats'}
+              {t(showStats ? 'exam.hideStats' : 'exam.showStats')}
             </ToggleChip>
           </>
         )}

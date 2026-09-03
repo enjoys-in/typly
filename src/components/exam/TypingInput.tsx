@@ -2,6 +2,7 @@ import { useState, type KeyboardEvent } from 'react';
 import { toDevanagari } from '@/core/text/hindiPhonetic';
 import type { Keymap } from '@/core/text/keymap';
 import { useFlash } from '@/hooks/useFlash';
+import { useT } from '@/i18n';
 
 interface Props {
   typed: string;
@@ -44,6 +45,7 @@ export function TypingInput({
   onKeyDown,
   onBlocked,
 }: Props) {
+  const t = useT();
   // In phonetic mode the textarea holds Roman text; `typed` (Devanagari) is derived.
   const [roman, setRoman] = useState('');
   // A refused key is invisible without this: the field flashes so a blocked
@@ -91,11 +93,7 @@ export function TypingInput({
     onKeyDown(e);
   }
 
-  const label = phonetic
-    ? 'Type the passage in Roman letters'
-    : keymap
-      ? `Type the passage using the ${keymap.label} layout`
-      : 'Type the passage here';
+  const label = keymap ? t('exam.typeHereLayout', { layout: keymap.label }) : t('exam.inputLabel');
 
   return (
     <textarea
@@ -117,10 +115,10 @@ export function TypingInput({
       }`}
       placeholder={
         phonetic
-          ? 'Type in Roman — e.g. namaste'
+          ? t('exam.typeHereRoman')
           : keymap
-            ? `Type using the ${keymap.label} layout`
-            : 'Start typing here…'
+            ? t('exam.typeHereLayout', { layout: keymap.label })
+            : t('exam.typeHere')
       }
     />
   );

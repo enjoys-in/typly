@@ -3,6 +3,7 @@ import type { ExamConfig, ExamProfile, ScoringRules } from '@/core/types';
 import { EXAM_MODE_LABEL, LANG_LABEL, TimingMode } from '@/core/constants';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
+import { useT } from '@/i18n';
 
 interface Props {
   config: ExamConfig;
@@ -21,42 +22,43 @@ function minutes(sec: number): string {
  * the cut-off, and which keys are allowed — read before the clock exists.
  */
 export function ExamBriefing({ config, profile, rules, onStart }: Props) {
+  const t = useT();
   const allowed: { label: string; on: boolean }[] = [
-    { label: 'Backspace / Delete', on: config.backspaceEnabled },
-    { label: 'Space bar', on: config.spaceEnabled },
-    { label: 'Enter / new line', on: config.enterEnabled },
-    { label: 'Paste', on: rules.pasteAllowed },
+    { label: t('briefing.backspace'), on: config.backspaceEnabled },
+    { label: t('briefing.space'), on: config.spaceEnabled },
+    { label: t('briefing.enter'), on: config.enterEnabled },
+    { label: t('briefing.paste'), on: rules.pasteAllowed },
   ];
 
   return (
     <Card className="mx-auto max-w-2xl space-y-6">
       <header className="space-y-1">
         <p className="text-[11px] font-semibold tracking-[0.14em] text-fg-subtle uppercase">
-          Instructions
+          {t('briefing.heading')}
         </p>
         <h1 className="text-2xl font-bold tracking-tight">{profile.name}</h1>
         <p className="text-sm text-fg-muted">{profile.source}</p>
       </header>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Item icon={AlarmClock} label="Duration">
+        <Item icon={AlarmClock} label={t('briefing.duration')}>
           {config.timing === TimingMode.Countdown
             ? minutes(config.durationSec)
             : 'Untimed (stopwatch)'}
         </Item>
-        <Item icon={BookOpen} label="Reading time">
-          {config.readingSec > 0 ? minutes(config.readingSec) : 'None'}
+        <Item icon={BookOpen} label={t('briefing.readingTime')}>
+          {config.readingSec > 0 ? minutes(config.readingSec) : t('briefing.none')}
         </Item>
-        <Item icon={Gauge} label="Speed cut-off">
-          {rules.minWpm > 0 ? `${rules.minWpm} net WPM` : 'Not graded'}
+        <Item icon={Gauge} label={t('briefing.speedCutoff')}>
+          {rules.minWpm > 0 ? `${rules.minWpm} net WPM` : t('briefing.notGraded')}
         </Item>
-        <Item icon={Target} label="Accuracy cut-off">
-          {rules.minAccuracy > 0 ? `${rules.minAccuracy}%` : 'Not graded'}
+        <Item icon={Target} label={t('briefing.accuracyCutoff')}>
+          {rules.minAccuracy > 0 ? `${rules.minAccuracy}%` : t('briefing.notGraded')}
         </Item>
       </div>
 
       <div className="space-y-3 rounded-panel border border-line p-4">
-        <p className="text-sm font-semibold">Allowed during the test</p>
+        <p className="text-sm font-semibold">{t('briefing.allowed')}</p>
         <ul className="grid gap-2 sm:grid-cols-2">
           {allowed.map(({ label, on }) => (
             <li key={label} className="flex items-center gap-2 text-sm">
@@ -79,7 +81,7 @@ export function ExamBriefing({ config, profile, rules, onStart }: Props) {
       <div className="flex justify-end">
         <Button size="lg" onClick={onStart}>
           <Play size={16} />
-          {config.readingSec > 0 ? 'Begin reading time' : 'Begin test'}
+          {t(config.readingSec > 0 ? 'briefing.beginReading' : 'briefing.beginTest')}
         </Button>
       </div>
     </Card>

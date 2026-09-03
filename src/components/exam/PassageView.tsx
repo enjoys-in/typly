@@ -1,5 +1,6 @@
 import { memo, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { evaluate, type CharState } from '@/core/typing/typingEngine';
+import { useT } from '@/i18n';
 
 const STATE_CLASS: Record<CharState, string> = {
   // Upcoming text is what the eye is actually reading, so it stays high
@@ -45,6 +46,7 @@ export function PassageView({
   fontFamily,
   caret = false,
 }: Props) {
+  const t = useT();
   const chars = useMemo(() => passage.split(''), [passage]);
   const states = useMemo(() => (blind ? [] : evaluate(passage, typed).states), [passage, typed, blind]);
   const caretRef = useRef<HTMLSpanElement>(null);
@@ -67,7 +69,7 @@ export function PassageView({
     <div
       onMouseDown={(e) => e.preventDefault()}
       role="region"
-      aria-label="Passage to type"
+      aria-label={t('exam.passageRegion')}
       className={`scroll-area relative rounded-panel border border-line bg-surface ${className}`}
     >
       {toolbar && (

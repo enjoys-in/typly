@@ -1,6 +1,7 @@
 import { Flame, Target } from 'lucide-react';
 import { Card } from '@/ui/Card';
 import { ProgressBar } from '@/ui/ProgressBar';
+import { useT } from '@/i18n';
 
 interface Props {
   today: number;
@@ -10,6 +11,7 @@ interface Props {
 
 /** Today against the daily goal, plus the streak it is protecting. */
 export function GoalCard({ today, goal, streak }: Props) {
+  const t = useT();
   const pct = goal > 0 ? (today / goal) * 100 : 0;
   const left = Math.max(0, goal - today);
 
@@ -18,7 +20,7 @@ export function GoalCard({ today, goal, streak }: Props) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="flex items-center gap-1.5 text-[11px] font-medium tracking-wide text-fg-muted uppercase">
-            <Target size={13} /> Today
+            <Target size={13} /> {t('dashboard.today')}
           </p>
           <p className="text-2xl font-bold tabular-nums">
             {today}
@@ -27,7 +29,7 @@ export function GoalCard({ today, goal, streak }: Props) {
         </div>
         <div className="text-right">
           <p className="flex items-center justify-end gap-1.5 text-[11px] font-medium tracking-wide text-fg-muted uppercase">
-            <Flame size={13} /> Streak
+            <Flame size={13} /> {t('dashboard.streak')}
           </p>
           <p className="text-2xl font-bold tabular-nums">
             {streak}
@@ -39,8 +41,8 @@ export function GoalCard({ today, goal, streak }: Props) {
         <ProgressBar value={pct} />
         <p className="text-xs text-fg-muted">
           {left === 0
-            ? 'Daily goal reached — the streak is safe.'
-            : `${left} more ${left === 1 ? 'test' : 'tests'} to hit today's goal.`}
+            ? t('dashboard.goalReached')
+            : t('dashboard.goalRemaining', { count: left })}
         </p>
       </div>
     </Card>

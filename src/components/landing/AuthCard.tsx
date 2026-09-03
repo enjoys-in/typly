@@ -7,6 +7,7 @@ import {
   type Profile,
 } from '@/core/profile/profile';
 import { Button } from '@/ui/Button';
+import { useT } from '@/i18n';
 
 const META = ['English + हिन्दी', 'Image · PDF · DOCX · Text', 'macOS desktop & web'];
 
@@ -17,6 +18,7 @@ interface Props {
 
 /** Right-hand sign-in column. Guest-first; email sign-in lands with the backend. */
 export function AuthCard({ onGuest, busy = false }: Props) {
+  const t = useT();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [touched, setTouched] = useState(false);
@@ -34,7 +36,7 @@ export function AuthCard({ onGuest, busy = false }: Props) {
   return (
     <section className="flex flex-col items-center justify-center gap-10 p-6 sm:p-10">
       <div className="rise-in w-full max-w-sm">
-        <h2 className="text-2xl font-bold tracking-tight">Get started</h2>
+        <h2 className="text-2xl font-bold tracking-tight">{t('landing.getStarted')}</h2>
         <p className="mt-2 text-sm leading-relaxed text-fg-muted">
           No sign-up, no setup. Just your name, so the app knows who it is coaching — your results
           stay on this device.
@@ -54,7 +56,7 @@ export function AuthCard({ onGuest, busy = false }: Props) {
           <Field
             id="profile-name"
             icon={User}
-            label="Your name"
+            label={t('landing.yourName')}
             hint="Shown on your dashboard and printed on certificates."
             value={name}
             onChange={setName}
@@ -69,8 +71,9 @@ export function AuthCard({ onGuest, busy = false }: Props) {
           <Field
             id="profile-email"
             icon={Mail}
-            label="Email"
+            label={t('landing.email')}
             optional
+            optionalLabel={t('landing.optional')}
             hint="Unlocks long sessions, certificate downloads and progress exports. Stored on this device only — nothing is sent."
             value={email}
             onChange={setEmail}
@@ -82,7 +85,7 @@ export function AuthCard({ onGuest, busy = false }: Props) {
           />
 
           <Button type="submit" size="lg" className="w-full" disabled={busy}>
-            {busy ? 'Opening…' : 'Start practising'}
+            {busy ? t('common.loading') : t('landing.startPractising')}
             {!busy && <ArrowRight size={16} />}
           </Button>
         </form>
@@ -151,6 +154,8 @@ interface FieldProps {
   error?: string;
   /** Called when the field loses focus, so an error can appear then too. */
   onBlur?: () => void;
+  /** Translated word for the optional badge. */
+  optionalLabel?: string;
 }
 
 /** Labelled text input with its hint and inline error, wired for screen readers. */
@@ -169,6 +174,7 @@ function Field({
   invalid = false,
   error,
   onBlur,
+  optionalLabel = 'Optional',
 }: FieldProps) {
   const hintId = `${id}-hint`;
   const errorId = `${id}-error`;
@@ -180,7 +186,7 @@ function Field({
         {label}
         {optional ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-bold tracking-wide text-accent-soft-fg uppercase">
-            <Sparkles size={10} /> Optional
+            <Sparkles size={10} /> {optionalLabel}
           </span>
         ) : (
           <span className="text-danger-text" aria-hidden>

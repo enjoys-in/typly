@@ -9,12 +9,14 @@ import { useShellBridge } from '@/hooks/useShellBridge';
 import { loadStoredFonts, loadDesktopFontCache } from '@/ui/fonts';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { PageSkeleton } from '@/ui/Skeleton';
+import { useT } from '@/i18n';
 
 export function AppShell() {
   const { pathname } = useLocation();
   const platform = usePlatform();
   // Exam-day mode asks for the app's furniture to be taken away.
   const bare = useChromeStore((s) => s.bare);
+  const t = useT();
 
   usePracticeReminder();
   // A signed-in (or guest) account gets the demo paragraph on first open.
@@ -32,7 +34,7 @@ export function AppShell() {
     <div className="flex h-full">
       {/* First stop for a keyboard user: past the whole sidebar in one press. */}
       <a href="#main" className="sr-only skip-link">
-        Skip to main content
+        {t('nav.skipToContent')}
       </a>
       {!bare && <Sidebar />}
       <main id="main" tabIndex={-1} className="h-full flex-1 overflow-y-auto outline-none">

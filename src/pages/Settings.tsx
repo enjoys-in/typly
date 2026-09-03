@@ -21,6 +21,7 @@ import {
 } from '@/core/constants';
 import { AiSettingsCard } from '@/components/settings/AiSettingsCard';
 import { ProfileCard } from '@/components/settings/ProfileCard';
+import { UI_LANGS, UI_LANG_LABEL, useT, type UiLang } from '@/i18n';
 import { LanguageToolsCard } from '@/components/settings/LanguageToolsCard';
 import { StorageCard } from '@/components/settings/StorageCard';
 import { ThemeCard } from '@/components/settings/ThemeCard';
@@ -30,6 +31,7 @@ import { Card } from '@/ui/Card';
 import { Toggle } from '@/ui/Toggle';
 
 export function Settings() {
+  const t = useT();
   const platform = usePlatform();
   const navigate = useNavigate();
   const settings = useSettingsStore();
@@ -145,6 +147,27 @@ export function Settings() {
       <h1 className="text-2xl font-bold">Settings</h1>
 
       <ProfileCard />
+
+      <Card className="space-y-2">
+        <label className="flex flex-col gap-2">
+          <span className="text-sm font-semibold">{t('setup.language')} · Interface</span>
+          <select
+            value={settings.uiLang}
+            onChange={(e) => settings.setUiLang(e.target.value as UiLang)}
+            aria-label="Interface language"
+            className="select max-w-sm"
+          >
+            {UI_LANGS.map((code) => (
+              <option key={code} value={code}>
+                {UI_LANG_LABEL[code]}
+              </option>
+            ))}
+          </select>
+          <span className="text-xs text-fg-muted">
+            The language of the app itself. Passage language is chosen per test.
+          </span>
+        </label>
+      </Card>
 
       {/* Masonry two columns on wide screens so cards pack tightly, less scrolling. */}
       <div className="columns-1 gap-6 *:mb-6 *:break-inside-avoid lg:columns-2">

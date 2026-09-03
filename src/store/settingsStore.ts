@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { Repository } from '@/platform/ports';
 import type { SeriesBase } from '@/core/types';
+import { applyHtmlLang, isUiLang, type UiLang } from '@/i18n';
 import {
   Difficulty,
   EXAM_ZOOM_DEFAULT,
@@ -54,6 +55,8 @@ interface SettingsState {
   readingSec: number;
   /** Exam-day mode: no app furniture, no notifications, no pausing. */
   examDay: boolean;
+  /** Language of the interface itself, separate from the passage language. */
+  uiLang: UiLang;
   setLang: (lang: Lang) => void;
   setBoard: (board: ExamBoard) => void;
   setTiming: (timing: TimingMode) => void;
@@ -79,6 +82,7 @@ interface SettingsState {
   setBriefing: (v: boolean) => void;
   setReadingSec: (v: number) => void;
   setExamDay: (v: boolean) => void;
+  setUiLang: (v: UiLang) => void;
 }
 
 /** The persisted slice — every field above except the setters. */
@@ -110,6 +114,7 @@ const DEFAULTS: Persisted = {
   briefing: false,
   readingSec: 0,
   examDay: false,
+  uiLang: 'en',
 };
 
 // Single row in the Dexie `settings` table, so preferences live in IndexedDB
@@ -142,6 +147,11 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setHindiFont: (hindiFont) => set({ hindiFont }),
   setBriefing: (briefing) => set({ briefing }),
   setExamDay: (examDay) => set({ examDay }),
+  // The document language travels with it, for screen readers and fonts.
+  setUiLang: (uiLang) => {
+    applyHtmlLang(uiLang);
+    set({ uiLang });
+  },
   // Clamped here so callers can pass raw input.
   setReadingSec: (readingSec) =>
     set({ readingSec: Math.min(MAX_READING_SEC, Math.max(0, Math.round(readingSec) || 0)) }),
@@ -191,6 +201,7 @@ function sanitize(raw: unknown): Partial<Persisted> {
     const value = (raw as Record<string, unknown>)[key];
     if (value !== undefined && typeof value === typeof fallback) out[key] = value;
   }
+  if (!isUiLang(out.uiLang)) delete out.uiLang;
   const zoom = out.examZoom;
   if (typeof zoom === 'number') {
     out.examZoom = Math.min(EXAM_ZOOM_MAX, Math.max(EXAM_ZOOM_MIN, zoom));
@@ -216,6 +227,7 @@ export async function hydrateSettings(repo: Repository): Promise<void> {
   try {
     const raw = await repo.getSetting(STORE_KEY);
     if (raw) useSettingsStore.setState(sanitize(JSON.parse(raw)));
+    applyHtmlLang(useSettingsStore.getState().uiLang);
   } catch {
     // Unreadable or corrupt row — carry on with defaults.
   }

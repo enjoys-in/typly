@@ -20,19 +20,21 @@ import { usePlatform } from '@/platform/PlatformContext';
 import { useAuthStore } from '@/store/authStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { appConfig } from '@/config/appConfig';
+import { useT } from '@/i18n';
+import type { TKey } from '@/i18n/en';
 import { firstName, initialOf } from '@/core/profile/profile';
 import { AboutPanel } from './AboutPanel';
 
-const LINKS: { to: string; label: string; icon: LucideIcon; end?: boolean }[] = [
-  { to: '/app', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/app/new', label: 'New Test', icon: PlusCircle },
-  { to: '/app/lessons', label: 'Lessons', icon: GraduationCap },
-  { to: '/app/practice', label: 'Practice', icon: Dumbbell },
-  { to: '/app/trainer', label: 'Trainer', icon: Crosshair },
-  { to: '/app/library', label: 'Library', icon: Library },
-  { to: '/app/history', label: 'History', icon: HistoryIcon },
-  { to: '/app/progress', label: 'Progress', icon: TrendingUp },
-  { to: '/app/settings', label: 'Settings', icon: SettingsIcon },
+const LINKS: { to: string; label: TKey; icon: LucideIcon; end?: boolean }[] = [
+  { to: '/app', label: 'nav.dashboard', icon: LayoutDashboard, end: true },
+  { to: '/app/new', label: 'nav.new', icon: PlusCircle },
+  { to: '/app/lessons', label: 'nav.lessons', icon: GraduationCap },
+  { to: '/app/practice', label: 'nav.practice', icon: Dumbbell },
+  { to: '/app/trainer', label: 'nav.trainer', icon: Crosshair },
+  { to: '/app/library', label: 'nav.library', icon: Library },
+  { to: '/app/history', label: 'nav.history', icon: HistoryIcon },
+  { to: '/app/progress', label: 'nav.progress', icon: TrendingUp },
+  { to: '/app/settings', label: 'nav.settings', icon: SettingsIcon },
 ];
 
 export function Sidebar() {
@@ -42,6 +44,7 @@ export function Sidebar() {
   const collapsed = useSettingsStore((s) => s.sidebarCollapsed);
   const setCollapsed = useSettingsStore((s) => s.setSidebarCollapsed);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const t = useT();
   const Logo = appConfig.logo;
 
   async function logout() {
@@ -51,7 +54,11 @@ export function Sidebar() {
   }
 
   // Fall back to the old behaviour for accounts saved before profiles existed.
-  const label = account?.name ? firstName(account.name) : account?.guest ? 'Guest' : account?.id;
+  const label = account?.name
+    ? firstName(account.name)
+    : account?.guest
+      ? t('nav.guest')
+      : account?.id;
   const initial = account?.name
     ? initialOf(account.name)
     : account?.guest
@@ -71,8 +78,8 @@ export function Sidebar() {
           <button
             type="button"
             onClick={() => setCollapsed(false)}
-            title="Expand sidebar"
-            aria-label="Expand sidebar"
+            title={t('nav.expand')}
+            aria-label={t('nav.expand')}
             aria-expanded={false}
             className="group relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-control outline-none focus-visible:ring-2 focus-visible:ring-accent-ring"
           >
@@ -91,20 +98,20 @@ export function Sidebar() {
             </div>
             <IconAction
               icon={PanelLeftClose}
-              label="Collapse sidebar"
+              label={t('nav.collapse')}
               onClick={() => setCollapsed(true)}
             />
           </>
         )}
       </div>
 
-      <nav aria-label="Main" className="flex flex-col gap-1">
+      <nav aria-label={t('nav.label')} className="flex flex-col gap-1">
         {LINKS.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}
             end={end}
-            title={collapsed ? label : undefined}
+            title={collapsed ? t(label) : undefined}
             className={({ isActive }) =>
               `relative flex items-center rounded-control text-sm font-medium transition-colors duration-150 ${
                 collapsed ? 'h-10 justify-center' : 'gap-3 px-3 py-2.5'
@@ -125,7 +132,7 @@ export function Sidebar() {
                   />
                 )}
                 <Icon size={18} className="shrink-0" />
-                {!collapsed && <span className="truncate">{label}</span>}
+                {!collapsed && <span className="truncate">{t(label)}</span>}
               </>
             )}
           </NavLink>
@@ -136,13 +143,13 @@ export function Sidebar() {
         <button
           type="button"
           onClick={() => setAboutOpen(true)}
-          title={collapsed ? 'About' : undefined}
+          title={collapsed ? t('nav.about') : undefined}
           className={`flex w-full cursor-pointer items-center rounded-control text-sm font-medium text-fg-muted outline-none transition-colors duration-150 hover:bg-surface-hover hover:text-fg focus-visible:ring-2 focus-visible:ring-accent-ring ${
             collapsed ? 'h-10 justify-center' : 'gap-3 px-3 py-2.5'
           }`}
         >
           <Info size={18} className="shrink-0" />
-          {!collapsed && 'About'}
+          {!collapsed && t('nav.about')}
         </button>
       </div>
 
@@ -158,13 +165,13 @@ export function Sidebar() {
         </div>
         <button
           onClick={logout}
-          title={collapsed ? 'Log out' : undefined}
+          title={collapsed ? t('nav.logout') : undefined}
           className={`flex w-full cursor-pointer items-center rounded-control text-sm font-medium text-fg-muted outline-none transition-colors duration-150 hover:bg-danger-soft hover:text-danger-text focus-visible:ring-2 focus-visible:ring-accent-ring ${
             collapsed ? 'h-10 justify-center' : 'gap-3 px-3 py-2.5'
           }`}
         >
           <LogOut size={18} className="shrink-0" />
-          {!collapsed && 'Log out'}
+          {!collapsed && t('nav.logout')}
         </button>
       </div>
 

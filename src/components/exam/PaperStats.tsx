@@ -3,6 +3,7 @@ import { CHARS_PER_WORD } from '@/core/constants';
 import { grossWpm } from '@/core/scoring/scoring';
 import { liveWordCount } from '@/core/scoring/freeform';
 import { Metric } from './Metric';
+import { useT } from '@/i18n';
 
 interface Props {
   typed: string;
@@ -20,6 +21,7 @@ interface Props {
  * what can honestly be measured while typing: speed, words and corrections.
  */
 export function PaperStats({ typed, elapsedMs, backspaces, targetWpm = 0 }: Props) {
+  const t = useT();
   const minutes = Math.max(elapsedMs / 60_000, 1 / 60_000);
   const wpm = Math.round(grossWpm(typed.length, minutes, CHARS_PER_WORD) * 10) / 10;
   const started = typed.length > 0;
@@ -28,21 +30,20 @@ export function PaperStats({ typed, elapsedMs, backspaces, targetWpm = 0 }: Prop
     <div className="flex flex-col gap-4 rounded-panel border border-line bg-surface p-5">
       <Metric
         icon={Gauge}
-        label="Live WPM"
+        label={t('stats.liveWpm')}
         value={started ? String(wpm) : '—'}
-        target={targetWpm > 0 ? `target ${targetWpm}` : undefined}
+        target={targetWpm > 0 ? t('stats.target', { value: targetWpm }) : undefined}
         onPace={started && targetWpm > 0 ? wpm >= targetWpm : null}
         big
       />
 
       <div className="grid grid-cols-2 gap-4 border-t border-line pt-4">
-        <Metric icon={Type} label="Words" value={String(liveWordCount(typed))} />
-        <Metric icon={Undo2} label="Corrections" value={String(backspaces)} />
+        <Metric icon={Type} label={t('stats.words')} value={String(liveWordCount(typed))} />
+        <Metric icon={Undo2} label={t('stats.corrections')} value={String(backspaces)} />
       </div>
 
       <p className="border-t border-line pt-4 text-xs leading-relaxed text-fg-muted">
-        Spelling and grammar are checked when you submit — there is no passage to compare against
-        as you type.
+        {t('paper.checkedLater')}
       </p>
     </div>
   );
