@@ -6,6 +6,7 @@ import { spellIssues } from '@/core/text/spell';
 import { GRAMMAR_MODE_LABEL, GrammarMode, Lang, SpellEngine } from '@/core/constants';
 import type { GrammarIssue } from '@/core/types';
 import { Button } from '@/ui/Button';
+import { useT } from '@/i18n';
 
 type Status = 'idle' | 'checking' | 'done' | 'error';
 
@@ -20,6 +21,7 @@ export function GrammarPanel({
   lang: Lang;
   onApply: (next: string) => void;
 }) {
+  const t = useT();
   const platform = usePlatform();
   const grammarMode = useLanguageToolsStore((s) => s.grammarMode);
   const spellEngine = useLanguageToolsStore((s) => s.spellEngine);
@@ -79,7 +81,7 @@ export function GrammarPanel({
     <div className="space-y-3 border-t border-line pt-5">
       <div className="flex flex-wrap items-center gap-2">
         <SpellCheck size={16} className="text-accent-text" />
-        <h3 className="text-sm font-semibold">Grammar &amp; spelling</h3>
+        <h3 className="text-sm font-semibold">{t('grammar.title')}</h3>
         <span className="rounded-full bg-surface-3 px-2 py-0.5 text-[11px] font-medium text-fg-muted">
           {grammarOff ? 'Grammar off' : GRAMMAR_MODE_LABEL[grammarMode]}
         </span>
@@ -109,7 +111,7 @@ export function GrammarPanel({
 
       {status === 'checking' && !aiMode && (
         <p className="text-xs text-fg-muted">
-          The on-device grammar model downloads once (a few MB) — the first check can take a moment.
+          {t('grammar.firstRun')}
         </p>
       )}
 
@@ -123,7 +125,7 @@ export function GrammarPanel({
         issues !== null &&
         (issues.length === 0 ? (
           <p className="flex items-center gap-1.5 text-sm text-accent-text">
-            <Check size={15} /> No issues found.
+            <Check size={15} /> {t('grammar.noIssues')}
           </p>
         ) : (
           <ul className="space-y-2">

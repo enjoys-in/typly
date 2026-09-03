@@ -4,12 +4,14 @@ import { AI_PROVIDERS, providerPreset, useAiSettingsStore } from '@/store/aiSett
 import type { AiProviderId } from '@/core/coach/types';
 import { Card } from '@/ui/Card';
 import { Toggle } from '@/ui/Toggle';
+import { useT } from '@/i18n';
 
 const CUSTOM = '__custom';
 
 // Lets the user bring their own AI key. Stored locally and sent only to our
 // backend endpoint (see server/), never bundled into the client build.
 export function AiSettingsCard() {
+  const t = useT();
   const { provider, model, visionModel, apiKey, baseUrl, configured, enabled, update } =
     useAiSettingsStore();
   const [reveal, setReveal] = useState(false);
@@ -24,7 +26,7 @@ export function AiSettingsCard() {
     <Card className="space-y-5">
       <div className="flex items-center gap-2">
         <KeyRound size={18} className="text-accent-text" />
-        <h2 className="font-semibold">AI features</h2>
+        <h2 className="font-semibold">{t('ai.title')}</h2>
         <span
           className={`ml-auto rounded-full px-2.5 py-0.5 text-xs font-semibold ${
             enabled && configured
@@ -39,14 +41,14 @@ export function AiSettingsCard() {
       <Toggle
         checked={enabled}
         onChange={(v) => update({ enabled: v })}
-        label="Enable AI features"
-        hint="When off, the app uses only the built-in offline pipeline — on-device OCR and grammar, and the AI coach is hidden."
+        label={t('ai.enable')}
+        hint={t('ai.enableHint')}
       />
 
       {enabled && (
         <>
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium">Provider</span>
+            <span className="text-sm font-medium">{t('ai.provider')}</span>
             <select
           value={provider}
           onChange={(e) => onProviderChange(e.target.value as AiProviderId)}
@@ -61,7 +63,7 @@ export function AiSettingsCard() {
       </label>
 
       <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium">Coach &amp; grammar model</span>
+        <span className="text-sm font-medium">{t('ai.model')}</span>
         <ModelPicker
           key={`${provider}-text`}
           value={model}
@@ -72,7 +74,7 @@ export function AiSettingsCard() {
       </label>
 
       <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium">Vision model (image OCR)</span>
+        <span className="text-sm font-medium">{t('ai.visionModel')}</span>
         <ModelPicker
           key={`${provider}-vision`}
           value={visionModel}
@@ -81,12 +83,12 @@ export function AiSettingsCard() {
           onChange={(v) => update({ visionModel: v })}
         />
         <span className="text-xs text-fg-muted">
-          Reads text from uploaded images. NVIDIA&apos;s Llama-3.2 vision models are free.
+          {t('ai.visionHint')}
         </span>
       </label>
 
       <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium">API key</span>
+        <span className="text-sm font-medium">{t('ai.apiKey')}</span>
         <div className="flex gap-2">
           <input
             value={apiKey}
@@ -102,24 +104,22 @@ export function AiSettingsCard() {
             onClick={() => setReveal((r) => !r)}
             className="rounded-control border border-edge px-3 text-sm font-medium"
           >
-            {reveal ? 'Hide' : 'Show'}
+            {t(reveal ? 'ai.hide' : 'ai.show')}
           </button>
         </div>
         <span className="text-xs text-fg-muted">
-          Bring your own key — stored locally on this device and sent only to the AI provider.
-          Optional: without a key the app runs normally, just with AI features (coach, AI grammar,
-          image OCR) turned off.
+          {t('ai.keyHint')}
         </span>
       </label>
 
       <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium">Base URL (optional)</span>
+        <span className="text-sm font-medium">{t('ai.baseUrl')}</span>
         <input
           value={baseUrl ?? ''}
           onChange={(e) => update({ baseUrl: e.target.value })}
           spellCheck={false}
           className="select"
-          placeholder="Provider default"
+          placeholder={t('ai.providerDefault')}
         />
       </label>
         </>

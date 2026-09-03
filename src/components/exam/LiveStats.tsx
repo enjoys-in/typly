@@ -82,7 +82,7 @@ export function LiveStats({
 
       {blocked > 0 && (
         <div className="flex items-center justify-between border-t border-line pt-4 text-sm">
-          <span className="flex items-center gap-2 text-fg-muted" title="Keys the exam rules refused">
+          <span className="flex items-center gap-2 text-fg-muted" title={t('exam.blockedHint')}>
             <Ban size={14} /> {t('stats.blocked')}
           </span>
           <span className="font-semibold tabular-nums text-danger-text">{blocked}</span>

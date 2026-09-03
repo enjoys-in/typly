@@ -8,7 +8,8 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import type { Mistake } from '@/core/types';
-import { CATEGORY_LABEL, ErrorCategory } from '@/core/constants';
+import { useT } from '@/i18n';
+import { ErrorCategory } from '@/core/constants';
 
 const CATEGORY_ICON: Record<ErrorCategory, LucideIcon> = {
   [ErrorCategory.MissingChar]: Minus,
@@ -22,8 +23,10 @@ const CATEGORY_ICON: Record<ErrorCategory, LucideIcon> = {
 };
 
 export function MistakeList({ mistakes }: { mistakes: Mistake[] }) {
+  const t = useT();
+
   if (mistakes.length === 0) {
-    return <p className="text-sm text-fg-muted">No mistakes — perfect run! 🎉</p>;
+    return <p className="text-sm text-fg-muted">{t('mistakes.none')}</p>;
   }
 
   return (
@@ -32,9 +35,9 @@ export function MistakeList({ mistakes }: { mistakes: Mistake[] }) {
         <thead className="sticky top-0 z-10 bg-surface-2 text-xs uppercase tracking-wide text-fg-muted">
           <tr>
             <th className="px-4 py-2 font-medium">#</th>
-            <th className="px-4 py-2 font-medium">You typed</th>
-            <th className="px-4 py-2 font-medium">Expected</th>
-            <th className="px-4 py-2 font-medium">Type</th>
+            <th className="px-4 py-2 font-medium">{t('mistakes.youTyped')}</th>
+            <th className="px-4 py-2 font-medium">{t('mistakes.expected')}</th>
+            <th className="px-4 py-2 font-medium">{t('mistakes.type')}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-line">
@@ -52,7 +55,7 @@ export function MistakeList({ mistakes }: { mistakes: Mistake[] }) {
                 <td className="px-4 py-2.5">
                   <span className="inline-flex items-center gap-1.5 text-xs text-fg-muted">
                     <Icon size={14} className="shrink-0" />
-                    {CATEGORY_LABEL[m.category]}
+                    {t(`category.${m.category}`)}
                   </span>
                 </td>
               </tr>

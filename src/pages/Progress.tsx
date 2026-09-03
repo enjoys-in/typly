@@ -19,11 +19,13 @@ import { Card } from '@/ui/Card';
 import { ProgressBar } from '@/ui/ProgressBar';
 import { Skeleton, SkeletonCard } from '@/ui/Skeleton';
 import { Stat } from '@/ui/Stat';
+import { useT } from '@/i18n';
 
 export function Progress() {
   const platform = usePlatform();
   const dailyGoal = useSettingsStore((s) => s.dailyGoal);
   const [rows, setRows] = useState<TestRow[] | null>(null);
+  const t = useT();
 
   useEffect(() => {
     platform.repo.listHistory().then(setRows);
@@ -60,8 +62,8 @@ export function Progress() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Progress</h1>
-        <p className="mt-1 text-fg-muted">Personal bests, streaks, and your recent speed trend.</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t('progress.title')}</h1>
+        <p className="mt-1 text-fg-muted">{t('progress.subtitle')}</p>
       </div>
 
       {rows === null ? (
@@ -78,57 +80,85 @@ export function Progress() {
         </>
       ) : !stats ? (
         <Card>
-          <p className="text-sm text-fg-muted">No tests yet. Take a test to start tracking progress.</p>
+          <p className="text-sm text-fg-muted">{t('progress.emptyLong')}</p>
         </Card>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <Highlight icon={Trophy} tint="primary" label="Best Net WPM" value={String(stats.bestWpm)} />
-            <Highlight icon={Flame} tint="secondary" label="Day streak" value={String(stats.streak)} />
-            <Highlight icon={Sparkles} tint="primary" label="Points" value={String(stats.points)} />
-            <Highlight icon={Target} tint="secondary" label="Pass rate" value={`${stats.passRate}%`} />
+            <Highlight
+              icon={Trophy}
+              tint="primary"
+              label={t('progress.bestWpm')}
+              value={String(stats.bestWpm)}
+            />
+            <Highlight
+              icon={Flame}
+              tint="secondary"
+              label={t('progress.dayStreak')}
+              value={String(stats.streak)}
+            />
+            <Highlight
+              icon={Sparkles}
+              tint="primary"
+              label={t('dashboard.points')}
+              value={String(stats.points)}
+            />
+            <Highlight
+              icon={Target}
+              tint="secondary"
+              label={t('progress.passRate')}
+              value={`${stats.passRate}%`}
+            />
           </div>
 
           <Card className="grid grid-cols-2 gap-6 sm:grid-cols-4">
-            <Stat label="Tests taken" value={String(stats.total)} />
-            <Stat label="Avg Net WPM" value={String(stats.avgWpm)} />
-            <Stat label="Avg accuracy" value={`${stats.avgAcc}%`} />
-            <Stat label="Best Net WPM" value={String(stats.bestWpm)} accent />
+            <Stat label={t('progress.testsTaken')} value={String(stats.total)} />
+            <Stat label={t('progress.avgWpm')} value={String(stats.avgWpm)} />
+            <Stat label={t('progress.avgAccuracy')} value={`${stats.avgAcc}%`} />
+            <Stat label={t('progress.bestWpm')} value={String(stats.bestWpm)} accent />
           </Card>
 
           <Card className="space-y-4">
-            <h2 className="font-semibold">Recent speed (Net WPM)</h2>
+            <h2 className="font-semibold">{t('progress.recentSpeed')}</h2>
             <WpmBars rows={stats.recent} max={stats.bestWpm} />
           </Card>
 
           <Card className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="font-semibold">Daily goal</h2>
+              <h2 className="font-semibold">{t('progress.dailyGoal')}</h2>
               <span className="text-sm tabular-nums text-fg-muted">
-                {Math.min(stats.today, dailyGoal)} / {dailyGoal} tests
+                {t('progress.goalCount', { done: Math.min(stats.today, dailyGoal), goal: dailyGoal })}
               </span>
             </div>
             <ProgressBar value={dailyGoal > 0 ? (stats.today / dailyGoal) * 100 : 0} />
             <p className="text-xs text-fg-muted">
               {stats.today >= dailyGoal
-                ? "Goal reached today — nice work! 🎉"
-                : `${dailyGoal - stats.today} more to hit today's goal.`}
+                ? t('progress.goalDone')
+                : t('progress.goalLeft', { count: dailyGoal - stats.today })}
             </p>
           </Card>
 
           <Card className="space-y-4">
-            <h2 className="font-semibold">Challenges</h2>
-            <ChallengeRow label="This week" done={stats.week} target={Math.max(1, dailyGoal * 5)} />
-            <ChallengeRow label="This month" done={stats.month} target={Math.max(1, dailyGoal * 20)} />
+            <h2 className="font-semibold">{t('progress.challenges')}</h2>
+            <ChallengeRow
+              label={t('progress.thisWeek')}
+              done={stats.week}
+              target={Math.max(1, dailyGoal * 5)}
+            />
+            <ChallengeRow
+              label={t('progress.thisMonth')}
+              done={stats.month}
+              target={Math.max(1, dailyGoal * 20)}
+            />
           </Card>
 
           <Card className="space-y-4">
-            <h2 className="font-semibold">Achievements</h2>
+            <h2 className="font-semibold">{t('progress.badgesTitle')}</h2>
             <BadgeGrid badges={stats.badges} />
           </Card>
 
           <Card className="space-y-3">
-            <h2 className="font-semibold">Top runs</h2>
+            <h2 className="font-semibold">{t('progress.topRunsTitle')}</h2>
             <Leaderboard runs={stats.topRuns} />
           </Card>
         </>
@@ -161,27 +191,30 @@ function Leaderboard({ runs }: { runs: TestRow[] }) {
 }
 
 function ChallengeRow({ label, done, target }: { label: string; done: number; target: number }) {
+  const t = useT();
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between text-sm">
         <span className="font-medium">{label}</span>
         <span className="tabular-nums text-fg-muted">
-          {Math.min(done, target)} / {target} tests
+          {t('progress.goalCount', { done: Math.min(done, target), goal: target })}
         </span>
       </div>
       <ProgressBar value={Math.min(100, (done / target) * 100)} />
-      {done >= target && <p className="text-xs text-accent-text">Challenge complete 🎉</p>}
+      {done >= target && <p className="text-xs text-accent-text">{t('progress.challengeDone')}</p>}
     </div>
   );
 }
 
 function BadgeGrid({ badges }: { badges: ReturnType<typeof computeBadges> }) {
+  const t = useT();
+
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
       {badges.map((b) => (
         <div
           key={b.id}
-          title={b.description}
+          title={t(`badge.${b.id}.desc`)}
           className={`flex flex-col items-center gap-2 rounded-panel border p-3 text-center ${
             b.earned
               ? 'border-accent-soft bg-accent-soft text-accent-soft-fg'
@@ -191,7 +224,7 @@ function BadgeGrid({ badges }: { badges: ReturnType<typeof computeBadges> }) {
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-surface">
             {b.earned ? <Award size={18} /> : <Lock size={16} />}
           </span>
-          <span className="text-xs font-semibold leading-tight">{b.label}</span>
+          <span className="text-xs font-semibold leading-tight">{t(`badge.${b.id}`)}</span>
         </div>
       ))}
     </div>
@@ -230,12 +263,13 @@ function Highlight({
 }
 
 function WpmBars({ rows, max }: { rows: TestRow[]; max: number }) {
+  const t = useT();
   const scale = Math.max(max, 1);
   return (
     <div>
       <div className="flex justify-between text-[10px] text-fg-subtle">
-        <span>Net WPM</span>
-        <span className="tabular-nums">peak {max}</span>
+        <span>{t('chart.netWpm')}</span>
+        <span className="tabular-nums">{t('chart.peak', { value: max })}</span>
       </div>
       {/* Fixed-height track so each bar's percentage height resolves correctly. */}
       <div className="mt-1 flex h-44 items-end justify-center gap-2 border-b border-line">

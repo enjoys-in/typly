@@ -8,6 +8,7 @@ import { featuresFor } from '@/core/profile/profile';
 import { appConfig, activeTheme } from '@/config/appConfig';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
+import { useT } from '@/i18n';
 
 const W = 1200;
 const H = 820;
@@ -31,6 +32,7 @@ function roundRect(
 
 export function CertificateCard({ finished }: { finished: FinishedExam }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const t = useT();
   const account = useAuthStore((s) => s.account);
   // Pre-filled from the profile, still editable per certificate.
   const [name, setName] = useState(account?.name ?? '');
@@ -148,25 +150,23 @@ export function CertificateCard({ finished }: { finished: FinishedExam }) {
   return (
     <Card className="space-y-3">
       <div>
-        <h2 className="font-semibold">Certificate</h2>
+        <h2 className="font-semibold">{t('certificate.title')}</h2>
         <p className="mt-0.5 text-xs text-fg-muted">
-          {unlocked.certificateDownload
-            ? 'You passed — here is a shareable certificate.'
-            : 'You passed. Add your email in Settings to download it as an image.'}
+          {t(unlocked.certificateDownload ? 'certificate.ready' : 'certificate.locked')}
         </p>
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Your name"
+          placeholder={t('profile.namePlaceholder')}
           maxLength={40}
-          aria-label="Name on the certificate"
+          aria-label={t('certificate.nameAria')}
           className="select min-w-40 flex-1"
         />
         <Button onClick={download} disabled={!unlocked.certificateDownload}>
           {!unlocked.certificateDownload && <Lock size={14} />}
-          Download certificate
+          {t('certificate.download')}
         </Button>
       </div>
       <canvas

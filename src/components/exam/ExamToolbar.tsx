@@ -74,7 +74,7 @@ export function ExamToolbar({
         {resumed && (
           <span
             className={`${chip} inline-flex items-center gap-1.5 bg-surface-3 text-fg-muted`}
-            title="Restored from where you left off"
+            title={t('exam.resumedHint')}
           >
             <RotateCcw size={12} /> {t('exam.resumed')}
           </span>

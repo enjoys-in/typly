@@ -12,13 +12,10 @@ import { useAsync } from '@/hooks/useAsync';
 import {
   DEFAULT_DURATIONS_MIN,
   Difficulty,
-  DIFFICULTY_LABEL,
   ExamBoard,
   ExamMode,
-  EXAM_MODE_LABEL,
   GUEST_MAX_DURATION_MIN,
   Lang,
-  LANG_LABEL,
   MAX_DURATION_MIN,
   MAX_READING_SEC,
   TimingMode,
@@ -27,21 +24,7 @@ import { Button } from '@/ui/Button';
 import { Segmented, type SegmentedOption } from '@/ui/Segmented';
 import { Card } from '@/ui/Card';
 import { Toggle } from '@/ui/Toggle';
-
-const DIFFICULTY_OPTIONS: SegmentedOption<Difficulty>[] = Object.values(Difficulty).map((d) => ({
-  value: d,
-  label: DIFFICULTY_LABEL[d],
-}));
-
-const MODE_OPTIONS: SegmentedOption<ExamMode>[] = Object.values(ExamMode).map((m) => ({
-  value: m,
-  label: EXAM_MODE_LABEL[m],
-}));
-
-const TIMING_OPTIONS: SegmentedOption<TimingMode>[] = [
-  { value: TimingMode.Countdown, label: 'Countdown' },
-  { value: TimingMode.Stopwatch, label: 'Stopwatch' },
-];
+import { useT } from '@/i18n';
 
 export function ExamSetup() {
   const navigate = useNavigate();
@@ -57,6 +40,20 @@ export function ExamSetup() {
   const maxMin = !account?.guest || unlocked.longSessions ? MAX_DURATION_MIN : GUEST_MAX_DURATION_MIN;
   const durationMin = Math.round(settings.durationSec / 60);
   const [ghostTestId, setGhostTestId] = useState<number | null>(null);
+  const t = useT();
+
+  const difficultyOptions: SegmentedOption<Difficulty>[] = Object.values(Difficulty).map((d) => ({
+    value: d,
+    label: t(`difficulty.${d}`),
+  }));
+  const modeOptions: SegmentedOption<ExamMode>[] = Object.values(ExamMode).map((m) => ({
+    value: m,
+    label: t(`examMode.${m}`),
+  }));
+  const timingOptions: SegmentedOption<TimingMode>[] = [
+    { value: TimingMode.Countdown, label: t('timing.countdown') },
+    { value: TimingMode.Stopwatch, label: t('timing.stopwatch') },
+  ];
 
   // Past runs of this same paragraph — the only ones worth racing.
   const documentId = draft?.documentId ?? null;
@@ -127,14 +124,12 @@ export function ExamSetup() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Exam Setup</h1>
+      <h1 className="text-2xl font-bold">{t('setup.title')}</h1>
       {draft.paper && (
         <Card className="border-accent-border bg-accent-soft">
-          <p className="text-sm font-semibold">Paper test</p>
+          <p className="text-sm font-semibold">{t('setup.paperTitle')}</p>
           <p className="mt-1 text-sm text-fg-muted">
-            No passage on screen — read from your sheet. Scored on words, speed, corrections and,
-            at the end, spelling and grammar. There is nothing to compare against, so Error-free
-            mode and the ghost race do not apply.
+            {t('setup.paperBody')}
           </p>
         </Card>
       )}
@@ -142,18 +137,20 @@ export function ExamSetup() {
       {split && (
         <Card className="border-accent-border bg-accent-soft">
           <p className="text-sm font-semibold">
-            {draft.title} · part {split.startIndex + 1} of {split.parts.length}
+            {t('setup.partOf', {
+              title: draft.title,
+              index: split.startIndex + 1,
+              total: split.parts.length,
+            })}
           </p>
           <p className="mt-1 text-sm text-fg-muted">
-            These settings apply to every part.{' '}
-            {remaining > 1
-              ? `The ${remaining} remaining passages run back-to-back, and each one you finish is remembered.`
-              : 'This is the last passage in the document.'}
+            {t('setup.partsApply')}{' '}
+            {remaining > 1 ? t('setup.partsRemaining', { count: remaining }) : t('setup.partsLast')}
           </p>
         </Card>
       )}
       <Card className="space-y-5">
-        <Field label="Exam profile">
+        <Field label={t('setup.examProfile')}>
           <select
             value={settings.board}
             onChange={(e) => settings.setBoard(e.target.value as ExamBoard)}
@@ -170,13 +167,16 @@ export function ExamSetup() {
             ))}
           </select>
           <p className="mt-1 text-xs text-fg-muted">
-            Source: {profileFor(settings.board).source}
+            {t('setup.source', { source: profileFor(settings.board).source })}
             {profileFor(settings.board).rules.minWpm > 0 &&
-              ` · target ${profileFor(settings.board).rules.minWpm} WPM, ${profileFor(settings.board).rules.minAccuracy}% accuracy`}
+              t('setup.target', {
+                wpm: profileFor(settings.board).rules.minWpm,
+                accuracy: profileFor(settings.board).rules.minAccuracy,
+              })}
           </p>
         </Field>
 
-        <Field label="Language">
+        <Field label={t('setup.language')}>
           <select
             value={settings.lang}
             onChange={(e) => settings.setLang(e.target.value as Lang)}
@@ -184,41 +184,41 @@ export function ExamSetup() {
           >
             {Object.values(Lang).map((l) => (
               <option key={l} value={l}>
-                {LANG_LABEL[l]}
+                {t(`lang.${l}`)}
               </option>
             ))}
           </select>
         </Field>
 
-        <Field label="Difficulty">
+        <Field label={t('setup.difficulty')}>
           <Segmented
-            options={DIFFICULTY_OPTIONS}
+            options={difficultyOptions}
             value={settings.difficulty}
             onChange={settings.setDifficulty}
-            ariaLabel="Difficulty"
+            ariaLabel={t('setup.difficultyAria')}
           />
         </Field>
 
-        <Field label="Mode">
+        <Field label={t('setup.mode')}>
           <Segmented
-            options={MODE_OPTIONS}
+            options={modeOptions}
             value={settings.examMode}
             onChange={settings.setExamMode}
-            ariaLabel="Exam mode"
+            ariaLabel={t('setup.modeAria')}
           />
         </Field>
 
-        <Field label="Timing">
+        <Field label={t('setup.timing')}>
           <Segmented
-            options={TIMING_OPTIONS}
+            options={timingOptions}
             value={settings.timing}
             onChange={settings.setTiming}
-            ariaLabel="Timing mode"
+            ariaLabel={t('setup.timingAria')}
           />
         </Field>
 
         {settings.timing === TimingMode.Countdown && (
-          <Field label="Duration (minutes)">
+          <Field label={t('setup.duration')}>
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
                 {DEFAULT_DURATIONS_MIN.filter((m) => m <= maxMin).map((m) => (
@@ -232,65 +232,65 @@ export function ExamSetup() {
                     {m}
                   </Button>
                 ))}
-                <span className="text-sm text-fg-subtle">or</span>
+                <span className="text-sm text-fg-subtle">{t('setup.or')}</span>
                 <input
                   type="number"
                   min={1}
                   max={maxMin}
                   value={durationMin}
                   onChange={(e) => setMinutes(Number(e.target.value))}
-                  aria-label="Custom duration in minutes"
+                  aria-label={t('setup.durationAria')}
                   className="select w-24"
                 />
-                <span className="text-sm text-fg-muted">min</span>
+                <span className="text-sm text-fg-muted">{t('setup.minutes')}</span>
               </div>
               <p className="text-xs text-fg-muted">
                 {maxMin === MAX_DURATION_MIN
-                  ? `Custom duration up to ${MAX_DURATION_MIN} minutes.`
-                  : `Up to ${GUEST_MAX_DURATION_MIN} minutes — add your email in Settings for full-length mock exams.`}
+                  ? t('setup.fullCap', { minutes: MAX_DURATION_MIN })
+                  : t('setup.guestCap', { minutes: GUEST_MAX_DURATION_MIN })}
               </p>
             </div>
           </Field>
         )}
 
-        <Field label="Mock exam">
+        <Field label={t('setup.mockExam')}>
           <div className="space-y-3 rounded-panel border border-line p-4">
             <Toggle
-              label="Instructions before the test"
-              hint="Open with the rules and cut-off, the way a real skill test does."
+              label={t('setup.briefingToggle')}
+              hint={t('setup.briefingHint')}
               checked={settings.briefing}
               onChange={settings.setBriefing}
             />
             <Toggle
-              label="Exam-day mode"
-              hint="Hides the app around the test, holds notifications and disables pausing."
+              label={t('setup.examDayToggle')}
+              hint={t('setup.examDayHint')}
               checked={settings.examDay}
               onChange={settings.setExamDay}
             />
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-fg">Reading time</span>
+              <span className="text-sm font-medium text-fg">{t('setup.readingLabel')}</span>
               <input
                 type="number"
                 min={0}
                 max={MAX_READING_SEC / 60}
                 value={Math.round(settings.readingSec / 60)}
                 onChange={(e) => setReadingMinutes(Number(e.target.value))}
-                aria-label="Reading time in minutes"
+                aria-label={t('setup.readingAria')}
                 className="select w-20"
               />
-              <span className="text-sm text-fg-muted">min before the clock starts (0 = none)</span>
+              <span className="text-sm text-fg-muted">{t('setup.readingHint')}</span>
             </div>
           </div>
         </Field>
 
         {rivals.data && rivals.data.length > 0 && (
-          <Field label="Race a past run">
+          <Field label={t('setup.ghostTitle')}>
             <select
               value={ghostTestId ?? ''}
               onChange={(e) => setGhostTestId(e.target.value ? Number(e.target.value) : null)}
               className="select"
             >
-              <option value="">No ghost</option>
+              <option value="">{t('setup.ghostNone')}</option>
               {rivals.data.map((row) => (
                 <option key={row.id} value={row.id}>
                   {row.netWpm} WPM · {row.accuracy}% · {format(new Date(row.createdAt), 'dd MMM')}
@@ -298,34 +298,34 @@ export function ExamSetup() {
               ))}
             </select>
             <p className="mt-1 text-xs text-fg-muted">
-              Shows that run's progress live beside yours, so you can see the gap as you type.
+              {t('setup.ghostHint')}
             </p>
           </Field>
         )}
 
-        <Field label="Behavior">
+        <Field label={t('setup.behaviour')}>
           <div className="space-y-3 rounded-panel border border-line p-4">
             <Toggle
-              label="Backspace / Delete"
-              hint="Allow correcting mistakes during the test."
+              label={t('setup.allowBackspace')}
+              hint={t('setup.allowBackspaceHint')}
               checked={settings.backspaceEnabled}
               onChange={settings.setBackspaceEnabled}
             />
             <Toggle
-              label="Space key"
-              hint="Allow the space bar (disable for continuous-script drills)."
+              label={t('setup.allowSpace')}
+              hint={t('setup.allowSpaceHint')}
               checked={settings.spaceEnabled}
               onChange={settings.setSpaceEnabled}
             />
             <Toggle
-              label="Enter key"
-              hint="Allow new lines / paragraph breaks."
+              label={t('setup.allowEnter')}
+              hint={t('setup.allowEnterHint')}
               checked={settings.enterEnabled}
               onChange={settings.setEnterEnabled}
             />
             <Toggle
-              label="Exam lock"
-              hint="Keeps the screen awake; leaving the tab prompts to submit the test."
+              label={t('setup.examLock')}
+              hint={t('setup.examLockHint')}
               checked={settings.examLock}
               onChange={settings.setExamLock}
             />
@@ -333,7 +333,7 @@ export function ExamSetup() {
         </Field>
 
         <div className="flex justify-end">
-          <Button onClick={start}>Start exam</Button>
+          <Button onClick={start}>{t('setup.startExam')}</Button>
         </div>
       </Card>
     </div>

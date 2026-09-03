@@ -13,6 +13,8 @@ import { Lang, SourceType } from '@/core/constants';
 import { Button } from '@/ui/Button';
 import { ProgressBar } from '@/ui/ProgressBar';
 import { OcrReview } from './OcrReview';
+import { useT } from '@/i18n';
+import type { TKey } from '@/i18n/en';
 
 interface Props {
   lang: Lang;
@@ -29,10 +31,10 @@ interface Props {
 
 type Phase = 'idle' | SourceType.Image | SourceType.Pdf | SourceType.Docx;
 
-const PHASE_LABEL: Record<Exclude<Phase, 'idle'>, string> = {
-  [SourceType.Image]: 'Reading image (OCR)',
-  [SourceType.Pdf]: 'Reading PDF',
-  [SourceType.Docx]: 'Reading document',
+const PHASE_KEY: Record<Exclude<Phase, 'idle'>, TKey> = {
+  [SourceType.Image]: 'upload.readingImage',
+  [SourceType.Pdf]: 'upload.readingPdf',
+  [SourceType.Docx]: 'upload.readingDoc',
 };
 
 function fmt(ms: number): string {
@@ -41,6 +43,7 @@ function fmt(ms: number): string {
 }
 
 export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }: Props) {
+  const t = useT();
   const platform = usePlatform();
   const ai = useAiSettingsStore();
   const [pasted, setPasted] = useState('');
@@ -136,9 +139,7 @@ export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }:
       setVerifyLabel(null);
       const scanned = e instanceof Error && e.message === 'scanned';
       setError(
-        source === SourceType.Image || scanned
-          ? "Couldn't read text from that file. Try a clearer, high-contrast image, switch the OCR language — or just paste the text / upload a PDF instead."
-          : "Couldn't read that file. Please paste the text, or try a different file.",
+        source === SourceType.Image || scanned ? t('upload.errImage') : t('upload.errFile'),
       );
     }
   }
@@ -157,7 +158,7 @@ export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }:
 
   // Run the AI second engine over `bytes`, given the on-device `tClean` baseline.
   async function runVision(bytes: Uint8Array, tClean: string): Promise<void> {
-    setVerifyLabel('Verifying with AI…');
+    setVerifyLabel(t('upload.verifyingAi'));
     let vClean: string | null = null;
     let rateLimited: string | null = null;
     try {
@@ -191,7 +192,7 @@ export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }:
   // AI off: a second on-device pass on a cleaned-up (binarized) image, diffed
   // against the raw pass so the user still gets a two-way review.
   async function runSecondOcr(bytes: Uint8Array, tClean: string): Promise<void> {
-    setVerifyLabel('Re-reading the image…');
+    setVerifyLabel(t('upload.rereading'));
     let t2Clean: string | null = null;
     try {
       const pre = await preprocessImageForOcr(bytes);
@@ -226,7 +227,7 @@ export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }:
       if (cleaned.trim().length < 1) throw new Error('empty');
       onText(cleaned, SourceType.Text);
     } catch {
-      setError("Couldn't read that text file. Try pasting the text instead.");
+      setError(t('upload.errText'));
     }
   }
 
@@ -248,7 +249,7 @@ export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }:
     if (!file) return;
     const source = sourceForFile(file.name, file.type);
     if (!source) {
-      setError('Unsupported file. Drop an image, PDF, .docx or .txt — or paste text.');
+      setError(t('upload.errUnsupported'));
       return;
     }
     await process(source, new Uint8Array(await file.arrayBuffer()));
@@ -277,9 +278,9 @@ export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }:
         <div className="flex items-start gap-3 rounded-panel border border-line bg-surface p-4">
           <AlertTriangle size={18} className="mt-0.5 shrink-0 text-fg-subtle" />
           <div className="space-y-1">
-            <p className="text-sm font-medium">AI verification skipped</p>
+            <p className="text-sm font-medium">{t('upload.aiSkipped')}</p>
             <p className="text-sm text-fg-muted">{aiSkip.message}</p>
-            <p className="text-xs text-fg-subtle">The on-device (Tesseract) text is ready to use.</p>
+            <p className="text-xs text-fg-subtle">{t('upload.onDeviceReady')}</p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -290,10 +291,10 @@ export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }:
               onText(t, SourceType.Image);
             }}
           >
-            Continue with on-device text
+            {t('upload.continueOnDevice')}
           </Button>
           <Button variant="secondary" onClick={retryVision}>
-            Retry AI
+            {t('upload.retryAi')}
           </Button>
         </div>
       </div>
@@ -304,7 +305,7 @@ export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }:
     <div className="space-y-5">
       <div className="space-y-2">
         <label className="text-sm font-medium text-fg-muted">
-          Paste a paragraph
+          {t('upload.paste')}
         </label>
         {/* Once the user commits to pasting, the drop zone below collapses and
             the field takes the freed screen height — long paragraphs scroll
@@ -312,7 +313,7 @@ export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }:
         <textarea
           value={pasted}
           onChange={(e) => setPasted(e.target.value)}
-          placeholder="Paste text here…"
+          placeholder={t('upload.pastePlaceholder')}
           className={`scroll-area w-full resize-none rounded-control border border-edge bg-field p-3 font-mono text-sm outline-none ${
             pasting
               ? 'h-[calc(100dvh-19rem)] min-h-36'
@@ -321,13 +322,14 @@ export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }:
         />
         <div className="flex items-center justify-between gap-3">
           <span className="text-xs tabular-nums text-fg-muted">
-            {pasting && `${pastedStats.words} words · ${pastedStats.chars} characters`}
+            {pasting &&
+              t('upload.wordsChars', { words: pastedStats.words, chars: pastedStats.chars })}
           </span>
           <Button
             disabled={!pasting}
             onClick={() => onText(cleanText(pasted, lang), SourceType.Text)}
           >
-            Use pasted text
+            {t('upload.usePasted')}
           </Button>
         </div>
       </div>
@@ -336,7 +338,7 @@ export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }:
         <>
         <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-fg-subtle">
           <span className="h-px flex-1 bg-line" />
-          or upload a file
+          {t('upload.orUpload')}
           <span className="h-px flex-1 bg-line" />
         </div>
 
@@ -354,10 +356,10 @@ export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }:
           }`}
         >
           <Upload className="mx-auto mb-2 text-fg-subtle" />
-          <p className="mb-4 text-sm text-fg-muted">Drag &amp; drop a file here, or choose one:</p>
+          <p className="mb-4 text-sm text-fg-muted">{t('upload.dropHere')}</p>
           <div className="flex flex-wrap justify-center gap-3">
             <Button variant="secondary" size="sm" disabled={working} onClick={() => pick(SourceType.Image)}>
-              <ImageIcon size={16} /> Image
+              <ImageIcon size={16} /> {t('upload.image')}
             </Button>
             <Button variant="secondary" size="sm" disabled={working} onClick={() => pick(SourceType.Pdf)}>
               <FileText size={16} /> PDF
@@ -369,7 +371,7 @@ export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }:
               <FileType size={16} /> .txt
             </Button>
           </div>
-          <p className="mt-3 text-xs text-fg-subtle">PNG · JPG · WebP · PDF · DOCX · TXT</p>
+          <p className="mt-3 text-xs text-fg-subtle">{t('upload.formats')}</p>
         </div>
         </>
       )}
@@ -383,9 +385,9 @@ export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }:
             <div className="h-full w-1/3 animate-pulse rounded-full bg-accent" />
           </div>
           <p className="text-xs text-fg-muted">
-            {verifyLabel.includes('AI')
-              ? `AI reading can take a minute or two — please keep this open. ${Math.floor(verifyMs / 1000)}s elapsed.`
-              : `${Math.floor(verifyMs / 1000)}s elapsed.`}
+            {verifyLabel === t('upload.verifyingAi')
+              ? t('upload.aiSlow', { seconds: Math.floor(verifyMs / 1000) })
+              : t('upload.secondsElapsed', { seconds: Math.floor(verifyMs / 1000) })}
           </p>
         </div>
       )}
@@ -393,10 +395,10 @@ export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }:
       {busy && (
         <div className="space-y-2 rounded-panel border border-line p-4">
           <div className="flex items-center justify-between text-sm">
-            <span className="font-medium">{PHASE_LABEL[phase]}…</span>
+            <span className="font-medium">{t(PHASE_KEY[phase])}…</span>
             {determinate && (
               <span className="tabular-nums text-fg-muted">
-                {progress > 0 ? `${pct}%` : 'Preparing…'}
+                {progress > 0 ? `${pct}%` : t('upload.preparing')}
               </span>
             )}
           </div>
@@ -408,8 +410,8 @@ export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }:
             </div>
           )}
           <div className="flex justify-between text-xs text-fg-muted">
-            <span>Elapsed {fmt(elapsedMs)}</span>
-            {etaMs != null && <span>ETA ~{fmt(etaMs)}</span>}
+            <span>{t('upload.elapsed', { time: fmt(elapsedMs) })}</span>
+            {etaMs != null && <span>{t('upload.eta', { time: fmt(etaMs) })}</span>}
           </div>
         </div>
       )}
@@ -420,7 +422,7 @@ export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }:
           <p className="flex-1">{error}</p>
           <button
             onClick={() => setError(null)}
-            aria-label="Dismiss"
+            aria-label={t('upload.dismiss')}
             className="cursor-pointer text-danger-text hover:text-danger-soft-fg"
           >
             <X size={16} />

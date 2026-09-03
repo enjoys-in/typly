@@ -4,6 +4,7 @@ import { SourceType } from '@/core/constants';
 import { profileFor } from '@/core/scoring/examProfiles';
 import { estimatedMinutes, SOURCE_LABEL, textStats } from '@/core/text/textStats';
 import { useSettingsStore } from '@/store/settingsStore';
+import { useT } from '@/i18n';
 
 const SOURCE_ICON: Record<SourceType, typeof Type> = {
   [SourceType.Text]: Type,
@@ -24,6 +25,7 @@ interface Props {
  * so the detected text's numbers and the continue action stay on one screen.
  */
 export function TextInfoPanel({ text, source, onReplace }: Props) {
+  const t = useT();
   const board = useSettingsStore((s) => s.board);
   const stats = useMemo(() => textStats(text), [text]);
   const targetWpm = profileFor(board).rules.minWpm;
@@ -37,7 +39,7 @@ export function TextInfoPanel({ text, source, onReplace }: Props) {
           <Icon size={17} />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold">Text detected</p>
+          <p className="text-sm font-semibold">{t('text.detected')}</p>
           <p className="text-xs text-fg-muted">
             From {SOURCE_LABEL[source]} · about {eta} min at {targetWpm > 0 ? targetWpm : 35} WPM
           </p>
@@ -53,18 +55,18 @@ export function TextInfoPanel({ text, source, onReplace }: Props) {
       </div>
 
       <dl className="grid grid-cols-3 gap-x-4 gap-y-3 rounded-panel bg-surface-2 p-4 sm:grid-cols-4">
-        <Metric label="Words" value={stats.words} />
-        <Metric label="Characters" value={stats.chars} />
-        <Metric label="No spaces" value={stats.charsNoSpaces} />
-        <Metric label="Spaces" value={stats.spaces} />
-        <Metric label="Full stops" value={stats.fullStops} />
-        <Metric label="Sentences" value={stats.sentences} />
-        <Metric label="Lines" value={stats.lines} />
-        <Metric label="Paragraphs" value={stats.paragraphs} />
-        <Metric label="Digits" value={stats.digits} />
-        <Metric label="Punctuation" value={stats.punctuation} />
-        <Metric label="Capitals" value={stats.uppercase} />
-        <Metric label="Avg word" value={stats.avgWordLen} />
+        <Metric label={t('text.words')} value={stats.words} />
+        <Metric label={t('text.characters')} value={stats.chars} />
+        <Metric label={t('text.noSpaces')} value={stats.charsNoSpaces} />
+        <Metric label={t('text.spaces')} value={stats.spaces} />
+        <Metric label={t('text.fullStops')} value={stats.fullStops} />
+        <Metric label={t('text.sentences')} value={stats.sentences} />
+        <Metric label={t('text.lines')} value={stats.lines} />
+        <Metric label={t('text.paragraphs')} value={stats.paragraphs} />
+        <Metric label={t('text.digits')} value={stats.digits} />
+        <Metric label={t('text.punctuation')} value={stats.punctuation} />
+        <Metric label={t('text.capitals')} value={stats.uppercase} />
+        <Metric label={t('text.avgWord')} value={stats.avgWordLen} />
       </dl>
 
       <p className="text-xs text-fg-muted">

@@ -1,5 +1,6 @@
 import { Ghost, User } from 'lucide-react';
 import { ghostCharsAt, type GhostPoint } from '@/core/typing/replay';
+import { useT } from '@/i18n';
 
 interface Props {
   track: GhostPoint[];
@@ -15,6 +16,7 @@ interface Props {
  * the gap is what makes a personal best something to chase mid-test.
  */
 export function GhostBar({ track, elapsedMs, typedChars, passageLength, ghostWpm }: Props) {
+  const t = useT();
   const ghostChars = ghostCharsAt(track, elapsedMs);
   const lead = typedChars - ghostChars;
   const pct = (chars: number) => (passageLength ? Math.min(100, (chars / passageLength) * 100) : 0);
@@ -22,25 +24,27 @@ export function GhostBar({ track, elapsedMs, typedChars, passageLength, ghostWpm
   return (
     <div className="space-y-2 rounded-panel border border-line bg-surface px-4 py-3">
       <div className="flex items-center justify-between text-xs">
-        <span className="font-semibold tracking-wide text-fg-muted uppercase">Ghost race</span>
+        <span className="font-semibold tracking-wide text-fg-muted uppercase">
+          {t('ghost.title')}
+        </span>
         <span
           className={`font-semibold tabular-nums ${
             lead >= 0 ? 'text-accent-text' : 'text-danger-text'
           }`}
         >
-          {lead >= 0 ? `+${lead}` : lead} chars
+          {t('ghost.chars', { value: lead >= 0 ? `+${lead}` : lead })}
         </span>
       </div>
       <Lane
         icon={User}
-        label="You"
+        label={t('ghost.you')}
         pct={pct(typedChars)}
         chars={typedChars}
         tone="bg-accent"
       />
       <Lane
         icon={Ghost}
-        label={`Best · ${ghostWpm} WPM`}
+        label={t('ghost.best', { wpm: ghostWpm })}
         pct={pct(ghostChars)}
         chars={ghostChars}
         tone="bg-fg-subtle"

@@ -24,7 +24,7 @@ import { HindiFont } from '@/core/constants';
 import { FONT_FAMILY } from '@/ui/fonts';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
-import { useT } from '@/i18n';
+import { translate, useT } from '@/i18n';
 
 export function Results() {
   const t = useT();
@@ -38,6 +38,8 @@ export function Results() {
   const notify = useSettingsStore((s) => s.notify);
   const dailyGoal = useSettingsStore((s) => s.dailyGoal);
   const hindiFont = useSettingsStore((s) => s.hindiFont);
+  // The notification is built outside render, so it translates explicitly.
+  const uiLang = useSettingsStore((s) => s.uiLang);
 
   const hasNext = !!series && series.index + 1 < series.items.length;
   const [countdown, setCountdown] = useState(SERIES_ADVANCE_SECONDS);
@@ -102,7 +104,7 @@ export function Results() {
         if (notify)
           platform.notifications.notify(
             `Achievement unlocked 🏅`,
-            fresh.map((b) => b.label).join(', '),
+            fresh.map((b) => translate(uiLang, `badge.${b.id}`)).join(', '),
           );
         await platform.repo.setSetting(SETTING_KEY.NotifiedBadges, JSON.stringify(earnedNow));
       }
@@ -117,7 +119,7 @@ export function Results() {
         }
       }
     })();
-  }, [finished, platform, notify, dailyGoal]);
+  }, [finished, platform, notify, dailyGoal, uiLang]);
 
   if (!finished) return null;
 
@@ -138,13 +140,13 @@ export function Results() {
 
   async function shareResult() {
     const r = finished!.result;
-    const text = `I scored ${r.netWpm} net WPM at ${r.accuracy}% accuracy on Typly.`;
+    const text = t('result.shareText', { wpm: r.netWpm, accuracy: r.accuracy });
     try {
       if (navigator.share) {
         await navigator.share({ title: 'Typly result', text });
       } else if (navigator.clipboard) {
         await navigator.clipboard.writeText(text);
-        setShareNote('Copied to clipboard');
+        setShareNote(t('result.copied'));
       }
     } catch {
       // user dismissed the share sheet
@@ -157,7 +159,10 @@ export function Results() {
         <h1 className="text-2xl font-bold">{t('result.title')}</h1>
         {series && (
           <span className="rounded-full bg-surface-3 px-3 py-1 text-xs font-semibold text-fg-muted">
-            Series · test {series.index + 1} of {series.items.length}
+            {t('result.seriesOf', {
+              current: series.index + 1,
+              total: series.items.length,
+            })}
           </span>
         )}
       </div>
@@ -166,20 +171,20 @@ export function Results() {
         <Card className="space-y-2 border-accent-border bg-accent-soft">
           {goalHit && (
             <p className="text-sm font-semibold text-fg">
-              🎯 Daily goal reached — great consistency!
+              {t('badge.goalHit')}
             </p>
           )}
           {unlocked.length > 0 && (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-semibold text-fg">
-                🏅 New achievement{unlocked.length > 1 ? 's' : ''}:
+                {t(unlocked.length > 1 ? 'badge.newMany' : 'badge.newOne')}
               </span>
               {unlocked.map((b) => (
                 <span
                   key={b.id}
                   className="rounded-full bg-surface px-2.5 py-1 text-xs font-semibold"
                 >
-                  {b.label}
+                  {t(`badge.${b.id}`)}
                 </span>
               ))}
             </div>
@@ -190,14 +195,14 @@ export function Results() {
       {hasNext && (
         <Card className="flex flex-wrap items-center justify-between gap-3 border-accent-border bg-accent-soft">
           <p className="text-sm font-medium text-fg">
-            Next test starts in <span className="tabular-nums">{countdown}</span>s…
+            {t('result.nextIn', { seconds: countdown })}
           </p>
           <div className="flex gap-2">
             <Button size="sm" onClick={skipNext}>
-              Start now
+              {t('result.startNow')}
             </Button>
             <Button variant="ghost" size="sm" onClick={clearSeries}>
-              Stop series
+              {t('result.stopSeries')}
             </Button>
           </div>
         </Card>
@@ -205,7 +210,7 @@ export function Results() {
 
       <div id="print-area">
         <div className="mb-4 hidden print:block">
-          <h2 className="text-xl font-bold">Typly — Typing Result</h2>
+          <h2 className="text-xl font-bold">{t('result.printHeading')}</h2>
           <p className="text-sm">
             {profileFor(finished.payload.examBoard).name} ·{' '}
             {format(new Date(finished.payload.createdAt), 'dd MMM yyyy, HH:mm')}
@@ -217,7 +222,7 @@ export function Results() {
       </div>
       {finished.result.status === TestStatus.Passed && <CertificateCard finished={finished} />}
       <Card className="space-y-3">
-        <h2 className="font-semibold">Speed &amp; accuracy over time</h2>
+        <h2 className="font-semibold">{t('chart.title')}</h2>
         <WpmChart timeline={finished.payload.timeline} />
       </Card>
       {rules && (
@@ -240,7 +245,7 @@ export function Results() {
         <Card className="space-y-3">
           <h2 className="font-semibold">{t('result.replay')}</h2>
           <p className="text-sm text-fg-muted">
-            Watch the attempt back to see where the time went, not just where the errors were.
+            {t('result.replayHint')}
           </p>
           <ReplayPlayer
             passage={finished.paper ? finished.paper.typed : config.passage}

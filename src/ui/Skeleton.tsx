@@ -1,3 +1,5 @@
+import { useT } from '@/i18n';
+
 /**
  * Placeholders that mirror the shape of the content they stand in for, so the
  * layout does not jump when real data arrives.
@@ -70,8 +72,10 @@ export function SkeletonStats({ count = 6 }: { count?: number }) {
  * generic — a page-specific shape would flash the wrong layout.
  */
 export function PageSkeleton() {
+  const t = useT();
+
   return (
-    <div className="space-y-6" role="status" aria-label="Loading page">
+    <div className="space-y-6" role="status" aria-label={t('common.loadingPage')}>
       <div className="space-y-2">
         <Skeleton className="h-8 w-56" />
         <Skeleton className="h-3.5 w-80" />

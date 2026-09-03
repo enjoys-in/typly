@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
 import { Modal } from './Modal';
 import { Button } from './Button';
+import { useT } from '@/i18n';
 
 export interface ConfirmOptions {
   title: string;
@@ -21,6 +22,7 @@ interface Pending extends ConfirmOptions {
 // Promise-based replacement for window.confirm — no native dialogs anywhere in the
 // UI. Destructive actions require double confirmation before they resolve `true`.
 export function ConfirmProvider({ children }: { children: ReactNode }) {
+  const t = useT();
   const [pending, setPending] = useState<Pending | null>(null);
   const [armed, setArmed] = useState(false);
 
@@ -47,7 +49,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
     settle(true);
   }
 
-  const confirmLabel = pending?.confirmLabel ?? 'Confirm';
+  const confirmLabel = pending?.confirmLabel ?? t('confirm.confirm');
 
   return (
     <ConfirmContext.Provider value={confirm}>
@@ -60,15 +62,17 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
           {pending.message && <p className="mt-2 text-sm text-fg-muted">{pending.message}</p>}
           {pending.destructive && armed && (
             <p className="mt-3 text-sm font-medium text-danger-text">
-              This can’t be undone — press again to confirm.
+              {t('confirm.armedHint')}
             </p>
           )}
           <div className="mt-6 flex justify-end gap-3">
             <Button variant="ghost" onClick={() => settle(false)} autoFocus>
-              {pending.cancelLabel ?? 'Cancel'}
+              {pending.cancelLabel ?? t('common.cancel')}
             </Button>
             <Button variant={pending.destructive ? 'danger' : 'primary'} onClick={onConfirm}>
-              {pending.destructive && armed ? `Yes, ${confirmLabel.toLowerCase()}` : confirmLabel}
+              {pending.destructive && armed
+                ? t('confirm.armed', { action: confirmLabel.toLowerCase() })
+                : confirmLabel}
             </Button>
           </div>
         </Modal>

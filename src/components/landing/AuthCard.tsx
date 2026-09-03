@@ -38,8 +38,7 @@ export function AuthCard({ onGuest, busy = false }: Props) {
       <div className="rise-in w-full max-w-sm">
         <h2 className="text-2xl font-bold tracking-tight">{t('landing.getStarted')}</h2>
         <p className="mt-2 text-sm leading-relaxed text-fg-muted">
-          No sign-up, no setup. Just your name, so the app knows who it is coaching — your results
-          stay on this device.
+          {t('landing.subtitle')}
         </p>
 
         <form
@@ -57,14 +56,14 @@ export function AuthCard({ onGuest, busy = false }: Props) {
             id="profile-name"
             icon={User}
             label={t('landing.yourName')}
-            hint="Shown on your dashboard and printed on certificates."
+            hint={t('landing.nameHint')}
             value={name}
             onChange={setName}
             placeholder="e.g. Komal"
             maxLength={MAX_NAME_LENGTH}
             autoFocus
             invalid={touched && !nameOk}
-            error="Please enter at least two characters."
+            error={t('landing.nameError')}
             onBlur={() => setTouched(true)}
           />
 
@@ -74,13 +73,13 @@ export function AuthCard({ onGuest, busy = false }: Props) {
             label={t('landing.email')}
             optional
             optionalLabel={t('landing.optional')}
-            hint="Unlocks long sessions, certificate downloads and progress exports. Stored on this device only — nothing is sent."
+            hint={t('landing.emailHint')}
             value={email}
             onChange={setEmail}
             placeholder="you@example.com"
             type="email"
             invalid={touched && !emailOk}
-            error="That does not look like an email address."
+            error={t('landing.emailError')}
             onBlur={() => setTouched(true)}
           />
 
@@ -102,15 +101,15 @@ export function AuthCard({ onGuest, busy = false }: Props) {
           className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-control border border-line bg-surface px-4 py-2.5 text-sm font-semibold text-fg-subtle"
         >
           <Mail size={16} />
-          Sign in with email
+          {t('landing.signInEmail')}
           <span className="ml-1 rounded-full bg-surface-3 px-2 py-0.5 text-[10px] font-bold tracking-wide text-fg-muted uppercase">
-            Soon
+            {t('landing.soon')}
           </span>
         </button>
 
         <p className="mt-8 flex items-start gap-2 text-xs leading-relaxed text-fg-subtle">
           <ShieldCheck size={14} className="mt-px shrink-0" />
-          Accounts, cloud sync and subscriptions arrive with the backend. Nothing is uploaded today.
+          {t('landing.privacy')}
         </p>
       </div>
 

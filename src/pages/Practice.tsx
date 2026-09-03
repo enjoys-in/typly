@@ -19,26 +19,28 @@ import { drillBase, useSettingsStore } from '@/store/settingsStore';
 import { generateDrill } from '@/core/practice/generators';
 import { isMacOS } from '@/platform/detect';
 import { PracticeKind, PRACTICE_LABEL, SourceType } from '@/core/constants';
+import { useT } from '@/i18n';
 
-const DRILLS: { kind: PracticeKind; icon: LucideIcon; desc: string }[] = [
-  { kind: PracticeKind.HomeRow, icon: Keyboard, desc: 'Anchor the a-s-d-f / j-k-l-; keys.' },
-  { kind: PracticeKind.TopRow, icon: ArrowUpToLine, desc: 'Reach up to q-w-e-r-t / y-u-i-o-p.' },
-  { kind: PracticeKind.BottomRow, icon: ArrowDownToLine, desc: 'Reach down to z-x-c-v-b / n-m keys.' },
-  { kind: PracticeKind.AllRows, icon: Rows3, desc: 'Finger ladders across all three rows.' },
-  { kind: PracticeKind.Words, icon: Type, desc: 'Frequent English words to build flow.' },
-  { kind: PracticeKind.Sentences, icon: AlignLeft, desc: 'Full sentences with real rhythm.' },
-  { kind: PracticeKind.Capitals, icon: CaseUpper, desc: 'Shift for Title, ALL CAPS and CamelCase.' },
-  { kind: PracticeKind.Numbers, icon: Hash, desc: 'Number-row and numeric accuracy.' },
-  { kind: PracticeKind.Numpad, icon: Calculator, desc: 'Digits, decimals and + - * / operators.' },
-  { kind: PracticeKind.Symbols, icon: Asterisk, desc: 'Special characters and symbols.' },
-  { kind: PracticeKind.Punctuation, icon: Quote, desc: 'Commas, periods, and marks.' },
-  { kind: PracticeKind.Shortcuts, icon: Command, desc: 'Real editor shortcuts for your OS.' },
+const DRILLS: { kind: PracticeKind; icon: LucideIcon }[] = [
+  { kind: PracticeKind.HomeRow, icon: Keyboard },
+  { kind: PracticeKind.TopRow, icon: ArrowUpToLine },
+  { kind: PracticeKind.BottomRow, icon: ArrowDownToLine },
+  { kind: PracticeKind.AllRows, icon: Rows3 },
+  { kind: PracticeKind.Words, icon: Type },
+  { kind: PracticeKind.Sentences, icon: AlignLeft },
+  { kind: PracticeKind.Capitals, icon: CaseUpper },
+  { kind: PracticeKind.Numbers, icon: Hash },
+  { kind: PracticeKind.Numpad, icon: Calculator },
+  { kind: PracticeKind.Symbols, icon: Asterisk },
+  { kind: PracticeKind.Punctuation, icon: Quote },
+  { kind: PracticeKind.Shortcuts, icon: Command },
 ];
 
 export function Practice() {
   const navigate = useNavigate();
   const setConfig = useExamStore((s) => s.setConfig);
   const settings = useSettingsStore();
+  const t = useT();
 
   function start(kind: PracticeKind) {
     setConfig({
@@ -54,14 +56,13 @@ export function Practice() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Practice drills</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t('practice.title')}</h1>
         <p className="mt-1 text-fg-muted">
-          Targeted exercises for weak areas. Each generates a fresh passage using your current
-          settings.
+          {t('practice.subtitle')}
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {DRILLS.map(({ kind, icon: Icon, desc }) => (
+        {DRILLS.map(({ kind, icon: Icon }) => (
           <button
             key={kind}
             onClick={() => start(kind)}
@@ -70,8 +71,8 @@ export function Practice() {
             <span className="brand-gradient flex h-11 w-11 items-center justify-center rounded-control text-white">
               <Icon size={22} />
             </span>
-            <h2 className="text-base font-semibold">{PRACTICE_LABEL[kind]}</h2>
-            <p className="text-sm text-fg-muted">{desc}</p>
+            <h2 className="text-base font-semibold">{t(`practice.${kind}`)}</h2>
+            <p className="text-sm text-fg-muted">{t(`practiceDesc.${kind}`)}</p>
           </button>
         ))}
       </div>

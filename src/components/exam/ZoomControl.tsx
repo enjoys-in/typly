@@ -1,5 +1,6 @@
 import { Minus, Plus, RotateCcw } from 'lucide-react';
 import { EXAM_ZOOM_DEFAULT, EXAM_ZOOM_MAX, EXAM_ZOOM_MIN } from '@/core/constants';
+import { useT } from '@/i18n';
 
 interface Props {
   zoom: number;
@@ -8,23 +9,24 @@ interface Props {
 
 /** Steps the passage + input text size together, so they never desynchronise. */
 export function ZoomControl({ zoom, onChange }: Props) {
+  const t = useT();
   const atMin = zoom <= EXAM_ZOOM_MIN + 0.001;
   const atMax = zoom >= EXAM_ZOOM_MAX - 0.001;
   const isDefault = Math.abs(zoom - EXAM_ZOOM_DEFAULT) < 0.001;
 
   return (
     <div className="flex items-center gap-0.5 rounded-control border border-line bg-surface-2 p-0.5">
-      <IconButton label="Zoom out" disabled={atMin} onClick={() => onChange(zoom - 0.125)}>
+      <IconButton label={t('zoom.out')} disabled={atMin} onClick={() => onChange(zoom - 0.125)}>
         <Minus size={14} />
       </IconButton>
       <span className="min-w-11 text-center text-[11px] font-semibold tabular-nums text-fg-muted">
         {Math.round(zoom * 100)}%
       </span>
-      <IconButton label="Zoom in" disabled={atMax} onClick={() => onChange(zoom + 0.125)}>
+      <IconButton label={t('zoom.in')} disabled={atMax} onClick={() => onChange(zoom + 0.125)}>
         <Plus size={14} />
       </IconButton>
       <IconButton
-        label="Reset text size"
+        label={t('zoom.reset')}
         disabled={isDefault}
         onClick={() => onChange(EXAM_ZOOM_DEFAULT)}
       >

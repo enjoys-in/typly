@@ -8,6 +8,7 @@ import { currentAiSettings, useAiSettingsStore } from '@/store/aiSettingsStore';
 import type { FinishedExam } from '@/store/examStore';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
+import { useT } from '@/i18n';
 
 type State =
   | { status: 'idle' }
@@ -16,6 +17,7 @@ type State =
   | { status: 'error'; message: string };
 
 export function CoachPanel({ finished }: { finished: FinishedExam }) {
+  const t = useT();
   const { coach } = usePlatform();
   const ai = useAiSettingsStore();
   const [state, setState] = useState<State>({ status: 'idle' });
@@ -44,7 +46,7 @@ export function CoachPanel({ finished }: { finished: FinishedExam }) {
     <Card className="space-y-4">
       <div className="flex items-center gap-2">
         <Sparkles size={18} className="text-accent-text" />
-        <h2 className="font-semibold">AI coach</h2>
+        <h2 className="font-semibold">{t('coach.title')}</h2>
         {state.status !== 'done' && (
           <Button
             className="ml-auto"
@@ -53,7 +55,7 @@ export function CoachPanel({ finished }: { finished: FinishedExam }) {
           >
             {state.status === 'loading' ? (
               <>
-                <LoaderCircle size={15} className="animate-spin" /> Analyzing…
+                <LoaderCircle size={15} className="animate-spin" /> {t('coach.analyzing')}
               </>
             ) : (
               'Get AI feedback'
@@ -70,7 +72,7 @@ export function CoachPanel({ finished }: { finished: FinishedExam }) {
               {' '}
               Add an API key in{' '}
               <Link to="/app/settings" className="font-medium text-accent-text hover:underline">
-                Settings
+                {t('coach.settingsLink')}
               </Link>{' '}
               first.
             </>
@@ -91,18 +93,20 @@ export function CoachPanel({ finished }: { finished: FinishedExam }) {
 }
 
 function Feedback({ feedback }: { feedback: CoachFeedback }) {
+  const t = useT();
+
   return (
     <div className="space-y-4 text-sm">
       {feedback.summary && <p>{feedback.summary}</p>}
 
       {feedback.mainWeakness && (
-        <Section title="Main weakness">
+        <Section title={t('coach.weakness')}>
           <p>{feedback.mainWeakness}</p>
         </Section>
       )}
 
       {feedback.tips.length > 0 && (
-        <Section title="Tips">
+        <Section title={t('coach.tips')}>
           <ul className="list-disc space-y-1 pl-5">
             {feedback.tips.map((tip, i) => (
               <li key={i}>{tip}</li>
@@ -112,7 +116,7 @@ function Feedback({ feedback }: { feedback: CoachFeedback }) {
       )}
 
       {feedback.focusKeys.length > 0 && (
-        <Section title="Keys to practice">
+        <Section title={t('coach.keys')}>
           <div className="flex flex-wrap gap-1.5">
             {feedback.focusKeys.map((key, i) => (
               <kbd
@@ -127,13 +131,13 @@ function Feedback({ feedback }: { feedback: CoachFeedback }) {
       )}
 
       {feedback.exercise && (
-        <Section title="Practice exercise">
+        <Section title={t('coach.exercise')}>
           <p>{feedback.exercise}</p>
         </Section>
       )}
 
       {feedback.goal && (
-        <Section title="Next goal">
+        <Section title={t('coach.goal')}>
           <p>{feedback.goal}</p>
         </Section>
       )}

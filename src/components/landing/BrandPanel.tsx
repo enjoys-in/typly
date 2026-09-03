@@ -1,6 +1,7 @@
 import { Gauge, ListChecks, ScanText, WifiOff, type LucideIcon } from 'lucide-react';
 import { appConfig } from '@/config/appConfig';
 import { TypingPreview } from './TypingPreview';
+import { useT } from '@/i18n';
 
 const FEATURES: { icon: LucideIcon; title: string; desc: string }[] = [
   {
@@ -30,6 +31,7 @@ const DEMO_TYPED = 'The candidate shall typo the pas';
 
 /** Left-hand marketing panel of the landing screen. Purely presentational. */
 export function BrandPanel() {
+  const t = useT();
   const Logo = appConfig.logo;
 
   return (
@@ -41,18 +43,17 @@ export function BrandPanel() {
           </span>
           <div className="leading-tight">
             <p className="text-lg font-bold">{appConfig.name}</p>
-            <p className="text-xs text-white/70">{appConfig.tagline}</p>
+            <p className="text-xs text-white/70">{t('brand.tagline')}</p>
           </div>
         </div>
 
         <h1 className="mt-8 max-w-md text-3xl leading-[1.1] font-bold tracking-tight lg:mt-12 lg:text-4xl xl:text-[2.75rem]">
-          Practice the exam,
+          {t('landing.headline1')}
           <br />
-          not just typing.
+          {t('landing.headline2')}
         </h1>
         <p className="mt-3.5 max-w-md text-[15px] leading-relaxed text-white/75 lg:mt-4">
-          Turn any image, PDF or paragraph into a realistic government-exam typing test — then see
-          exactly which mistakes cost you the cut-off.
+          {t('landing.blurb')}
         </p>
 
         <ul className="mt-10 hidden max-w-md space-y-5 lg:block">

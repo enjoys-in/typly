@@ -2,6 +2,7 @@ import { Check, Trophy, X } from 'lucide-react';
 import type { ScoringRules, TestResult } from '@/core/types';
 import { cutoffCheck, percentileOf } from '@/core/scoring/cutoff';
 import { Card } from '@/ui/Card';
+import { useT } from '@/i18n';
 
 interface Props {
   result: TestResult;
@@ -18,13 +19,14 @@ function signed(n: number): string {
 
 /** Did this run clear the cut-off, and how does it rank against your own runs? */
 export function CutoffCard({ result, rules, examName, history }: Props) {
+  const t = useT();
   const check = cutoffCheck(result, rules);
   const rank = percentileOf(result.netWpm, history);
 
   if (!check.graded) {
     return (
       <Card className="space-y-2">
-        <h2 className="font-semibold">Cut-off</h2>
+        <h2 className="font-semibold">{t('result.cutoff')}</h2>
         <p className="text-sm text-fg-muted">
           {examName} sets no pass mark, so this run is not graded. Pick an exam profile in Setup to
           score against a real cut-off.
@@ -36,20 +38,20 @@ export function CutoffCard({ result, rules, examName, history }: Props) {
 
   return (
     <Card className="space-y-4">
-      <h2 className="font-semibold">Cut-off — {examName}</h2>
+      <h2 className="font-semibold">{t('result.cutoff')} — {examName}</h2>
       <div className="grid gap-3 sm:grid-cols-2">
         <Row
-          label="Speed"
+          label={t('result.speed')}
           met={check.wpmMet}
           actual={`${result.netWpm} net WPM`}
-          required={`needs ${check.requiredWpm}`}
+          required={t('result.needs', { value: check.requiredWpm })}
           gap={`${signed(check.wpmGap)} WPM`}
         />
         <Row
-          label="Accuracy"
+          label={t('dashboard.accuracy')}
           met={check.accuracyMet}
           actual={`${result.accuracy}%`}
-          required={`needs ${check.requiredAccuracy}%`}
+          required={t('result.needs', { value: `${check.requiredAccuracy}%` })}
           gap={`${signed(check.accuracyGap)} pts`}
         />
       </div>
@@ -89,11 +91,13 @@ function Row({
 }
 
 function RankLine({ rank, count }: { rank: number; count: number }) {
+  const t = useT();
   return (
     <p className="flex items-center gap-2 border-t border-line pt-4 text-sm text-fg-muted">
       <Trophy size={14} className="shrink-0 text-fg-subtle" />
-      Faster than <strong className="font-semibold text-fg">{rank}%</strong> of your{' '}
-      {count} earlier {count === 1 ? 'attempt' : 'attempts'}.
+      {count === 1
+        ? t('result.fasterThanOne', { percent: rank })
+        : t('result.fasterThan', { percent: rank, count })}
     </p>
   );
 }

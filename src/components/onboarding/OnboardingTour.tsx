@@ -1,29 +1,33 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { usePlatform } from '@/platform/PlatformContext';
 import { SETTING_KEY } from '@/core/constants';
+import { useT } from '@/i18n';
+import type { TKey } from '@/i18n/en';
 import { Tour, type TourStep } from './Tour';
 
 /**
  * The three places a new user needs to know about. Targets are the sidebar
  * links, addressed by their route so the tour survives label changes.
  */
-const STEPS: TourStep[] = [
-  {
-    target: 'a[href="#/app/new"]',
-    title: 'Start with a passage',
-    body: 'Paste text, or drop in an image, PDF or document — OCR runs on your machine. That becomes your typing test.',
-  },
-  {
-    target: 'a[href="#/app/trainer"]',
-    title: 'Drill your weak spots',
-    body: 'After a few tests, the Trainer builds drills from your own results: the keys you get wrong, and the transitions that cost you time.',
-  },
-  {
-    target: 'a[href="#/app/history"]',
-    title: 'Watch it improve',
-    body: 'Every attempt is saved with its mistakes and a full replay, so you can see exactly where the time went.',
-  },
-];
+function stepsFor(t: (key: TKey) => string): TourStep[] {
+  return [
+    {
+      target: 'a[href="#/app/new"]',
+      title: t('tour.newTitle'),
+      body: t('tour.newBody'),
+    },
+    {
+      target: 'a[href="#/app/trainer"]',
+      title: t('tour.trainerTitle'),
+      body: t('tour.trainerBody'),
+    },
+    {
+      target: 'a[href="#/app/history"]',
+      title: t('tour.historyTitle'),
+      body: t('tour.historyBody'),
+    },
+  ];
+}
 
 /**
  * Runs the walkthrough once per install.
@@ -35,6 +39,7 @@ const STEPS: TourStep[] = [
  */
 export function OnboardingTour() {
   const platform = usePlatform();
+  const t = useT();
   const [open, setOpen] = useState(false);
   // Read by the unmount handler, which must not close over a stale `open`.
   const shown = useRef(false);
@@ -70,5 +75,5 @@ export function OnboardingTour() {
     markDone();
   }, [markDone]);
 
-  return open ? <Tour steps={STEPS} onDone={close} /> : null;
+  return open ? <Tour steps={stepsFor(t)} onDone={close} /> : null;
 }

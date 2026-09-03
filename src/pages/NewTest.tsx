@@ -18,6 +18,7 @@ import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { PaperModeCard } from '@/components/uploader/PaperModeCard';
 import { SpeakButton } from '@/ui/SpeakButton';
+import { useT } from '@/i18n';
 
 function deriveTitle(text: string): string {
   const words = text.trim().split(/\s+/).slice(0, 6).join(' ');
@@ -25,6 +26,7 @@ function deriveTitle(text: string): string {
 }
 
 export function NewTest() {
+  const t = useT();
   const navigate = useNavigate();
   const platform = usePlatform();
   const { lang } = useSettingsStore();
@@ -101,11 +103,9 @@ export function NewTest() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">New Test</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t('newTest.title')}</h1>
         <p className="mt-1 text-sm text-fg-muted">
-          {hasText
-            ? 'Review what was detected, then choose the exam type and language next.'
-            : 'Paste or upload a paragraph, then choose the exam type and language next. Emoji are removed automatically.'}
+          {t(hasText ? 'newTest.subtitleReady' : 'newTest.subtitleEmpty')}
         </p>
       </div>
 
@@ -130,12 +130,12 @@ export function NewTest() {
 
           <div className="space-y-2 border-t border-line pt-5">
             <label className="text-sm font-medium text-fg-muted">
-              Paragraph name
+              {t('newTest.paragraphName')}
             </label>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Paragraph title"
+              placeholder={t('newTest.paragraphTitle')}
               className="w-full max-w-xl rounded-control border border-edge bg-field px-3 py-2 text-sm outline-none transition-colors focus:border-accent focus:ring-4 focus:ring-accent-ring"
             />
           </div>
@@ -150,9 +150,9 @@ export function NewTest() {
                 className="flex cursor-pointer items-center gap-1.5 rounded-control text-sm font-medium text-fg-muted outline-none transition-colors hover:text-fg focus-visible:ring-4 focus-visible:ring-edge"
               >
                 {editing ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                {editing ? 'Hide text' : 'Show & edit text'}
+                {t(editing ? 'newTest.hideText' : 'newTest.showText')}
               </button>
-              <SpeakButton text={passage} lang={lang} label="Listen" />
+              <SpeakButton text={passage} lang={lang} label={t('newTest.listen')} />
             </div>
             {editing ? (
               <textarea
@@ -178,10 +178,14 @@ export function NewTest() {
           <GrammarPanel text={passage} lang={lang} onApply={setPassage} />
           <div className="flex items-center justify-between gap-3 border-t border-line pt-5">
             <span className="text-xs text-danger-text">
-              {isEmpty ? 'Paragraph text is required to continue.' : ''}
+              {isEmpty ? t('newTest.required') : ''}
             </span>
             <Button disabled={isEmpty || saving} onClick={proceed}>
-              {saving ? 'Saving…' : partCount > 1 ? `Save & split into ${partCount}` : 'Save & continue'}
+              {saving
+                ? t('newTest.saving')
+                : partCount > 1
+                  ? t('newTest.saveSplit', { count: partCount })
+                  : t('newTest.saveContinue')}
             </Button>
           </div>
         </Card>

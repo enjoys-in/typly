@@ -3,6 +3,7 @@ import { Briefcase, Code2, Globe, Monitor, X, type LucideIcon } from 'lucide-rea
 import { APP_VERSION, appConfig, type AboutLink } from '@/config/appConfig';
 import { isElectron } from '@/platform/detect';
 import { Modal } from '@/ui/Modal';
+import { useT } from '@/i18n';
 
 const TITLE_ID = 'about-panel-title';
 
@@ -20,6 +21,7 @@ function runtimeLine(): string | null {
 
 /** Who made this, what it is, and where to find them. */
 export function AboutPanel({ onClose }: Props) {
+  const t = useT();
   const { about, name, tagline } = appConfig;
   const Logo = appConfig.logo;
   const runtime = runtimeLine();
@@ -48,7 +50,7 @@ export function AboutPanel({ onClose }: Props) {
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close about"
+          aria-label={t('about.close')}
           className="cursor-pointer rounded-control p-1 text-fg-muted transition-colors hover:bg-surface-hover hover:text-fg"
         >
           <X size={18} />
@@ -59,7 +61,7 @@ export function AboutPanel({ onClose }: Props) {
 
       <div className="mt-5 space-y-2 border-t border-line pt-5">
         <p className="text-[11px] font-semibold tracking-[0.14em] text-fg-subtle uppercase">
-          Built by
+          {t('about.builtBy')}
         </p>
         <p className="text-sm font-semibold">{about.author}</p>
         <ul className="flex flex-wrap gap-2 pt-1">

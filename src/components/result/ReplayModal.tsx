@@ -9,6 +9,7 @@ import { Modal } from '@/ui/Modal';
 import { SkeletonText } from '@/ui/Skeleton';
 import { typedAfter } from '@/core/typing/replay';
 import { ReplayPlayer } from './ReplayPlayer';
+import { useT } from '@/i18n';
 
 interface Props {
   testId: number;
@@ -19,6 +20,7 @@ const TITLE_ID = 'replay-modal-title';
 
 /** Replays a past attempt from history, loading its passage and keystroke log. */
 export function ReplayModal({ testId, onClose }: Props) {
+  const t = useT();
   const platform = usePlatform();
   const hindiFont = useSettingsStore((s) => s.hindiFont);
 
@@ -42,18 +44,21 @@ export function ReplayModal({ testId, onClose }: Props) {
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
           <h2 id={TITLE_ID} className="text-lg font-semibold">
-            Replay
+            {t('result.replay')}
           </h2>
           {run.data && (
             <p className="text-sm text-fg-muted">
-              {run.data.full.row.netWpm} net WPM · {run.data.full.row.accuracy}% accuracy
+              {t('replay.summary', {
+                wpm: run.data.full.row.netWpm,
+                accuracy: run.data.full.row.accuracy,
+              })}
             </p>
           )}
         </div>
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close replay"
+          aria-label={t('replay.close')}
           className="cursor-pointer rounded-control p-1 text-fg-muted transition-colors hover:bg-surface-hover hover:text-fg"
         >
           <X size={18} />
@@ -64,7 +69,7 @@ export function ReplayModal({ testId, onClose }: Props) {
         <SkeletonText lines={4} />
       ) : !run.data || run.data.passage === '' ? (
         <p className="text-sm text-fg-muted">
-          The paragraph for this attempt is no longer in your library, so it cannot be replayed.
+          {t('replay.noPassage')}
         </p>
       ) : (
         <ReplayPlayer

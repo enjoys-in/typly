@@ -27,24 +27,21 @@ import {
   type PartProgress,
   type ProgressMap,
 } from '@/core/library/progress';
-import { LANG_LABEL, TestStatus } from '@/core/constants';
+import { TestStatus } from '@/core/constants';
 import { Card } from '@/ui/Card';
 import { Button } from '@/ui/Button';
 import { useConfirm } from '@/ui/Confirm';
+import { useT } from '@/i18n';
 import { Segmented, type SegmentedOption } from '@/ui/Segmented';
 import { SkeletonTable } from '@/ui/Skeleton';
 
 type SeriesOrder = 'serial' | 'preference';
 
-const ORDER_OPTIONS: SegmentedOption<'serial' | 'preference'>[] = [
-  { value: 'serial', label: 'Serial', title: 'In the order shown' },
-  { value: 'preference', label: 'Preference', title: 'Shortest first' },
-];
-
 export function Documents() {
   const platform = usePlatform();
   const navigate = useNavigate();
   const confirm = useConfirm();
+  const t = useT();
   const setDraft = useExamStore((s) => s.setDraft);
   const startSeries = useExamStore((s) => s.startSeries);
   const settings = useSettingsStore();
@@ -55,6 +52,11 @@ export function Documents() {
   const [progress, setProgress] = useState<ProgressMap>({});
   const [order, setOrder] = useState<SeriesOrder>('serial');
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+  const orderOptions: SegmentedOption<SeriesOrder>[] = [
+    { value: 'serial', label: t('library.serial'), title: t('library.serialHint') },
+    { value: 'preference', label: t('library.preference'), title: t('library.preferenceHint') },
+  ];
 
   const docById = useMemo(() => new Map((docs ?? []).map((d) => [d.id, d])), [docs]);
 
@@ -108,10 +110,9 @@ export function Documents() {
 
   async function removeDoc(doc: DocumentRow) {
     const ok = await confirm({
-      title: `Delete "${doc.title}"?`,
-      message:
-        'The paragraph is removed from your library. Past results keep their scores, but can no longer be retested or replayed.',
-      confirmLabel: 'Delete',
+      title: t('library.deleteTitle', { title: doc.title }),
+      message: t('library.deleteBody'),
+      confirmLabel: t('common.delete'),
       destructive: true,
     });
     if (!ok) return;
@@ -168,9 +169,9 @@ export function Documents() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Library</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t('library.title')}</h1>
         <p className="mt-1 text-fg-muted">
-          Your saved paragraphs. Run, retest, and compare attempts on a leaderboard.
+          {t('library.subtitleShort')}
         </p>
       </div>
 
@@ -179,27 +180,30 @@ export function Documents() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-sm">
               <ListOrdered size={18} className="text-fg-subtle" />
-              <span className="font-medium">Practice series</span>
+              <span className="font-medium">{t('library.series')}</span>
               <span className="text-fg-muted">
                 {selectedIds.length > 0
-                  ? `${selectedIds.length} selected · runs in this order, auto-advancing`
-                  : `Tick paragraphs to pick, or run all ${docs.length} back-to-back.`}
+                  ? t('library.seriesSelected', { count: selectedIds.length })
+                  : t('library.seriesPick', { count: docs.length })}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <Segmented
-                options={ORDER_OPTIONS}
+                options={orderOptions}
                 value={order}
                 onChange={setOrder}
-                ariaLabel="Series order"
+                ariaLabel={t('library.order')}
               />
               {selectedIds.length > 0 && (
                 <Button variant="ghost" size="sm" onClick={() => setSelectedIds([])}>
-                  Clear
+                  {t('library.clear')}
                 </Button>
               )}
               <Button size="sm" onClick={beginSeries}>
-                <Play size={14} /> {selectedIds.length > 0 ? `Start ${selectedIds.length}` : 'Start all'}
+                <Play size={14} />{' '}
+                {selectedIds.length > 0
+                  ? t('library.startN', { count: selectedIds.length })
+                  : t('library.startAll')}
               </Button>
             </div>
           </div>
@@ -219,7 +223,7 @@ export function Documents() {
                     <button
                       onClick={() => move(id, -1)}
                       disabled={i === 0}
-                      aria-label="Move up"
+                      aria-label={t('library.moveUp')}
                       className="rounded-inner p-0.5 text-fg-subtle enabled:hover:text-fg disabled:opacity-30"
                     >
                       <ChevronUp size={14} />
@@ -227,14 +231,14 @@ export function Documents() {
                     <button
                       onClick={() => move(id, 1)}
                       disabled={i === selectedIds.length - 1}
-                      aria-label="Move down"
+                      aria-label={t('library.moveDown')}
                       className="rounded-inner p-0.5 text-fg-subtle enabled:hover:text-fg disabled:opacity-30"
                     >
                       <ChevronDown size={14} />
                     </button>
                     <button
                       onClick={() => toggleSelect(id)}
-                      aria-label="Remove"
+                      aria-label={t('library.remove')}
                       className="rounded-inner p-0.5 text-fg-subtle hover:text-danger-text"
                     >
                       <X size={14} />
@@ -252,8 +256,8 @@ export function Documents() {
       ) : docs.length === 0 ? (
         <Card className="flex flex-col items-start gap-3">
           <FileText className="text-fg-subtle" />
-          <p className="text-sm text-fg-muted">No paragraphs yet. Create one to build your library.</p>
-          <Button onClick={() => navigate('/app/new')}>New Test</Button>
+          <p className="text-sm text-fg-muted">{t('library.empty')}</p>
+          <Button onClick={() => navigate('/app/new')}>{t('library.newTest')}</Button>
         </Card>
       ) : (
         <Card className="p-0">
@@ -271,11 +275,11 @@ export function Documents() {
               <thead className="sticky top-0 z-10 bg-surface-2 text-xs uppercase tracking-wide text-fg-muted">
                 <tr>
                   <th className="px-3 py-2.5"></th>
-                  <th className="px-3 py-2.5 font-medium">Paragraph</th>
-                  <th className="px-3 py-2.5 font-medium">Lang</th>
-                  <th className="px-3 py-2.5 text-right font-medium">Chars</th>
-                  <th className="px-3 py-2.5 text-right font-medium">Tries</th>
-                  <th className="px-3 py-2.5 text-right font-medium">Best</th>
+                  <th className="px-3 py-2.5 font-medium">{t('library.colTitle')}</th>
+                  <th className="px-3 py-2.5 font-medium">{t('library.colLang')}</th>
+                  <th className="px-3 py-2.5 text-right font-medium">{t('library.colChars')}</th>
+                  <th className="px-3 py-2.5 text-right font-medium">{t('library.colTries')}</th>
+                  <th className="px-3 py-2.5 text-right font-medium">{t('library.colBest')}</th>
                   <th className="px-3 py-2.5"></th>
                 </tr>
               </thead>
@@ -344,6 +348,7 @@ function DocRow({
   onReset: () => void;
   onDelete: () => void;
 }) {
+  const t = useT();
   const done = progress ? percentDone(progress) : null;
   const splittable = !progress && isLongPassage(doc.content);
   return (
@@ -372,7 +377,7 @@ function DocRow({
             {progress && (
               <span
                 className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-bold tracking-wide text-accent-soft-fg uppercase tabular-nums"
-                title={`${done}% of the parts finished`}
+                title={t('library.partsDone', { done: done ?? 0 })}
               >
                 {progress.done.length}/{progress.parts}
               </span>
@@ -380,14 +385,14 @@ function DocRow({
             {splittable && (
               <span
                 className="shrink-0 rounded-full bg-surface-3 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-fg-muted uppercase"
-                title="Long enough to split into shorter sittings — open the row to cut it up"
+                title={t('library.longHint')}
               >
-                Long
+                {t('library.long')}
               </span>
             )}
           </button>
         </td>
-        <td className="truncate px-3 py-2.5 text-fg-muted">{LANG_LABEL[doc.lang]}</td>
+        <td className="truncate px-3 py-2.5 text-fg-muted">{t(`lang.${doc.lang}`)}</td>
         <td className="px-3 py-2.5 text-right tabular-nums text-fg-muted">{doc.charCount}</td>
         <td className="px-3 py-2.5 text-right tabular-nums">{attempts.length}</td>
         <td className="px-3 py-2.5 text-right font-semibold tabular-nums text-accent-text">
@@ -395,15 +400,19 @@ function DocRow({
         </td>
         <td className="px-3 py-2.5">
           <div className="flex items-center justify-end gap-1.5">
-            <Button size="sm" onClick={onRun} title={attempts.length > 0 ? 'Run again' : 'Use for a test'}>
+            <Button
+              size="sm"
+              onClick={onRun}
+              title={t(attempts.length > 0 ? 'library.runAgain' : 'library.useForTest')}
+            >
               <Play size={13} />
-              {attempts.length > 0 ? 'Retest' : 'Start'}
+              {t(attempts.length > 0 ? 'library.retest' : 'library.start')}
             </Button>
             <button
               type="button"
               onClick={onDelete}
-              aria-label={`Delete ${doc.title}`}
-              title="Delete this paragraph"
+              aria-label={t('library.deleteOne', { title: doc.title })}
+              title={t('library.deleteHint')}
               className="cursor-pointer rounded-control p-1.5 text-fg-subtle transition-colors hover:bg-danger-soft hover:text-danger-text"
             >
               <Trash2 size={14} />
@@ -430,14 +439,15 @@ function DocRow({
 }
 
 function Leaderboard({ attempts }: { attempts: TestRow[] }) {
+  const t = useT();
   const ranked = [...attempts].sort((a, b) => b.netWpm - a.netWpm);
   if (ranked.length === 0) {
-    return <p className="text-sm text-fg-muted">No attempts yet — be the first to set a score.</p>;
+    return <p className="text-sm text-fg-muted">{t('library.noAttempts')}</p>;
   }
   return (
     <div className="space-y-2">
       <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-fg-muted">
-        <Trophy size={14} className="text-[var(--brand-accent-from)]" /> Leaderboard
+        <Trophy size={14} className="text-[var(--brand-accent-from)]" /> {t('library.leaderboard')}
       </p>
       <table className="w-full text-left text-sm">
         <tbody className="divide-y divide-line">

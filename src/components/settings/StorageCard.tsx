@@ -10,6 +10,7 @@ import {
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { useConfirm } from '@/ui/Confirm';
+import { useT } from '@/i18n';
 
 function fmtMB(bytes: number | null): string {
   if (bytes == null) return '—';
@@ -19,6 +20,7 @@ function fmtMB(bytes: number | null): string {
 // Lets the user cache language assets for offline use and cleanly uninstall them
 // (or wipe all app data). Grammar (Harper) + dictionaries live in Cache Storage.
 export function StorageCard() {
+  const t = useT();
   const platform = usePlatform();
   const confirm = useConfirm();
   const [usage, setUsage] = useState<number | null>(null);
@@ -67,10 +69,9 @@ export function StorageCard() {
 
   async function wipe() {
     const ok = await confirm({
-      title: 'Clear all app data?',
-      message:
-        'Deletes your history, library, settings and downloaded language data. This cannot be undone.',
-      confirmLabel: 'Clear everything',
+      title: t('storage.clearTitle'),
+      message: t('storage.clearBody'),
+      confirmLabel: t('storage.clearConfirm'),
       destructive: true,
     });
     if (!ok) return;
@@ -88,7 +89,7 @@ export function StorageCard() {
     <Card className="space-y-4">
       <div className="flex items-center gap-2">
         <Database size={18} className="text-accent-text" />
-        <h2 className="font-semibold">Storage &amp; language data</h2>
+        <h2 className="font-semibold">{t('storage.title')}</h2>
         <span className="ml-auto text-xs text-fg-muted">Using ~{fmtMB(usage)}</span>
       </div>
       <p className="text-xs text-fg-muted">
@@ -103,7 +104,7 @@ export function StorageCard() {
           <Trash2 size={16} /> {busy === 'lang' ? 'Removing…' : 'Remove language data'}
         </Button>
         <Button variant="secondary" onClick={wipe} disabled={busy !== null} aria-busy={busy === 'all'}>
-          <Trash2 size={16} /> Clear all app data
+          <Trash2 size={16} /> {t('storage.clearAll')}
         </Button>
       </div>
       {status && <p className="text-xs text-fg-muted">{status}</p>}

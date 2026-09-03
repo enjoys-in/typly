@@ -227,22 +227,22 @@ export function Dashboard() {
         <ActionCard
           icon={PlusCircle}
           tone="primary"
-          title="Start a new test"
-          desc="Paste text or upload an image / PDF / document."
+          title={t('dashboard.newTestTitle')}
+          desc={t('dashboard.newTestDesc')}
           onClick={() => navigate('/app/new')}
         />
         <ActionCard
           icon={ScanLine}
           tone="accent"
-          title="Typing from paper?"
-          desc="Read from a printed sheet and type here — nothing to upload."
+          title={t('paperCard.dashTitle')}
+          desc={t('paperCard.dashDesc')}
           onClick={startPaperRun}
         />
         <ActionCard
           icon={Dumbbell}
           tone="primary"
-          title="Practice drills"
-          desc="Rows, numbers, symbols and shortcuts, generated fresh."
+          title={t('dashboard.practiceTitle')}
+          desc={t('dashboard.practiceDesc')}
           onClick={() => navigate('/app/practice')}
         />
       </div>
@@ -251,27 +251,29 @@ export function Dashboard() {
 }
 
 /* Static walkthrough of the flow — shown until there is real history to report. */
-const STEPS = [
-  { title: 'Add a passage', desc: 'Paste text, or drop an image, PDF or .docx.' },
-  { title: 'Pick the exam', desc: 'Choose the board, duration and language.' },
-  { title: 'Type & review', desc: 'WPM, accuracy, and every mistake categorised.' },
-];
+const STEP_KEYS = [
+  { title: 'dashboard.step1', desc: 'dashboard.step1Desc' },
+  { title: 'dashboard.step2', desc: 'dashboard.step2Desc' },
+  { title: 'dashboard.step3', desc: 'dashboard.step3Desc' },
+] as const;
 
 function FlowStrip() {
+  const t = useT();
+
   return (
     <section className="rounded-panel border border-line bg-surface p-6">
       <p className="text-[11px] font-semibold tracking-[0.14em] text-fg-subtle uppercase">
-        How it works
+        {t('dashboard.howItWorks')}
       </p>
       <ol className="mt-5 grid gap-6 sm:grid-cols-3">
-        {STEPS.map((step, i) => (
+        {STEP_KEYS.map((step, i) => (
           <li key={step.title} className="flex gap-3">
             <span className="brand-gradient-text mt-px text-sm font-bold tabular-nums">
               {String(i + 1).padStart(2, '0')}
             </span>
             <div>
-              <p className="text-sm font-semibold">{step.title}</p>
-              <p className="mt-1 text-[13px] leading-relaxed text-fg-muted">{step.desc}</p>
+              <p className="text-sm font-semibold">{t(step.title)}</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-fg-muted">{t(step.desc)}</p>
             </div>
           </li>
         ))}

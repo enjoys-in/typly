@@ -1,6 +1,7 @@
 import { ArrowRight, ScanLine } from 'lucide-react';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
+import { useT } from '@/i18n';
 
 interface Props {
   onStart: () => void;
@@ -12,6 +13,7 @@ interface Props {
  * what was typed rather than comparing it to a passage on screen.
  */
 export function PaperModeCard({ onStart }: Props) {
+  const t = useT();
   return (
     <Card className="flex flex-wrap items-center justify-between gap-4">
       <div className="flex items-start gap-3">
@@ -19,15 +21,14 @@ export function PaperModeCard({ onStart }: Props) {
           <ScanLine size={20} />
         </span>
         <div className="min-w-0">
-          <h2 className="text-base font-semibold">Typing from paper?</h2>
+          <h2 className="text-base font-semibold">{t('paperCard.title')}</h2>
           <p className="mt-1 max-w-xl text-sm leading-relaxed text-fg-muted">
-            Read from a printed sheet or a book and type here. Nothing to upload — you get speed,
-            word count, corrections, and spelling and grammar checked at the end.
+            {t('paperCard.body')}
           </p>
         </div>
       </div>
       <Button variant="secondary" onClick={onStart}>
-        Start a paper test
+        {t('paperCard.start')}
         <ArrowRight size={16} />
       </Button>
     </Card>

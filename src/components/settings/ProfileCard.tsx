@@ -13,6 +13,7 @@ import {
 import { GUEST_MAX_DURATION_MIN, MAX_DURATION_MIN } from '@/core/constants';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
+import { useT } from '@/i18n';
 
 /**
  * Where a name and email are added or changed later — the only route in for an
@@ -20,6 +21,7 @@ import { Card } from '@/ui/Card';
  */
 export function ProfileCard() {
   const platform = usePlatform();
+  const t = useT();
   const account = useAuthStore((s) => s.account);
   const setAccount = useAuthStore((s) => s.setAccount);
 
@@ -51,21 +53,21 @@ export function ProfileCard() {
   return (
     <Card className="space-y-4">
       <div>
-        <h2 className="text-sm font-semibold">Your profile</h2>
+        <h2 className="text-sm font-semibold">{t('profile.title')}</h2>
         <p className="mt-1 text-xs text-fg-muted">
-          Stored on this device only. Nothing is uploaded.
+          {t('profile.hint')}
         </p>
       </div>
 
       <label className="flex flex-col gap-1.5">
         <span className="flex items-center gap-2 text-sm font-medium">
-          <User size={14} className="shrink-0 text-fg-subtle" /> Name
+          <User size={14} className="shrink-0 text-fg-subtle" /> {t('profile.name')}
         </span>
         <input
           value={name}
           maxLength={MAX_NAME_LENGTH}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Your name"
+          placeholder={t('profile.namePlaceholder')}
           aria-invalid={name.length > 0 && !nameOk}
           className="select max-w-sm"
         />
@@ -73,16 +75,16 @@ export function ProfileCard() {
 
       <label className="flex flex-col gap-1.5">
         <span className="flex items-center gap-2 text-sm font-medium">
-          <Mail size={14} className="shrink-0 text-fg-subtle" /> Email
+          <Mail size={14} className="shrink-0 text-fg-subtle" /> {t('profile.email')}
           <span className="rounded-full bg-surface-3 px-2 py-0.5 text-[10px] font-bold tracking-wide text-fg-muted uppercase">
-            Optional
+            {t('landing.optional')}
           </span>
         </span>
         <input
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
+          placeholder={t('profile.emailPlaceholder')}
           aria-invalid={email.length > 0 && !emailOk}
           className="select max-w-sm"
         />
@@ -95,24 +97,27 @@ export function ProfileCard() {
           ) : (
             <Lock size={13} className="text-fg-subtle" />
           )}
-          {unlocked.longSessions ? 'Unlocked with your email' : 'Add an email to unlock'}
+          {t(unlocked.longSessions ? 'profile.unlocked' : 'profile.locked')}
         </p>
         <ul className="space-y-1 text-xs text-fg-muted">
           <li>
-            Sessions longer than {GUEST_MAX_DURATION_MIN} minutes — up to {MAX_DURATION_MIN}
+            {t('profile.perkSessions', {
+              short: GUEST_MAX_DURATION_MIN,
+              long: MAX_DURATION_MIN,
+            })}
           </li>
-          <li>Saving your certificate as an image</li>
-          <li>Exporting your progress report</li>
+          <li>{t('profile.perkCertificate')}</li>
+          <li>{t('profile.perkExport')}</li>
         </ul>
       </div>
 
       <div className="flex items-center gap-3">
         <Button onClick={() => void save()} disabled={!nameOk || !emailOk || !changed}>
-          Save profile
+          {t('profile.save')}
         </Button>
         {saved && (
           <span role="status" className="flex items-center gap-1.5 text-xs text-accent-text">
-            <Check size={14} /> Saved
+            <Check size={14} /> {t('profile.saved')}
           </span>
         )}
       </div>

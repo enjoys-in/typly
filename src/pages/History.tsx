@@ -13,65 +13,70 @@ import { ReplayModal } from '@/components/result/ReplayModal';
 import { Card } from '@/ui/Card';
 import { DataTable, type Column } from '@/ui/DataTable';
 import { ToggleChip } from '@/ui/ToggleChip';
+import { useT } from '@/i18n';
+import type { TKey } from '@/i18n/en';
 
-const COLUMNS: Column<TestRow>[] = [
-  {
-    key: 'date',
-    header: 'Date',
-    width: '9.5rem',
-    render: (r) => format(new Date(r.createdAt), 'dd MMM, HH:mm'),
-  },
-  {
-    key: 'exam',
-    header: 'Exam',
-    render: (r) => profileFor(r.examBoard).name,
-  },
-  {
-    key: 'netWpm',
-    header: 'Net WPM',
-    width: '7rem',
-    align: 'right',
-    className: 'font-semibold',
-    render: (r) => r.netWpm,
-  },
-  {
-    key: 'accuracy',
-    header: 'Accuracy',
-    width: '7rem',
-    align: 'right',
-    render: (r) => `${r.accuracy}%`,
-  },
-  {
-    key: 'errors',
-    header: 'Errors',
-    width: '6rem',
-    align: 'right',
-    render: (r) => r.errors,
-  },
-  {
-    key: 'status',
-    header: 'Status',
-    width: '7.5rem',
-    align: 'center',
-    render: (r) => (
-      <span
-        className={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${
-          r.status === TestStatus.Passed
-            ? 'bg-accent-soft text-accent-soft-fg'
-            : 'bg-danger-soft text-danger-soft-fg'
-        }`}
-      >
-        {r.status === TestStatus.Passed ? 'Passed' : 'Failed'}
-      </span>
-    ),
-  },
-];
+function columnsFor(t: (key: TKey) => string): Column<TestRow>[] {
+  return [
+    {
+      key: 'date',
+      header: t('history.colDate'),
+      width: '9.5rem',
+      render: (r) => format(new Date(r.createdAt), 'dd MMM, HH:mm'),
+    },
+    {
+      key: 'exam',
+      header: t('history.colExam'),
+      render: (r) => profileFor(r.examBoard).name,
+    },
+    {
+      key: 'netWpm',
+      header: t('history.colNetWpm'),
+      width: '7rem',
+      align: 'right',
+      className: 'font-semibold',
+      render: (r) => r.netWpm,
+    },
+    {
+      key: 'accuracy',
+      header: t('history.colAccuracy'),
+      width: '7rem',
+      align: 'right',
+      render: (r) => `${r.accuracy}%`,
+    },
+    {
+      key: 'errors',
+      header: t('history.colErrors'),
+      width: '6rem',
+      align: 'right',
+      render: (r) => r.errors,
+    },
+    {
+      key: 'status',
+      header: t('history.colStatus'),
+      width: '7.5rem',
+      align: 'center',
+      render: (r) => (
+        <span
+          className={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${
+            r.status === TestStatus.Passed
+              ? 'bg-accent-soft text-accent-soft-fg'
+              : 'bg-danger-soft text-danger-soft-fg'
+          }`}
+        >
+          {t(r.status === TestStatus.Passed ? 'dashboard.passed' : 'dashboard.failed')}
+        </span>
+      ),
+    },
+  ];
+}
 
 export function History() {
   const platform = usePlatform();
   const navigate = useNavigate();
   const setDraft = useExamStore((s) => s.setDraft);
   const [replayId, setReplayId] = useState<number | null>(null);
+  const t = useT();
   const history = useAsync(() => platform.repo.listHistory(), [platform]);
   const rows = history.data;
 
@@ -94,7 +99,7 @@ export function History() {
 
   const columns = useMemo<Column<TestRow>[]>(
     () => [
-      ...COLUMNS,
+      ...columnsFor(t),
       {
         key: 'actions',
         header: '',
@@ -106,29 +111,29 @@ export function History() {
               <ToggleChip
                 active={false}
                 onClick={() => setReplayId(r.id)}
-                title="Watch this attempt play back"
+                title={t('history.replayHint')}
               >
-                <Film size={13} /> Replay
+                <Film size={13} /> {t('result.replay')}
               </ToggleChip>
               <button
                 onClick={() => void retest(r)}
                 className="inline-flex cursor-pointer items-center gap-1.5 rounded-control bg-accent px-3 py-1.5 text-xs font-semibold text-accent-fg transition-all hover:bg-accent-hover active:scale-95"
               >
-                <Play size={13} /> Retest
+                <Play size={13} /> {t('library.retest')}
               </button>
             </div>
           ) : null,
       },
     ],
-    [retest],
+    [retest, t],
   );
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">History</h1>
+      <h1 className="text-2xl font-bold">{t('history.title')}</h1>
       {rows && rows.length >= 2 && (
         <Card className="space-y-4">
-          <h2 className="font-semibold">Progress — how much you improved</h2>
+          <h2 className="font-semibold">{t('history.progressHeading')}</h2>
           <ProgressChart rows={rows} />
         </Card>
       )}
@@ -137,7 +142,7 @@ export function History() {
         rows={rows ?? []}
         rowKey={(r) => r.id}
         loading={history.loading}
-        empty="No tests yet. Take your first test!"
+        empty={t('history.empty')}
         maxHeight="32rem"
       />
       {replayId !== null && <ReplayModal testId={replayId} onClose={() => setReplayId(null)} />}

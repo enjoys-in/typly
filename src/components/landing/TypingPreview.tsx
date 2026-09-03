@@ -1,5 +1,6 @@
 import { Fragment, useMemo } from 'react';
 import { evaluate, type CharState } from '@/core/typing/typingEngine';
+import { useT } from '@/i18n';
 
 // Panel-tinted variant of the exam palette (PassageView colors don't read on a
 // gradient surface). Same three states, same meaning.
@@ -16,6 +17,7 @@ interface Props {
 
 /** Static, non-interactive sample of the exam view — shows what scoring looks like. */
 export function TypingPreview({ passage, typed }: Props) {
+  const t = useT();
   const states = useMemo(() => evaluate(passage, typed).states, [passage, typed]);
 
   return (
@@ -23,7 +25,7 @@ export function TypingPreview({ passage, typed }: Props) {
       <div className="mb-3 flex items-center gap-2">
         <span className="h-2 w-2 rounded-full bg-[var(--brand-accent-from)]" />
         <span className="text-[11px] font-semibold tracking-wide text-white/60 uppercase">
-          Live scoring
+          {t('landing.liveScoring')}
         </span>
       </div>
       <p className="font-mono text-sm leading-relaxed break-words select-none">

@@ -5,6 +5,7 @@ import { useExamStore } from '@/store/examStore';
 import { readExamSnapshot } from '@/hooks/useExamSnapshot';
 import { ExamRun } from '@/components/exam/ExamRun';
 import { FullPageLoader } from '@/ui/Skeleton';
+import { useT } from '@/i18n';
 
 /**
  * Resolves *which* attempt to run before handing over to ExamRun: the config
@@ -12,6 +13,7 @@ import { FullPageLoader } from '@/ui/Skeleton';
  * of an attempt that was still in progress.
  */
 export function TypingExam() {
+  const t = useT();
   const navigate = useNavigate();
   const platform = usePlatform();
   const config = useExamStore((s) => s.config);
@@ -33,7 +35,7 @@ export function TypingExam() {
     };
   }, [config, platform, resumeFrom, navigate]);
 
-  if (restoring) return <FullPageLoader label="Restoring your test" />;
+  if (restoring) return <FullPageLoader label={t('common.restoringTest')} />;
   if (!config) return null;
   return <ExamRun config={config} resume={resume} />;
 }

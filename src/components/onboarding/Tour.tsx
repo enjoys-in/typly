@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { createPortal } from 'react-dom';
 import { ArrowLeft, ArrowRight, X } from 'lucide-react';
 import { Button } from '@/ui/Button';
+import { useT } from '@/i18n';
 
 export interface TourStep {
   /** CSS selector for the element to spotlight. Missing → the card is centred. */
@@ -43,6 +44,7 @@ function boxOf(el: Element): Box {
  * nothing about which features it is pointing at.
  */
 export function Tour({ steps, onDone }: Props) {
+  const t = useT();
   const [index, setIndex] = useState(0);
   const [box, setBox] = useState<Box | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -139,12 +141,12 @@ export function Tour({ steps, onDone }: Props) {
       >
         <div className="flex items-start justify-between gap-3">
           <p className="text-[11px] font-semibold tracking-[0.14em] text-fg-subtle uppercase">
-            Step {index + 1} of {steps.length}
+            {t('tour.step', { current: index + 1, total: steps.length })}
           </p>
           <button
             type="button"
             onClick={onDone}
-            aria-label="Skip the tour"
+            aria-label={t('tour.skipAria')}
             className="cursor-pointer rounded-control p-1 text-fg-muted transition-colors hover:bg-surface-hover hover:text-fg focus-visible:ring-2 focus-visible:ring-accent-ring"
           >
             <X size={16} />
@@ -164,16 +166,16 @@ export function Tour({ steps, onDone }: Props) {
             onClick={onDone}
             className="cursor-pointer rounded-control text-xs font-medium text-fg-subtle transition-colors hover:text-fg-muted focus-visible:ring-2 focus-visible:ring-accent-ring"
           >
-            Skip
+            {t('tour.skip')}
           </button>
           <div className="flex gap-2">
             {index > 0 && (
               <Button size="sm" variant="secondary" onClick={() => setIndex(index - 1)}>
-                <ArrowLeft size={14} /> Back
+                <ArrowLeft size={14} /> {t('tour.back')}
               </Button>
             )}
             <Button size="sm" onClick={() => (isLast ? onDone() : setIndex(index + 1))}>
-              {isLast ? 'Got it' : 'Next'}
+              {t(isLast ? 'tour.gotIt' : 'tour.next')}
               {!isLast && <ArrowRight size={14} />}
             </Button>
           </div>

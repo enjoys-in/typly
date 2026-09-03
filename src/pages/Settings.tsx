@@ -11,13 +11,9 @@ import { isElectron } from '@/platform/detect';
 import {
   ExamBoard,
   Difficulty,
-  DIFFICULTY_LABEL,
   HindiFont,
-  HINDI_FONT_LABEL,
   InputMethod,
-  INPUT_METHOD_LABEL,
   Lang,
-  LANG_LABEL,
 } from '@/core/constants';
 import { AiSettingsCard } from '@/components/settings/AiSettingsCard';
 import { ProfileCard } from '@/components/settings/ProfileCard';
@@ -142,9 +138,9 @@ export function Settings() {
       await platform.repo.setSetting(fontSettingKey(slot), dataUrl);
       // Desktop: also mirror to the on-disk font cache (userData/fonts).
       await cacheFontToDesktop(slot, dataUrl);
-      setFontNote(`Loaded ${file.name} for ${HINDI_FONT_LABEL[slot]}`);
+      setFontNote(t('settings.fontLoaded', { file: file.name, slot: t(`hindiFont.${slot}`) }));
     } catch {
-      setFontNote('Could not load that font file.');
+      setFontNote(t('settings.fontFailed'));
     }
   }
 
@@ -152,17 +148,18 @@ export function Settings() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Settings</h1>
+      <h1 className="text-2xl font-bold">{t('settings.title')}</h1>
 
       <ProfileCard />
 
       <Card className="space-y-2">
-        <label className="flex flex-col gap-2">
-          <span className="text-sm font-semibold">{t('setup.language')} · Interface</span>
+        <label className="flex flex-col gap-2" htmlFor="interface-language">
+          <span className="text-sm font-semibold">{t('settings.interfaceLanguage')}</span>
           <select
+            id="interface-language"
             value={settings.uiLang}
             onChange={(e) => settings.setUiLang(e.target.value as UiLang)}
-            aria-label="Interface language"
+            aria-label={t('settings.interfaceLanguage')}
             className="select max-w-sm"
           >
             {UI_LANGS.map((code) => (
@@ -172,7 +169,7 @@ export function Settings() {
             ))}
           </select>
           <span className="text-xs text-fg-muted">
-            The language of the app itself. Passage language is chosen per test.
+            {t('settings.interfaceHint')}
           </span>
         </label>
       </Card>
@@ -181,7 +178,7 @@ export function Settings() {
       <div className="columns-1 gap-6 *:mb-6 *:break-inside-avoid lg:columns-2">
         <Card className="space-y-5">
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-medium">Default language</span>
+            <span className="text-sm font-medium">{t('settings.defaultLanguage')}</span>
           <select
             value={settings.lang}
             onChange={(e) => settings.setLang(e.target.value as Lang)}
@@ -189,14 +186,14 @@ export function Settings() {
           >
             {Object.values(Lang).map((l) => (
               <option key={l} value={l}>
-                {LANG_LABEL[l]}
+                {t(`lang.${l}`)}
               </option>
             ))}
           </select>
         </label>
 
         <label className="flex flex-col gap-2">
-          <span className="text-sm font-medium">Default exam profile</span>
+          <span className="text-sm font-medium">{t('settings.defaultProfile')}</span>
           <select
             value={settings.board}
             onChange={(e) => settings.setBoard(e.target.value as ExamBoard)}
@@ -215,7 +212,7 @@ export function Settings() {
         </label>
 
         <label className="flex flex-col gap-2">
-          <span className="text-sm font-medium">Default difficulty</span>
+          <span className="text-sm font-medium">{t('settings.defaultDifficulty')}</span>
           <select
             value={settings.difficulty}
             onChange={(e) => settings.setDifficulty(e.target.value as Difficulty)}
@@ -223,14 +220,14 @@ export function Settings() {
           >
             {Object.values(Difficulty).map((d) => (
               <option key={d} value={d}>
-                {DIFFICULTY_LABEL[d]}
+                {t(`difficulty.${d}`)}
               </option>
             ))}
           </select>
         </label>
 
         <label className="flex flex-col gap-2">
-          <span className="text-sm font-medium">Devanagari input method</span>
+          <span className="text-sm font-medium">{t('settings.inputMethod')}</span>
           <select
             value={settings.inputMethod}
             onChange={(e) => settings.setInputMethod(e.target.value as InputMethod)}
@@ -238,20 +235,18 @@ export function Settings() {
           >
             {Object.values(InputMethod).map((m) => (
               <option key={m} value={m} disabled={!isMethodAvailable(m)}>
-                {INPUT_METHOD_LABEL[m]}
-                {isMethodAvailable(m) ? '' : ' — layout data not installed'}
+                {t(`inputMethod.${m}`)}
+                {isMethodAvailable(m) ? '' : t('settings.layoutMissing')}
               </option>
             ))}
           </select>
           <span className="text-xs text-fg-muted">
-            Phonetic lets you type in Roman (e.g. namaste → नमस्ते). InScript remaps the keyboard to
-            the government-standard Devanagari layout, Remington GAIL to the typewriter layout. All
-            apply to Hindi and Marathi tests.
+            {t('settings.inputMethodHint')}
           </span>
         </label>
 
         <label className="flex flex-col gap-2">
-          <span className="text-sm font-medium">Hindi font</span>
+          <span className="text-sm font-medium">{t('settings.font')}</span>
           <select
             value={settings.hindiFont}
             onChange={(e) => settings.setHindiFont(e.target.value as HindiFont)}
@@ -259,7 +254,7 @@ export function Settings() {
           >
             {Object.values(HindiFont).map((f) => (
               <option key={f} value={f}>
-                {HINDI_FONT_LABEL[f]}
+                {t(`hindiFont.${f}`)}
               </option>
             ))}
           </select>
@@ -269,7 +264,7 @@ export function Settings() {
               onClick={() => fontRef.current?.click()}
               disabled={settings.hindiFont === HindiFont.System}
             >
-              Upload font (.ttf/.otf)
+              {t('settings.uploadFont')}
             </Button>
             <input
               ref={fontRef}
@@ -281,46 +276,45 @@ export function Settings() {
             {fontNote && <span className="text-xs text-fg-muted">{fontNote}</span>}
           </div>
           <span className="text-xs text-fg-muted">
-            Pick a font above, then upload its .ttf/.otf if it isn’t installed. Kruti Dev also
-            relabels the on-screen keyboard. Fonts persist in the app store and travel with backups.
+            {t('settings.fontHint')}
           </span>
         </label>
       </Card>
 
       <Card className="space-y-4">
-        <h2 className="text-sm font-semibold">Default test behavior</h2>
+        <h2 className="text-sm font-semibold">{t('settings.behaviour')}</h2>
         <Toggle
-          label="Backspace / Delete"
-          hint="Allow correcting mistakes during the test."
+          label={t('setup.allowBackspace')}
+          hint={t('setup.allowBackspaceHint')}
           checked={settings.backspaceEnabled}
           onChange={settings.setBackspaceEnabled}
         />
         <Toggle
-          label="Space key"
+          label={t('setup.allowSpace')}
           checked={settings.spaceEnabled}
           onChange={settings.setSpaceEnabled}
         />
         <Toggle
-          label="Enter key"
+          label={t('setup.allowEnter')}
           checked={settings.enterEnabled}
           onChange={settings.setEnterEnabled}
         />
         <Toggle
-          label="Exam lock"
-          hint="Keeps the screen awake; leaving the tab prompts to submit the test."
+          label={t('setup.examLock')}
+          hint={t('setup.examLockHint')}
           checked={settings.examLock}
           onChange={settings.setExamLock}
         />
         <Toggle
-          label="On-screen keyboard"
-          hint="Show a color-coded keyboard that highlights the next key and finger."
+          label={t('settings.onScreenKeyboard')}
+          hint={t('settings.onScreenKeyboardHint')}
           checked={settings.showKeyboard}
           onChange={settings.setShowKeyboard}
         />
         <label className="flex items-center justify-between gap-4">
           <span className="flex flex-col">
-            <span className="text-sm font-medium">Daily goal</span>
-            <span className="text-xs text-fg-muted">Tests to complete each day.</span>
+            <span className="text-sm font-medium">{t('settings.dailyGoal')}</span>
+            <span className="text-xs text-fg-muted">{t('settings.dailyGoalHint')}</span>
           </span>
           <input
             type="number"
@@ -330,34 +324,34 @@ export function Settings() {
             onChange={(e) =>
               settings.setDailyGoal(Math.min(50, Math.max(1, Math.floor(Number(e.target.value) || 1))))
             }
-            aria-label="Daily goal in tests"
+            aria-label={t('settings.dailyGoalAria')}
             className="select w-20"
           />
         </label>
       </Card>
 
       <Card className="space-y-4">
-        <h2 className="text-sm font-semibold">Notifications & feedback</h2>
+        <h2 className="text-sm font-semibold">{t('settings.feedback')}</h2>
         <Toggle
-          label="Desktop notifications"
-          hint="Alert when a test finishes, time runs out, or you go idle/away."
+          label={t('settings.notifications')}
+          hint={t('settings.notificationsHint')}
           checked={settings.notify}
           onChange={toggleNotify}
           disabled={!platform.notifications.available()}
         />
         {!platform.notifications.available() && (
-          <p className="text-xs text-fg-muted">This browser does not support notifications.</p>
+          <p className="text-xs text-fg-muted">{t('settings.noNotifications')}</p>
         )}
         <Toggle
-          label="Typing sounds"
-          hint="Subtle key clicks, an error tone, and a chime when a test ends."
+          label={t('settings.sounds')}
+          hint={t('settings.soundsHint')}
           checked={settings.sound}
           onChange={settings.setSound}
           disabled={!platform.sound.available()}
         />
         <Toggle
-          label="Practice reminder"
-          hint="A daily nudge at a set time if you haven't practiced yet."
+          label={t('settings.reminder')}
+          hint={t('settings.reminderHint')}
           checked={settings.reminderEnabled}
           onChange={toggleReminder}
         />
@@ -377,14 +371,14 @@ export function Settings() {
         {settings.reminderEnabled && (
           <label className="flex items-center justify-between gap-4">
             <span className="flex flex-col">
-              <span className="text-sm font-medium">Reminder time</span>
-              <span className="text-xs text-fg-muted">When to nudge you each day.</span>
+              <span className="text-sm font-medium">{t('settings.reminderTime')}</span>
+              <span className="text-xs text-fg-muted">{t('settings.reminderTimeHint')}</span>
             </span>
             <input
               type="time"
               value={settings.reminderTime}
               onChange={(e) => settings.setReminderTime(e.target.value)}
-              aria-label="Reminder time"
+              aria-label={t('settings.reminderTime')}
               className="select w-32"
             />
           </label>
@@ -400,15 +394,14 @@ export function Settings() {
 
       <Card className="space-y-4">
         <div>
-          <h2 className="text-sm font-semibold">Backup &amp; restore</h2>
+          <h2 className="text-sm font-semibold">{t('settings.backup')}</h2>
           <p className="mt-1 text-xs text-fg-muted">
-            Export your history and library to a JSON file, or restore from one. Restoring merges
-            into your current data.
+            {t('settings.backupHint')}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Button onClick={exportBackup} disabled={busy || empty !== false} aria-busy={exporting}>
-            {exporting ? 'Exporting…' : 'Export backup'}
+            {t(exporting ? 'settings.exporting' : 'settings.export')}
           </Button>
           <Button
             variant="secondary"
@@ -416,7 +409,7 @@ export function Settings() {
             disabled={busy}
             aria-busy={importing}
           >
-            {importing ? 'Restoring…' : 'Restore backup'}
+            {t(importing ? 'settings.restoring' : 'settings.restore')}
           </Button>
           <input
             ref={fileRef}
@@ -428,7 +421,7 @@ export function Settings() {
           {backupStatus && <span className="text-xs text-fg-muted">{backupStatus}</span>}
         </div>
         {empty === true && (
-          <p className="text-xs text-fg-subtle">Nothing to export yet — take a test first.</p>
+          <p className="text-xs text-fg-subtle">{t('settings.nothingToExport')}</p>
         )}
       </Card>
 
@@ -442,7 +435,7 @@ export function Settings() {
       </div>
 
       <Button variant="secondary" onClick={logout}>
-        Log out
+        {t('nav.logout')}
       </Button>
     </div>
   );

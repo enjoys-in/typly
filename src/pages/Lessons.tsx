@@ -8,7 +8,6 @@ import { isMacOS } from '@/platform/detect';
 import { SETTING_KEY, SourceType } from '@/core/constants';
 import {
   LESSONS,
-  SKILL_LEVEL_LABEL,
   SkillLevel,
   lessonPassage,
   type Lesson,
@@ -22,8 +21,10 @@ import {
 import { Card } from '@/ui/Card';
 import { Button } from '@/ui/Button';
 import { ProgressBar } from '@/ui/ProgressBar';
+import { useT } from '@/i18n';
 
 export function Lessons() {
+  const t = useT();
   const platform = usePlatform();
   const navigate = useNavigate();
   const setConfig = useExamStore((s) => s.setConfig);
@@ -84,22 +85,19 @@ export function Lessons() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Lessons</h1>
-          <p className="mt-1 text-fg-muted">
-            A beginner-to-advanced path. Hit each lesson&apos;s speed and accuracy target to unlock
-            the next.
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">{t('lessons.title')}</h1>
+          <p className="mt-1 text-fg-muted">{t('lessons.subtitleLong')}</p>
         </div>
         <Button variant="secondary" onClick={() => setAddingLesson(true)}>
-          <Plus size={16} /> Add new lesson
+          <Plus size={16} /> {t('lessons.addNew')}
         </Button>
       </div>
 
       <Card className="space-y-2">
         <div className="flex items-center justify-between text-sm">
-          <span className="font-semibold">Curriculum progress</span>
+          <span className="font-semibold">{t('lessons.curriculumProgress')}</span>
           <span className="tabular-nums text-fg-muted">
-            {completedCount} / {LESSONS.length} lessons
+            {t('lessons.countOf', { done: completedCount, total: LESSONS.length })}
           </span>
         </div>
         <ProgressBar value={(completedCount / LESSONS.length) * 100} />
@@ -108,7 +106,7 @@ export function Lessons() {
       {levels.map((level) => (
         <div key={level} className="space-y-3">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-fg-muted">
-            {SKILL_LEVEL_LABEL[level]}
+            {t(`skill.${level}`)}
           </h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {LESSONS.map((lesson, i) =>
@@ -150,6 +148,7 @@ function LessonCard({
   unlocked: boolean;
   onStart: () => void;
 }) {
+  const t = useT();
   const disabled = !unlocked && !completed;
   return (
     <button
@@ -171,7 +170,7 @@ function LessonCard({
       <span className="text-sm font-semibold">{lesson.title}</span>
       <span className="text-xs text-fg-muted">{lesson.description}</span>
       <span className="text-[11px] tabular-nums text-fg-subtle">
-        Target {lesson.targetWpm} WPM · {lesson.targetAccuracy}%
+        {t('lessons.targetLine', { wpm: lesson.targetWpm, accuracy: lesson.targetAccuracy })}
       </span>
     </button>
   );
@@ -194,6 +193,7 @@ function CustomLessons({
   onRemove: (id: string) => void;
   onStart: (lesson: CustomLesson) => void;
 }) {
+  const t = useT();
   const [title, setTitle] = useState('');
   const [passage, setPassage] = useState('');
   const [level, setLevel] = useState<SkillLevel>(SkillLevel.Beginner);
@@ -241,29 +241,30 @@ function CustomLessons({
 
   return (
     <div ref={sectionRef} className="space-y-3">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-fg-muted">Your lessons</h2>
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-fg-muted">
+        {t('lessons.yourLessons')}
+      </h2>
 
       {open && (
         <Card className="space-y-4">
           <p className="text-sm text-fg-muted">
-            Author your own drill from any text — your own passage, a syllabus paragraph, or exam
-            material. Pick a category and targets, then practice it like any lesson.
+            {t('lessons.authorHint')}
           </p>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Lesson name"
+            placeholder={t('lessons.namePlaceholder')}
             className={`${inputCls} w-full`}
           />
           <textarea
             value={passage}
             onChange={(e) => setPassage(e.target.value)}
-            placeholder="Paste or type the passage to practice…"
+            placeholder={t('lessons.passagePlaceholder')}
             className={`${inputCls} scroll-area h-28 w-full resize-none`}
           />
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="flex flex-col gap-1.5 text-sm text-fg-muted">
-              Category
+              {t('lessons.category')}
               <select
                 value={level}
                 onChange={(e) => setLevel(e.target.value as SkillLevel)}
@@ -271,13 +272,13 @@ function CustomLessons({
               >
                 {Object.values(SkillLevel).map((l) => (
                   <option key={l} value={l}>
-                    {SKILL_LEVEL_LABEL[l]}
+                    {t(`skill.${l}`)}
                   </option>
                 ))}
               </select>
             </label>
             <label className="flex flex-col gap-1.5 text-sm text-fg-muted">
-              Target WPM
+              {t('lessons.targetWpm')}
               <input
                 type="number"
                 min={1}
@@ -287,7 +288,7 @@ function CustomLessons({
               />
             </label>
             <label className="flex flex-col gap-1.5 text-sm text-fg-muted">
-              Target accuracy %
+              {t('lessons.targetAccuracy')}
               <input
                 type="number"
                 min={1}
@@ -300,10 +301,10 @@ function CustomLessons({
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="secondary" onClick={cancel}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={submit} disabled={!canAdd}>
-              <Plus size={16} /> Add lesson
+              <Plus size={16} /> {t('lessons.addLesson')}
             </Button>
           </div>
         </Card>
@@ -328,7 +329,7 @@ function CustomLessons({
                   </span>
                   <button
                     onClick={() => onRemove(lesson.id)}
-                    aria-label="Delete lesson"
+                    aria-label={t('lessons.deleteCustom')}
                     className="rounded-inner p-1 text-fg-subtle transition-colors hover:text-danger-text"
                   >
                     <Trash2 size={16} />
@@ -336,14 +337,14 @@ function CustomLessons({
                 </div>
                 <span className="text-sm font-semibold">{lesson.title}</span>
                 <span className="rounded-full bg-surface-3 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-fg-muted">
-                  {SKILL_LEVEL_LABEL[lesson.level]}
+                  {t(`skill.${lesson.level}`)}
                 </span>
                 <span className="line-clamp-2 text-xs text-fg-muted">{lesson.passage}</span>
                 <span className="text-[11px] tabular-nums text-fg-subtle">
-                  Target {lesson.targetWpm} WPM · {lesson.targetAccuracy}%
+                  {t('lessons.targetLine', { wpm: lesson.targetWpm, accuracy: lesson.targetAccuracy })}
                 </span>
                 <Button size="sm" variant="secondary" onClick={() => onStart(lesson)}>
-                  <Play size={14} /> Practice
+                  <Play size={14} /> {t('lessons.practice')}
                 </Button>
               </div>
             );

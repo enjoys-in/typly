@@ -1,12 +1,8 @@
 import { Columns2, Rows3 } from 'lucide-react';
 import { Segmented, type SegmentedOption } from '@/ui/Segmented';
+import { useT } from '@/i18n';
 
 export type ExamLayout = 'split' | 'stacked';
-
-const OPTIONS: SegmentedOption<ExamLayout>[] = [
-  { value: 'split', label: 'Split', icon: Columns2 },
-  { value: 'stacked', label: 'Stacked', icon: Rows3 },
-];
 
 export function LayoutSwitcher({
   layout,
@@ -15,7 +11,18 @@ export function LayoutSwitcher({
   layout: ExamLayout;
   onChange: (layout: ExamLayout) => void;
 }) {
+  const t = useT();
+  const options: SegmentedOption<ExamLayout>[] = [
+    { value: 'split', label: t('exam.split'), icon: Columns2 },
+    { value: 'stacked', label: t('exam.stacked'), icon: Rows3 },
+  ];
+
   return (
-    <Segmented options={OPTIONS} value={layout} onChange={onChange} ariaLabel="Exam layout" />
+    <Segmented
+      options={options}
+      value={layout}
+      onChange={onChange}
+      ariaLabel={t('exam.layoutAria')}
+    />
   );
 }

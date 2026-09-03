@@ -5,6 +5,7 @@ import { countAt, typedAfter, typedBetween } from '@/core/typing/replay';
 import { Button } from '@/ui/Button';
 import { Segmented, type SegmentedOption } from '@/ui/Segmented';
 import { PassageView } from '@/components/exam/PassageView';
+import { useT } from '@/i18n';
 
 type Speed = '1' | '2' | '4';
 
@@ -31,6 +32,7 @@ function clock(ms: number): string {
  * the burst that outran accuracy.
  */
 export function ReplayPlayer({ passage, keystrokes, fontFamily }: Props) {
+  const t = useT();
   const duration = keystrokes[keystrokes.length - 1]?.t ?? 0;
   const [ms, setMs] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -93,7 +95,7 @@ export function ReplayPlayer({ passage, keystrokes, fontFamily }: Props) {
   if (keystrokes.length === 0) {
     return (
       <p className="text-sm text-fg-muted">
-        No keystroke log was recorded for this attempt, so it cannot be replayed.
+        {t('replay.none')}
       </p>
     );
   }
@@ -108,11 +110,15 @@ export function ReplayPlayer({ passage, keystrokes, fontFamily }: Props) {
         className="max-h-72"
       />
       <div className="flex flex-wrap items-center gap-3">
-        <Button size="sm" onClick={toggle} aria-label={playing ? 'Pause replay' : 'Play replay'}>
+        <Button
+          size="sm"
+          onClick={toggle}
+          aria-label={t(playing ? 'replay.pause' : 'replay.play')}
+        >
           {playing ? <Pause size={14} /> : <Play size={14} />}
-          {playing ? 'Pause' : ms >= duration ? 'Replay' : 'Play'}
+          {t(playing ? 'replay.pause' : ms >= duration ? 'replay.again' : 'replay.play')}
         </Button>
-        <Button size="sm" variant="secondary" onClick={() => setMs(0)} aria-label="Back to start">
+        <Button size="sm" variant="secondary" onClick={() => setMs(0)} aria-label={t('replay.backToStart')}>
           <RotateCcw size={14} />
         </Button>
         <input
@@ -124,13 +130,13 @@ export function ReplayPlayer({ passage, keystrokes, fontFamily }: Props) {
             setPlaying(false);
             setMs(Number(e.target.value));
           }}
-          aria-label="Replay position"
+          aria-label={t('replay.position')}
           className="h-1.5 min-w-40 flex-1 cursor-pointer accent-[var(--accent)]"
         />
         <span className="text-xs tabular-nums text-fg-muted">
           {clock(ms)} / {clock(duration)}
         </span>
-        <Segmented options={SPEED_OPTIONS} value={speed} onChange={setSpeed} ariaLabel="Replay speed" />
+        <Segmented options={SPEED_OPTIONS} value={speed} onChange={setSpeed} ariaLabel={t('replay.speed')} />
       </div>
     </div>
   );

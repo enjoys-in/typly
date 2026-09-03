@@ -8,6 +8,7 @@ import { Card } from '@/ui/Card';
 import { ProgressBar } from '@/ui/ProgressBar';
 import { Chip, ChipRow } from './Chips';
 import { KeyHeatmap } from './KeyHeatmap';
+import { useT } from '@/i18n';
 
 interface Props {
   keystrokes: Keystroke[];
@@ -38,6 +39,7 @@ export function speedFocus(keystrokes: Keystroke[]): SpeedFocus {
  * accurate and still stall on the same three transitions every run.
  */
 export function SpeedPanel({ keystrokes }: Props) {
+  const t = useT();
   const stats = useMemo(() => {
     const keys = slowKeys(keystrokes);
     return {
@@ -57,7 +59,7 @@ export function SpeedPanel({ keystrokes }: Props) {
       <Card className="flex flex-col items-start gap-3">
         <Timer className="text-fg-subtle" />
         <p className="text-sm text-fg-muted">
-          No timing data yet. Finish a test and your per-key speed shows up here.
+          {t('trainer.noTiming')}
         </p>
       </Card>
     );
@@ -67,40 +69,39 @@ export function SpeedPanel({ keystrokes }: Props) {
     <>
       <Card className="space-y-4">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h2 className="font-semibold">Rhythm</h2>
+          <h2 className="font-semibold">{t('trainer.rhythm')}</h2>
           <span className="text-sm text-fg-muted tabular-nums">
-            {stats.beat.meanMs} ms between keys · {stats.cpm} CPM at full flow
+            {t('trainer.beat', { ms: stats.beat.meanMs, cpm: stats.cpm })}
           </span>
         </div>
         <div className="space-y-2">
           <div className="flex items-baseline justify-between text-xs">
             <span className="flex items-center gap-1.5 font-medium tracking-wide text-fg-muted uppercase">
-              <Activity size={13} /> Consistency
+              <Activity size={13} /> {t('trainer.consistency')}
             </span>
             <span className="font-semibold tabular-nums">{stats.beat.consistency}%</span>
           </div>
           <ProgressBar value={stats.beat.consistency} />
           <p className="text-xs text-fg-muted">
-            How even your keystroke timing is. Bursts followed by stalls read low here — steady
-            beats fast-then-stuck at the same average speed.
+            {t('trainer.consistencyHint')}
           </p>
         </div>
       </Card>
 
       <Card className="space-y-3">
-        <h2 className="font-semibold">Slowest keys</h2>
+        <h2 className="font-semibold">{t('trainer.slowestKeys')}</h2>
         <KeyHeatmap
           values={stats.heat}
           max={stats.max}
           tone="slow"
-          describe={(ms) => `${ms} ms to press`}
-          emptyLabel="not measured"
+          describe={(ms) => t('trainer.msToPress', { ms })}
+          emptyLabel={t('trainer.notMeasured')}
         />
       </Card>
 
       {stats.fingers.length > 0 && (
         <Card className="space-y-3">
-          <h2 className="font-semibold">Time per finger</h2>
+          <h2 className="font-semibold">{t('trainer.perFinger')}</h2>
           <ul className="space-y-2">
             {stats.fingers.map((f) => (
               <li key={f.finger} className="flex items-center gap-3 text-sm">
@@ -121,15 +122,14 @@ export function SpeedPanel({ keystrokes }: Props) {
             ))}
           </ul>
           <p className="text-xs text-fg-muted">
-            Mean time-to-press by finger. A slow pinky or ring finger usually means the hand is
-            leaving the home row to reach.
+            {t('trainer.perFingerHint')}
           </p>
         </Card>
       )}
 
       {stats.pairs.length > 0 && (
         <Card className="space-y-3">
-          <h2 className="font-semibold">Slowest transitions</h2>
+          <h2 className="font-semibold">{t('trainer.slowestPairs')}</h2>
           <ChipRow>
             {stats.pairs.map((p) => (
               <Chip key={`${p.from}${p.to}`} meta={`${p.meanMs} ms`}>
@@ -141,7 +141,7 @@ export function SpeedPanel({ keystrokes }: Props) {
             ))}
           </ChipRow>
           <p className="text-xs text-fg-muted">
-            Pairs of characters your hands hesitate between. These are what a rhythm drill fixes.
+            {t('trainer.slowestPairsHint')}
           </p>
         </Card>
       )}

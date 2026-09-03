@@ -1,3 +1,4 @@
+import { useT } from '@/i18n';
 import type { TimelinePoint } from '@/core/types';
 
 const W = 640;
@@ -6,8 +7,9 @@ const PAD = { top: 16, right: 16, bottom: 26, left: 32 };
 
 // Per-minute WPM (green) + accuracy (orange) drawn as a lightweight inline SVG — no chart dep.
 export function WpmChart({ timeline }: { timeline: TimelinePoint[] }) {
+  const t = useT();
   if (timeline.length === 0) {
-    return <p className="text-sm text-fg-muted">No timeline data for this test.</p>;
+    return <p className="text-sm text-fg-muted">{t('chart.noTimeline')}</p>;
   }
 
   const innerW = W - PAD.left - PAD.right;
@@ -34,7 +36,7 @@ export function WpmChart({ timeline }: { timeline: TimelinePoint[] }) {
           <span className="bg-accent h-2 w-2 rounded-full" /> WPM
         </span>
         <span className="flex items-center gap-1.5 text-[var(--brand-accent-from)]">
-          <span className="brand-accent-gradient h-2 w-2 rounded-full" /> Accuracy %
+          <span className="brand-accent-gradient h-2 w-2 rounded-full" /> {t('chart.accuracyPct')}
         </span>
       </div>
 
@@ -42,7 +44,7 @@ export function WpmChart({ timeline }: { timeline: TimelinePoint[] }) {
         viewBox={`0 0 ${W} ${H}`}
         className="h-auto w-full"
         role="img"
-        aria-label="Per-minute WPM and accuracy"
+        aria-label={t('chart.perMinute')}
       >
         {gridY.map((g) => {
           const y = PAD.top + innerH - g * innerH;

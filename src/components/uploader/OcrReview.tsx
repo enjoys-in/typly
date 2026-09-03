@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Check, RotateCcw, ScanText, Sparkles } from 'lucide-react';
 import { diffTexts, mergeSegments, countDifferences, type Choice } from '@/core/text/ocrDiff';
 import { Button } from '@/ui/Button';
+import { useT } from '@/i18n';
 
 interface Props {
   /** Engine A — on-device Tesseract (or the original scan). */
@@ -27,6 +28,7 @@ export function OcrReview({
   onConfirm,
   onCancel,
 }: Props) {
+  const t = useT();
   const [active, setActive] = useState(versions.length - 1);
   const [choices, setChoices] = useState<Record<number, Choice>>({});
 
@@ -61,7 +63,7 @@ export function OcrReview({
   return (
     <div className="space-y-5">
       <div>
-        <h3 className="text-base font-semibold">Verify extracted text</h3>
+        <h3 className="text-base font-semibold">{t('ocr.verify')}</h3>
         <p className="mt-1 text-sm text-fg-muted">
           {versions.length > 1
             ? `You have ${versions.length} ${labelB} versions — pick one, then review and continue.`
@@ -88,14 +90,14 @@ export function OcrReview({
               v{i + 1}
             </button>
           ))}
-          <span className="text-fg-subtle">Continuing keeps the selected one; the rest are discarded.</span>
+          <span className="text-fg-subtle">{t('ocr.keepSelected')}</span>
         </div>
       )}
 
       {diffCount > 0 && (
         <>
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="text-fg-muted">Quick pick:</span>
+            <span className="text-fg-muted">{t('ocr.quickPick')}</span>
             <Button size="sm" variant="secondary" onClick={() => preferAll('b')}>
               <Sparkles size={14} /> All {labelB}
             </Button>
@@ -153,7 +155,7 @@ export function OcrReview({
       )}
 
       <div className="space-y-2">
-        <label className="text-sm font-medium text-fg-muted">Final text</label>
+        <label className="text-sm font-medium text-fg-muted">{t('ocr.finalText')}</label>
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -164,10 +166,10 @@ export function OcrReview({
 
       <div className="flex items-center justify-between gap-3">
         <Button variant="ghost" onClick={onCancel}>
-          <RotateCcw size={16} /> Scan again
+          <RotateCcw size={16} /> {t('ocr.scanAgain')}
         </Button>
         <Button onClick={() => onConfirm(text)} disabled={text.trim().length < 1}>
-          <Check size={16} /> Use this text
+          <Check size={16} /> {t('ocr.useThis')}
         </Button>
       </div>
     </div>

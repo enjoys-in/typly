@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { ArrowRight, Minus, TrendingDown, TrendingUp } from 'lucide-react';
 import type { TestRow } from '@/core/types';
 import { Stat } from '@/ui/Stat';
+import { useT } from '@/i18n';
 
 const W = 640;
 const H = 220;
@@ -17,6 +18,7 @@ interface Point {
 // Net WPM (accent) + accuracy (brand-accent) across the whole test history, so a
 // user can compare test-to-test and see how much they improved. Inline SVG, no dep.
 export function ProgressChart({ rows }: { rows: TestRow[] }) {
+  const t = useT();
   // History comes newest-first; compare chronologically (oldest → newest).
   const points = useMemo<Point[]>(
     () =>
@@ -27,7 +29,7 @@ export function ProgressChart({ rows }: { rows: TestRow[] }) {
   );
 
   if (points.length < 2) {
-    return <p className="text-sm text-fg-muted">Take at least two tests to compare your progress.</p>;
+    return <p className="text-sm text-fg-muted">{t('chart.needTwo')}</p>;
   }
 
   const first = points[0]!;
@@ -57,7 +59,7 @@ export function ProgressChart({ rows }: { rows: TestRow[] }) {
       {/* Before → after: first recorded test vs the latest one. */}
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-panel bg-surface-2 p-5">
         <div>
-          <p className="text-xs uppercase tracking-wide text-fg-muted">First test</p>
+          <p className="text-xs uppercase tracking-wide text-fg-muted">{t('chart.firstTest')}</p>
           <p className="text-3xl font-bold tabular-nums">
             {first.netWpm} <span className="text-base font-normal text-fg-subtle">WPM</span>
           </p>
@@ -65,31 +67,31 @@ export function ProgressChart({ rows }: { rows: TestRow[] }) {
         </div>
         <ArrowRight className="text-fg-subtle" />
         <div>
-          <p className="text-xs uppercase tracking-wide text-fg-muted">Latest test</p>
+          <p className="text-xs uppercase tracking-wide text-fg-muted">{t('chart.latestTest')}</p>
           <p className="text-accent-text text-3xl font-bold tabular-nums">
             {last.netWpm} <span className="text-base font-normal text-fg-subtle">WPM</span>
           </p>
           <p className="text-xs text-fg-subtle">{format(new Date(last.date), 'dd MMM')}</p>
         </div>
         <div className="flex flex-col gap-1.5">
-          <Delta value={wpmDelta} unit=" WPM" label="speed" />
+          <Delta value={wpmDelta} unit=" WPM" label={t('chart.speed')} />
           <Delta value={accDelta} unit="% accuracy" label="" />
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
-        <Stat label="Tests taken" value={String(n)} />
-        <Stat label="Best WPM" value={String(bestWpm)} accent />
-        <Stat label="Average WPM" value={String(avgWpm)} />
-        <Stat label="Latest accuracy" value={`${last.accuracy}%`} />
+        <Stat label={t('chart.testsTaken')} value={String(n)} />
+        <Stat label={t('chart.bestWpm')} value={String(bestWpm)} accent />
+        <Stat label={t('chart.averageWpm')} value={String(avgWpm)} />
+        <Stat label={t('chart.latestAccuracy')} value={`${last.accuracy}%`} />
       </div>
 
       <div className="flex items-center gap-4 text-xs font-medium">
         <span className="text-accent-text flex items-center gap-1.5">
-          <span className="bg-accent h-2 w-2 rounded-full" /> Net WPM
+          <span className="bg-accent h-2 w-2 rounded-full" /> {t('chart.netWpm')}
         </span>
         <span className="flex items-center gap-1.5 text-(--brand-accent-from)">
-          <span className="brand-accent-gradient h-2 w-2 rounded-full" /> Accuracy %
+          <span className="brand-accent-gradient h-2 w-2 rounded-full" /> {t('chart.accuracyPct')}
         </span>
       </div>
 
@@ -97,7 +99,7 @@ export function ProgressChart({ rows }: { rows: TestRow[] }) {
         viewBox={`0 0 ${W} ${H}`}
         className="h-auto w-full"
         role="img"
-        aria-label="Net WPM and accuracy across tests"
+        aria-label={t('chart.acrossTests')}
       >
         {gridY.map((g) => {
           const y = PAD.top + innerH - g * innerH;

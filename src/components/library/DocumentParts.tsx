@@ -7,6 +7,7 @@ import { planFor } from '@/core/library/parts';
 import { Button } from '@/ui/Button';
 import { ProgressBar } from '@/ui/ProgressBar';
 import { Segmented, type SegmentedOption } from '@/ui/Segmented';
+import { useT } from '@/i18n';
 
 const OPTIONS: SegmentedOption<number>[] = SPLIT_PRESETS.map((preset) => ({
   value: preset.chars,
@@ -31,6 +32,7 @@ interface Props {
  * off" surface — clicking a part starts there and the remaining parts follow.
  */
 export function DocumentParts({ doc, progress, onStart, onSplit, onReset }: Props) {
+  const t = useT();
   const plan = useMemo(() => planFor(doc, progress), [doc, progress]);
   const [chunkChars, setChunkChars] = useState(
     () => progress?.chunkChars ?? suggestChunkChars(doc.charCount),
@@ -45,7 +47,7 @@ export function DocumentParts({ doc, progress, onStart, onSplit, onReset }: Prop
     return (
       <div className="space-y-3">
         <p className="flex items-center gap-2 text-xs font-semibold tracking-wide text-fg-muted uppercase">
-          <Scissors size={14} /> Split into passages
+          <Scissors size={14} /> {t('split.title')}
         </p>
         <p className="text-sm text-fg-muted">
           {doc.charCount.toLocaleString()} characters is a lot for one sitting. Cut it into parts
@@ -56,7 +58,7 @@ export function DocumentParts({ doc, progress, onStart, onSplit, onReset }: Prop
             options={OPTIONS}
             value={chunkChars}
             onChange={setChunkChars}
-            ariaLabel="Passage length"
+            ariaLabel="{t('split.length')}"
           />
           <Button size="sm" onClick={() => onSplit(chunkChars)}>
             <Scissors size={13} /> Split into {preview?.length ?? 0}
@@ -117,7 +119,7 @@ export function DocumentParts({ doc, progress, onStart, onSplit, onReset }: Prop
       </div>
 
       <div className="flex flex-wrap items-center gap-3 border-t border-line pt-3">
-        <span className="text-xs text-fg-subtle">Re-cut at a different length:</span>
+        <span className="text-xs text-fg-subtle">{t('split.recut')}</span>
         <Segmented
           options={OPTIONS}
           value={chunkChars}
@@ -127,10 +129,10 @@ export function DocumentParts({ doc, progress, onStart, onSplit, onReset }: Prop
             // carried over — startProgress drops it.
             if (next !== progress.chunkChars) onSplit(next);
           }}
-          ariaLabel="Passage length"
+          ariaLabel={t('split.length')}
         />
         <Button variant="ghost" size="sm" onClick={onReset}>
-          <RotateCcw size={13} /> Undo split
+          <RotateCcw size={13} /> {t('split.undo')}
         </Button>
       </div>
     </div>

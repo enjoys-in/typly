@@ -94,7 +94,7 @@ export function Sidebar() {
             </span>
             <div className="min-w-0 flex-1 leading-tight">
               <p className="truncate font-bold">{appConfig.name}</p>
-              <p className="truncate text-xs text-fg-muted">{appConfig.tagline}</p>
+              <p className="truncate text-xs text-fg-muted">{t('brand.tagline')}</p>
             </div>
             <IconAction
               icon={PanelLeftClose}

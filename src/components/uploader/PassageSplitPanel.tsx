@@ -3,6 +3,7 @@ import { Scissors } from 'lucide-react';
 import { SPLIT_PRESETS, splitPassage } from '@/core/text/splitter';
 import { Segmented, type SegmentedOption } from '@/ui/Segmented';
 import { Toggle } from '@/ui/Toggle';
+import { useT } from '@/i18n';
 
 /** 0 means "keep it as one passage". */
 export type ChunkChoice = number;
@@ -28,6 +29,7 @@ interface Props {
  * that run back-to-back, and that the library can resume part-way through.
  */
 export function PassageSplitPanel({ text, chunkChars, onChange, suggested }: Props) {
+  const t = useT();
   const enabled = chunkChars > 0;
   const parts = useMemo(
     () => (enabled ? splitPassage(text, chunkChars) : []),
@@ -42,7 +44,7 @@ export function PassageSplitPanel({ text, chunkChars, onChange, suggested }: Pro
         <div className="flex items-start gap-2.5">
           <Scissors size={17} className="mt-0.5 shrink-0 text-fg-subtle" />
           <div>
-            <p className="text-sm font-semibold">Split into passages</p>
+            <p className="text-sm font-semibold">{t('split.title')}</p>
             <p className="mt-0.5 text-[13px] leading-relaxed text-fg-muted">
               This text is long for one test. Split it and each part becomes its own attempt —
               the library remembers which part you reached.
@@ -60,13 +62,13 @@ export function PassageSplitPanel({ text, chunkChars, onChange, suggested }: Pro
         <div className="space-y-3 border-t border-line pt-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span className="text-xs font-medium tracking-wide text-fg-muted uppercase">
-              Passage length
+              {t('split.length')}
             </span>
             <Segmented
               options={OPTIONS}
               value={chunkChars}
               onChange={onChange}
-              ariaLabel="Passage length"
+              ariaLabel={t('split.length')}
             />
           </div>
           <p className="text-[13px] tabular-nums text-fg-muted">

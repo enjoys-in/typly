@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { RequireAccount } from '@/components/layout/RequireAccount';
 import { FullPageLoader } from '@/ui/Skeleton';
+import { useT } from '@/i18n';
 
 // Every page is a separate chunk, so the first paint ships only the shell plus
 // the route being visited. Pages use named exports, hence the `.then` mapping.
@@ -21,6 +22,7 @@ const Progress = lazy(() => import('@/pages/Progress').then((m) => ({ default: m
 const Settings = lazy(() => import('@/pages/Settings').then((m) => ({ default: m.Settings })));
 
 export function App() {
+  const t = useT();
   return (
     <HashRouter>
       <Routes>
@@ -29,7 +31,7 @@ export function App() {
         <Route
           path="/"
           element={
-            <Suspense fallback={<FullPageLoader label="Loading" />}>
+            <Suspense fallback={<FullPageLoader label={t('common.loading')} />}>
               <Login />
             </Suspense>
           }

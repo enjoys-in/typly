@@ -4,6 +4,7 @@ import { useThemeStore } from '@/store/themeStore';
 import { useThemeModeStore, type ThemeMode } from '@/store/themeMode';
 import { Segmented, type SegmentedOption } from '@/ui/Segmented';
 import { Card } from '@/ui/Card';
+import { useT } from '@/i18n';
 
 const LABEL: Record<ThemeName, string> = {
   emerald: 'Emerald',
@@ -19,6 +20,7 @@ const MODE_OPTIONS: SegmentedOption<ThemeMode>[] = [
 ];
 
 export function ThemeCard() {
+  const t = useT();
   const { theme, setTheme } = useThemeStore();
   const { mode, setMode } = useThemeModeStore();
   const names = Object.keys(THEMES) as ThemeName[];
@@ -27,22 +29,22 @@ export function ThemeCard() {
     <Card className="space-y-4">
       <div className="flex items-center gap-2">
         <Palette size={18} className="text-accent-text" />
-        <h2 className="font-semibold">Appearance</h2>
+        <h2 className="font-semibold">{t('theme.title')}</h2>
       </div>
 
       <div className="space-y-2">
-        <p className="text-sm font-medium text-fg-muted">Theme</p>
+        <p className="text-sm font-medium text-fg-muted">{t('theme.title')}</p>
         <Segmented
           options={MODE_OPTIONS}
           value={mode}
           onChange={setMode}
           full
-          ariaLabel="Colour theme"
+          ariaLabel={t('theme.colourTheme')}
         />
       </div>
 
       <div className="space-y-2 border-t border-line pt-4">
-        <p className="text-sm font-medium text-fg-muted">Accent colour</p>
+        <p className="text-sm font-medium text-fg-muted">{t('theme.accent')}</p>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {names.map((name) => {

@@ -15,14 +15,10 @@ import { SkeletonCard } from '@/ui/Skeleton';
 import { Chip, ChipRow } from '@/components/trainer/Chips';
 import { KeyHeatmap } from '@/components/trainer/KeyHeatmap';
 import { SpeedPanel, speedFocus } from '@/components/trainer/SpeedPanel';
+import { useT } from '@/i18n';
 
 /** Accuracy and speed are separate weaknesses and need separate drills. */
 type Focus = 'errors' | 'speed';
-
-const FOCUS_OPTIONS: SegmentedOption<Focus>[] = [
-  { value: 'errors', label: 'Accuracy', title: 'Keys and words you get wrong' },
-  { value: 'speed', label: 'Speed', title: 'Keys and transitions that cost you time' },
-];
 
 export function Trainer() {
   const platform = usePlatform();
@@ -30,6 +26,12 @@ export function Trainer() {
   const setConfig = useExamStore((s) => s.setConfig);
   const settings = useSettingsStore();
   const [focus, setFocus] = useState<Focus>('errors');
+  const t = useT();
+
+  const focusOptions: SegmentedOption<Focus>[] = [
+    { value: 'errors', label: t('trainer.accuracy'), title: t('trainer.accuracyHint') },
+    { value: 'speed', label: t('trainer.speed'), title: t('trainer.speedHint') },
+  ];
 
   const data = useAsync(
     async () => ({
@@ -83,20 +85,19 @@ export function Trainer() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Trainer</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('trainer.title')}</h1>
           <p className="mt-1 text-fg-muted">
-            Targeted practice generated from your own results — what you get wrong, and what slows
-            you down.
+            {t('trainer.subtitle')}
           </p>
         </div>
         {canDrill && (
           <Button onClick={startDrill}>
-            <Play size={16} /> Start {focus === 'speed' ? 'rhythm' : 'targeted'} drill
+            <Play size={16} /> {t(focus === 'speed' ? 'trainer.startRhythm' : 'trainer.startTargeted')}
           </Button>
         )}
       </div>
 
-      <Segmented options={FOCUS_OPTIONS} value={focus} onChange={setFocus} ariaLabel="Drill focus" />
+      <Segmented options={focusOptions} value={focus} onChange={setFocus} ariaLabel={t('trainer.focus')} />
 
       {data.loading ? (
         <SkeletonCard lines={4} />
@@ -106,25 +107,25 @@ export function Trainer() {
         <Card className="flex flex-col items-start gap-3">
           <Crosshair className="text-fg-subtle" />
           <p className="text-sm text-fg-muted">
-            No mistakes recorded yet. Take a few tests and your weak spots will show up here.
+            {t('trainer.noMistakes')}
           </p>
         </Card>
       ) : (
         <>
           <Card className="space-y-3">
-            <h2 className="font-semibold">Weak-key heatmap</h2>
+            <h2 className="font-semibold">{t('trainer.heatmap')}</h2>
             <KeyHeatmap
               values={errors.heat}
               max={errors.max}
               tone="error"
-              describe={(n) => `${n} error${n === 1 ? '' : 's'}`}
-              emptyLabel="no errors"
+              describe={(n) => (n === 1 ? t('trainer.errorCountOne') : t('trainer.errorCount', { count: n }))}
+              emptyLabel={t('trainer.noErrors')}
             />
           </Card>
 
           {errors.pairs.length > 0 && (
             <Card className="space-y-3">
-              <h2 className="font-semibold">Most-confused keys</h2>
+              <h2 className="font-semibold">{t('trainer.confused')}</h2>
               <ChipRow>
                 {errors.pairs.map((p) => (
                   <Chip key={p.expected + p.typed} meta={`×${p.count}`}>
@@ -139,7 +140,7 @@ export function Trainer() {
 
           {errors.words.length > 0 && (
             <Card className="space-y-3">
-              <h2 className="font-semibold">Most-missed words</h2>
+              <h2 className="font-semibold">{t('trainer.missedWords')}</h2>
               <ChipRow>
                 {errors.words.map((w) => (
                   <Chip key={w.expected} meta={`×${w.count}`}>

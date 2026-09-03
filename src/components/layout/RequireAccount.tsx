@@ -3,9 +3,11 @@ import { Navigate } from 'react-router-dom';
 import { usePlatform } from '@/platform/PlatformContext';
 import { FullPageLoader } from '@/ui/Skeleton';
 import { useAuthStore } from '@/store/authStore';
+import { useT } from '@/i18n';
 
 // Loads any existing account (guest or logged-in); redirects to Login if none.
 export function RequireAccount({ children }: { children: ReactNode }) {
+  const t = useT();
   const platform = usePlatform();
   const { account, setAccount } = useAuthStore();
   const [checked, setChecked] = useState(false);
@@ -17,7 +19,7 @@ export function RequireAccount({ children }: { children: ReactNode }) {
     });
   }, [platform, setAccount]);
 
-  if (!checked) return <FullPageLoader label="Restoring session" />;
+  if (!checked) return <FullPageLoader label={t('common.restoringSession')} />;
   if (!account) return <Navigate to="/" replace />;
   return <>{children}</>;
 }

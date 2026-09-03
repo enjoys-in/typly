@@ -7,6 +7,7 @@ import {
   SpellEngine,
 } from '@/core/constants';
 import { Card } from '@/ui/Card';
+import { useT } from '@/i18n';
 
 const GRAMMAR_HINT: Record<GrammarMode, string> = {
   [GrammarMode.Off]: 'No grammar checking.',
@@ -23,17 +24,18 @@ const SPELL_HINT: Record<SpellEngine, string> = {
 // Lets the user choose which language-tool modules run: grammar mode (on-device
 // vs AI) and, as a sub-option, which spell checker flags passage typos.
 export function LanguageToolsCard() {
+  const t = useT();
   const { grammarMode, spellEngine, setGrammarMode, setSpellEngine } = useLanguageToolsStore();
 
   return (
     <Card className="space-y-5">
       <div className="flex items-center gap-2">
         <SpellCheck size={18} className="text-accent-text" />
-        <h2 className="font-semibold">Language tools</h2>
+        <h2 className="font-semibold">{t('tools.title')}</h2>
       </div>
 
       <label className="flex flex-col gap-2">
-        <span className="text-sm font-medium">Grammar checker</span>
+        <span className="text-sm font-medium">{t('tools.grammar')}</span>
         <select
           value={grammarMode}
           onChange={(e) => setGrammarMode(e.target.value as GrammarMode)}
@@ -50,7 +52,7 @@ export function LanguageToolsCard() {
 
       {/* Sub-option: which spell checker feeds the passage cleanup step. */}
       <label className="flex flex-col gap-2 border-t border-edge pt-5">
-        <span className="text-sm font-medium">Spell check engine</span>
+        <span className="text-sm font-medium">{t('tools.spell')}</span>
         <select
           value={spellEngine}
           onChange={(e) => setSpellEngine(e.target.value as SpellEngine)}
