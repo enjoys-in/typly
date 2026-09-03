@@ -4,6 +4,7 @@ import { ArrowRight, Pause, Play } from 'lucide-react';
 import { usePlatform } from '@/platform/PlatformContext';
 import { useExamStore } from '@/store/examStore';
 import { useSettingsStore } from '@/store/settingsStore';
+import { useChromeStore } from '@/store/chromeStore';
 import { useCountdown } from '@/hooks/useCountdown';
 import { useStopwatch } from '@/hooks/useStopwatch';
 import { useWakeLock } from '@/hooks/useWakeLock';
@@ -13,11 +14,20 @@ import { useAsync } from '@/hooks/useAsync';
 import { useExamSnapshot } from '@/hooks/useExamSnapshot';
 import { useConfirm } from '@/ui/Confirm';
 import { Button } from '@/ui/Button';
-import type { ExamConfig, ExamSnapshot, Keystroke } from '@/core/types';
+import type {
+  ExamConfig,
+  ExamSnapshot,
+  GrammarIssue,
+  Keystroke,
+  Mistake,
+  PaperResult,
+  TestResult,
+} from '@/core/types';
 import { evaluate, buildTimeline, countBackspaces, countDeletes } from '@/core/typing/typingEngine';
 import { buildGhostTrack } from '@/core/typing/replay';
 import { attemptedSlice, findMistakes, countWords } from '@/core/typing/diff';
 import { score, applyDifficulty, applyMode } from '@/core/scoring/scoring';
+import { findMisspellings, liveWordCount, scoreFreeform } from '@/core/scoring/freeform';
 import { profileFor } from '@/core/scoring/examProfiles';
 import { resolveLessonTargets } from '@/core/lessons/customLessons';
 import { markPartDone } from '@/core/library/progress';
@@ -32,11 +42,13 @@ import {
 } from '@/core/constants';
 import { FONT_FAMILY, isLegacyFont } from '@/ui/fonts';
 import { PassageView } from './PassageView';
+import { PaperPanel } from './PaperPanel';
 import { TypingInput } from './TypingInput';
 import { Keyboard } from './Keyboard';
 import { PressedKey } from './PressedKey';
 import { ZoomControl } from './ZoomControl';
 import { LiveStats } from './LiveStats';
+import { PaperStats } from './PaperStats';
 import { Timer } from './Timer';
 import { ExamToolbar } from './ExamToolbar';
 import { ExamBriefing } from './ExamBriefing';
@@ -71,7 +83,7 @@ export function ExamRun({ config, resume }: Props) {
   const setFinished = useExamStore((s) => s.setFinished);
   const clearResume = useExamStore((s) => s.clearResume);
   const series = useExamStore((s) => s.series);
-  const notify = useSettingsStore((s) => s.notify);
+  const notifyEnabled = useSettingsStore((s) => s.notify);
   const sound = useSettingsStore((s) => s.sound);
   const showKeyboard = useSettingsStore((s) => s.showKeyboard);
   const setShowKeyboard = useSettingsStore((s) => s.setShowKeyboard);
@@ -83,6 +95,8 @@ export function ExamRun({ config, resume }: Props) {
   const setExamZoom = useSettingsStore((s) => s.setExamZoom);
   const showStats = useSettingsStore((s) => s.showStats);
   const setShowStats = useSettingsStore((s) => s.setShowStats);
+
+  const setBare = useChromeStore((s) => s.setBare);
 
   const [phase, setPhase] = useState<Phase>(() => initialPhase(config, resume));
   // Captured once: the checkpoint is consumed below, but the run stays labelled.
@@ -114,8 +128,10 @@ export function ExamRun({ config, resume }: Props) {
   );
 
   const isCountdown = config.timing === TimingMode.Countdown;
-  // Non-stop mode (locked exams) forbids pausing.
-  const nonStop = config.examLock;
+  // Locked exams and exam-day mode both forbid pausing.
+  const nonStop = config.examLock || config.examDay;
+  // Nothing pops up over a real test centre's screen.
+  const notify = notifyEnabled && !config.examDay;
   const typing = phase === 'typing';
   const active = running && !paused && typing;
   const countdown = useCountdown(config.durationSec, active && isCountdown, resume?.elapsedMs ?? 0);
@@ -167,25 +183,59 @@ export function ExamRun({ config, resume }: Props) {
         return;
       }
 
-      const { correctChars, incorrectChars } = evaluate(config.passage, finalTyped);
-      // Only the part of the passage that was reached is compared, so an
-      // unfinished (i.e. normal) attempt is not penalised for the untyped tail.
-      const mistakes = findMistakes(attemptedSlice(config.passage, finalTyped), finalTyped);
-      const wrongWords = mistakes.length;
       const totalMs = Math.max(elapsedMs, 1000);
 
-      const result = score({
-        charsTyped: finalTyped.length,
-        correctChars,
-        incorrectChars,
-        correctWords: Math.max(0, countWords(finalTyped) - wrongWords),
-        wrongWords,
-        backspaces: countBackspaces(keystrokes.current),
-        deletes: countDeletes(keystrokes.current),
-        errors: mistakes.length,
-        elapsedMs: totalMs,
-        rules,
-      });
+      // Paper mode has no passage to compare against, so the language decides
+      // what was wrong: the dictionary and the grammar checker.
+      let paper: PaperResult | undefined;
+      let mistakes: Mistake[] = [];
+      let result: TestResult;
+
+      if (config.paper) {
+        const spelling = await findMisspellings(finalTyped, platform.spell);
+        const grammar = await platform.grammar
+          .check(finalTyped, config.lang)
+          .catch(() => [] as GrammarIssue[]);
+        const findings = {
+          words: liveWordCount(finalTyped),
+          misspelled: spelling.misspelled,
+          misspelledCount: spelling.misspelledCount,
+          grammar,
+          spellChecked: spelling.checked,
+        };
+        result = scoreFreeform({
+          typed: finalTyped,
+          elapsedMs: totalMs,
+          keystrokes: keystrokes.current,
+          findings,
+          rules,
+        });
+        paper = {
+          typed: finalTyped,
+          words: findings.words,
+          misspelled: findings.misspelled,
+          grammar,
+          spellChecked: findings.spellChecked,
+        };
+      } else {
+        const { correctChars, incorrectChars } = evaluate(config.passage, finalTyped);
+        // Only the part of the passage that was reached is compared, so an
+        // unfinished (i.e. normal) attempt is not penalised for the untyped tail.
+        mistakes = findMistakes(attemptedSlice(config.passage, finalTyped), finalTyped);
+        const wrongWords = mistakes.length;
+        result = score({
+          charsTyped: finalTyped.length,
+          correctChars,
+          incorrectChars,
+          correctWords: Math.max(0, countWords(finalTyped) - wrongWords),
+          wrongWords,
+          backspaces: countBackspaces(keystrokes.current),
+          deletes: countDeletes(keystrokes.current),
+          errors: mistakes.length,
+          elapsedMs: totalMs,
+          rules,
+        });
+      }
 
       if (notify) {
         const title =
@@ -244,7 +294,7 @@ export function ExamRun({ config, resume }: Props) {
         ).catch(() => {});
       }
 
-      setFinished({ payload, result, mistakes, savedId });
+      setFinished({ payload, result, mistakes, savedId, ...(paper ? { paper } : {}) });
       navigate('/app/result');
     },
     [config, rules, elapsedMs, platform, setFinished, navigate, notify, sound, clearSnapshot],
@@ -280,6 +330,14 @@ export function ExamRun({ config, resume }: Props) {
   useEffect(() => {
     if (resume) clearResume();
   }, [resume, clearResume]);
+
+  // Exam-day mode: the sidebar and page padding go away for the run, and come
+  // back however it ends — submitted, abandoned or navigated away from.
+  useEffect(() => {
+    if (!config.examDay) return;
+    setBare(true);
+    return () => setBare(false);
+  }, [config.examDay, setBare]);
 
   // Ask for notification permission once when the exam mounts.
   useEffect(() => {
@@ -370,9 +428,10 @@ export function ExamRun({ config, resume }: Props) {
       typedRef.current = next;
       setTyped(next);
       ping();
-      if (next.length >= config.passage.length) void finish('complete');
+      // Paper mode has no end to reach — only the clock or the user stops it.
+      if (!config.paper && next.length >= config.passage.length) void finish('complete');
     },
-    [config.passage.length, finish, ping],
+    [config.paper, config.passage.length, finish, ping],
   );
 
   // A refused keystroke is silent otherwise, which reads as a broken input.
@@ -393,7 +452,9 @@ export function ExamRun({ config, resume }: Props) {
 
   const isSplit = layout === 'split';
   const blind = config.examMode === ExamMode.Blind;
-  const enforceCorrect = config.examMode === ExamMode.ErrorFree;
+  // Error-free mode compares each key against the passage, so it cannot apply
+  // when the passage is on paper.
+  const enforceCorrect = config.examMode === ExamMode.ErrorFree && !config.paper;
   // Legacy Devanagari fonts apply to the passage, input, and the on-screen keys.
   const fontActive = isDevanagari(config.lang) && hindiFont !== HindiFont.System;
   const fontFamily = fontActive ? FONT_FAMILY[hindiFont] : undefined;
@@ -415,6 +476,7 @@ export function ExamRun({ config, resume }: Props) {
       }`}
     >
       <ExamToolbar
+        examDay={config.examDay}
         config={config}
         profile={profile}
         series={series}
@@ -450,16 +512,25 @@ export function ExamRun({ config, resume }: Props) {
         }
       >
         <div className="relative flex min-h-0 flex-1 flex-col gap-4">
-          <PassageView
-            passage={config.passage}
-            typed={typed}
-            className="min-h-0 flex-1"
-            fontScale={examZoom}
-            blind={blind}
-            fontFamily={fontFamily}
-            caret={typing && !blind}
-            toolbar={<ZoomControl zoom={examZoom} onChange={setExamZoom} />}
-          />
+          {config.paper ? (
+            <PaperPanel
+              lang={config.lang}
+              words={liveWordCount(typed)}
+              chars={typed.length}
+              backspaces={countBackspaces(keystrokes.current)}
+            />
+          ) : (
+            <PassageView
+              passage={config.passage}
+              typed={typed}
+              className="min-h-0 flex-1"
+              fontScale={examZoom}
+              blind={blind}
+              fontFamily={fontFamily}
+              caret={typing && !blind}
+              toolbar={<ZoomControl zoom={examZoom} onChange={setExamZoom} />}
+            />
+          )}
           {ghost.data && typing && (
             <GhostBar
               track={ghost.data.track}
@@ -486,7 +557,7 @@ export function ExamRun({ config, resume }: Props) {
             onKeyDown={onKeyDown}
             onBlocked={onBlocked}
           />
-          {keyboardVisible ? (
+          {keyboardVisible && !config.paper ? (
             <Keyboard
               nextChar={config.passage[typed.length]}
               fontFamily={keymap ? undefined : keyFontFamily}
@@ -505,14 +576,23 @@ export function ExamRun({ config, resume }: Props) {
           )}
         </div>
         <div className={`${statsVisible ? '' : 'hidden'} ${isSplit ? '' : 'shrink-0'}`}>
-          <LiveStats
-            passage={config.passage}
-            typed={typed}
-            elapsedMs={elapsedMs}
-            targetWpm={rules.minWpm}
-            targetAccuracy={rules.minAccuracy}
-            blocked={blocked}
-          />
+          {config.paper ? (
+            <PaperStats
+              typed={typed}
+              elapsedMs={elapsedMs}
+              backspaces={countBackspaces(keystrokes.current)}
+              targetWpm={rules.minWpm}
+            />
+          ) : (
+            <LiveStats
+              passage={config.passage}
+              typed={typed}
+              elapsedMs={elapsedMs}
+              targetWpm={rules.minWpm}
+              targetAccuracy={rules.minAccuracy}
+              blocked={blocked}
+            />
+          )}
         </div>
       </div>
 

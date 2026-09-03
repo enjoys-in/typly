@@ -17,6 +17,7 @@ import { WpmChart } from '@/components/result/WpmChart';
 import { CoachPanel } from '@/components/result/CoachPanel';
 import { CertificateCard } from '@/components/result/CertificateCard';
 import { CutoffCard } from '@/components/result/CutoffCard';
+import { PaperReport } from '@/components/result/PaperReport';
 import { ReplayPlayer } from '@/components/result/ReplayPlayer';
 import { useAsync } from '@/hooks/useAsync';
 import { HindiFont } from '@/core/constants';
@@ -225,10 +226,14 @@ export function Results() {
           history={priorWpm.data ?? []}
         />
       )}
-      <Card className="space-y-3">
-        <h2 className="font-semibold">Mistakes</h2>
-        <MistakeList mistakes={finished.mistakes} />
-      </Card>
+      {finished.paper ? (
+        <PaperReport paper={finished.paper} />
+      ) : (
+        <Card className="space-y-3">
+          <h2 className="font-semibold">Mistakes</h2>
+          <MistakeList mistakes={finished.mistakes} />
+        </Card>
+      )}
       {finished.payload.keystrokes.length > 0 && config && (
         <Card className="space-y-3">
           <h2 className="font-semibold">Replay</h2>
@@ -236,7 +241,7 @@ export function Results() {
             Watch the attempt back to see where the time went, not just where the errors were.
           </p>
           <ReplayPlayer
-            passage={config.passage}
+            passage={finished.paper ? finished.paper.typed : config.passage}
             keystrokes={finished.payload.keystrokes}
             fontFamily={
               isDevanagari(finished.payload.lang) && hindiFont !== HindiFont.System

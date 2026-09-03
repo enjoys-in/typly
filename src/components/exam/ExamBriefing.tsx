@@ -72,6 +72,7 @@ export function ExamBriefing({ config, profile, rules, onStart }: Props) {
         <p className="text-xs text-fg-muted">
           {LANG_LABEL[config.lang]} · {EXAM_MODE_LABEL[config.examMode]} mode
           {config.examLock && ' · non-stop: leaving the window submits the test'}
+          {config.examDay && ' · exam day: no app around the test, and no pausing'}
         </p>
       </div>
 

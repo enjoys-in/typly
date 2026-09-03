@@ -6,6 +6,7 @@ import { createBrowserPlatform } from './platform/browser';
 import { createElectronPlatform } from './platform/electron';
 import { isElectron } from './platform/detect';
 import { registerAssetCache } from './platform/browser/assetCache';
+import { installChunkRecovery } from './platform/browser/chunkRecovery';
 import { applyBranding } from './config/appConfig';
 import { initTheme } from './store/themeStore';
 import { watchSystemTheme } from './store/themeMode';
@@ -17,6 +18,8 @@ applyBranding();
 initTheme();
 watchSystemTheme();
 registerAssetCache();
+// A tab left open across a deploy would otherwise fail on its next lazy route.
+installChunkRecovery();
 
 const platform = isElectron() ? createElectronPlatform() : createBrowserPlatform();
 

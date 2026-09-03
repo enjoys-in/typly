@@ -15,6 +15,7 @@ import { startProgress } from '@/core/library/progress';
 import { SourceType } from '@/core/constants';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
+import { PaperModeCard } from '@/components/uploader/PaperModeCard';
 import { SpeakButton } from '@/ui/SpeakButton';
 
 function deriveTitle(text: string): string {
@@ -44,6 +45,19 @@ export function NewTest() {
     // Long imports default to being split — that is almost always what someone
     // pasting a whole chapter wants, and the toggle is right there to undo it.
     setChunkChars(isLongPassage(text) ? suggestChunkChars(text.trim().length) : NO_SPLIT);
+  }
+
+  /** Paper mode: straight to Setup with nothing to type from on screen. */
+  function startPaperRun() {
+    setDraft({
+      passage: '',
+      title: 'Paper test',
+      documentId: null,
+      sourceType: SourceType.Text,
+      lang,
+      paper: true,
+    });
+    navigate('/app/setup');
   }
 
   // Back to the paste / upload step with a clean slate.
@@ -109,14 +123,18 @@ export function NewTest() {
       {/* One step at a time: the uploader is replaced by the detected-text summary,
           so the continue action stays above the fold instead of below a dropzone. */}
       {!hasText ? (
-        <Card>
-          <TextUploader
-            lang={lang}
-            onText={handleText}
-            incoming={incoming}
-            onIncomingTaken={takeIncoming}
-          />
-        </Card>
+        <>
+          <Card>
+            <TextUploader
+              lang={lang}
+              onText={handleText}
+              incoming={incoming}
+              onIncomingTaken={takeIncoming}
+            />
+          </Card>
+          {/* No passage needed: the text is on paper in front of the typist. */}
+          <PaperModeCard onStart={startPaperRun} />
+        </>
       ) : (
         <Card className="space-y-5">
           <TextInfoPanel text={passage} source={source} onReplace={replaceSource} />

@@ -119,6 +119,7 @@ export function ExamSetup() {
       title: draft.title,
       documentId: draft.documentId,
       sourceType: draft.sourceType,
+      paper: draft.paper === true,
       ghostTestId,
     });
     navigate('/app/exam');
@@ -127,6 +128,17 @@ export function ExamSetup() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Exam Setup</h1>
+      {draft.paper && (
+        <Card className="border-accent-border bg-accent-soft">
+          <p className="text-sm font-semibold">Paper test</p>
+          <p className="mt-1 text-sm text-fg-muted">
+            No passage on screen — read from your sheet. Scored on words, speed, corrections and,
+            at the end, spelling and grammar. There is nothing to compare against, so Error-free
+            mode and the ghost race do not apply.
+          </p>
+        </Card>
+      )}
+
       {split && (
         <Card className="border-accent-border bg-accent-soft">
           <p className="text-sm font-semibold">
@@ -248,6 +260,12 @@ export function ExamSetup() {
               hint="Open with the rules and cut-off, the way a real skill test does."
               checked={settings.briefing}
               onChange={settings.setBriefing}
+            />
+            <Toggle
+              label="Exam-day mode"
+              hint="Hides the app around the test, holds notifications and disables pausing."
+              checked={settings.examDay}
+              onChange={settings.setExamDay}
             />
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-medium text-fg">Reading time</span>

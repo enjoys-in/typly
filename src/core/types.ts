@@ -152,6 +152,18 @@ export interface ExamConfig {
   readingSec: number;
   /** Mock exam: show the rules briefing and require an explicit start. */
   briefing: boolean;
+  /**
+   * Exam-day mode: the app's furniture goes away, notifications are held, and
+   * the run cannot be paused — as close to a real test centre as a desktop
+   * app gets.
+   */
+  examDay: boolean;
+  /**
+   * Paper mode: the passage is on paper in front of the typist, not on screen.
+   * `passage` is empty, so nothing can be diffed — the run is scored on words,
+   * spelling, grammar and corrections instead.
+   */
+  paper: boolean;
   /** Race a past run of the same passage, shown as a live progress ghost. */
   ghostTestId: number | null;
   /** Set when this run is a curriculum lesson, so completion can be recorded. */
@@ -202,6 +214,8 @@ export interface Draft {
   lang: Lang;
   /** Set when the passage is one part of a split document. */
   split?: DraftSplit | null;
+  /** Paper mode: there is no passage to carry. */
+  paper?: boolean;
 }
 
 export interface FinishedExam {
@@ -209,6 +223,17 @@ export interface FinishedExam {
   result: TestResult;
   mistakes: Mistake[];
   savedId: number | null;
+  /** Paper mode only: what the typist wrote, and what was wrong with it. */
+  paper?: PaperResult;
+}
+
+/** The paper-mode findings, for the result page. */
+export interface PaperResult {
+  typed: string;
+  words: number;
+  misspelled: string[];
+  grammar: GrammarIssue[];
+  spellChecked: boolean;
 }
 
 /** A checkpoint of an attempt in progress, so a reload can pick it back up. */

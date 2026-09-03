@@ -12,6 +12,8 @@ import { ToggleChip } from '@/ui/ToggleChip';
 import { LayoutSwitcher, type ExamLayout } from './LayoutSwitcher';
 
 interface Props {
+  /** Exam-day mode: the view controls are put away for the run. */
+  examDay?: boolean;
   config: ExamConfig;
   profile: ExamProfile;
   series: Series | null;
@@ -34,6 +36,7 @@ const chip = 'rounded-full px-2.5 py-1 text-xs font-semibold';
 
 /** The exam header: what is being run, the view toggles, and the clock. */
 export function ExamToolbar({
+  examDay = false,
   config,
   profile,
   series,
@@ -74,50 +77,60 @@ export function ExamToolbar({
             <RotateCcw size={12} /> Resumed
           </span>
         )}
-        <LayoutSwitcher layout={layout} onChange={onLayout} />
+        {examDay ? (
+          <span className={`${chip} bg-danger-soft text-danger-soft-fg`}>Exam day</span>
+        ) : (
+          <LayoutSwitcher layout={layout} onChange={onLayout} />
+        )}
 
-        {/* Hiding the keyboard hands its ~300px to the passage. */}
-        <ToggleChip
-          active={keyboardVisible}
-          disabled={!isSplit}
-          onClick={() => onShowKeyboard(!showKeyboard)}
-          title={
-            !isSplit
-              ? 'The keyboard is off in Stacked so the passage keeps the height'
-              : showKeyboard
-                ? 'Hide the on-screen keyboard'
-                : 'Show the on-screen keyboard'
-          }
-        >
-          <KeyboardIcon size={14} />
-          {keyboardVisible ? 'Hide keyboard' : 'Show keyboard'}
-        </ToggleChip>
+        {/* The view controls are one group: exam-day mode puts all of them
+            away, so there is nothing to fiddle with mid-test. */}
+        {!examDay && (
+          <>
+            {/* Hiding the keyboard hands its ~300px to the passage. */}
+            <ToggleChip
+              active={keyboardVisible}
+              disabled={!isSplit}
+              onClick={() => onShowKeyboard(!showKeyboard)}
+              title={
+                !isSplit
+                  ? 'The keyboard is off in Stacked so the passage keeps the height'
+                  : showKeyboard
+                    ? 'Hide the on-screen keyboard'
+                    : 'Show the on-screen keyboard'
+              }
+            >
+              <KeyboardIcon size={14} />
+              {keyboardVisible ? 'Hide keyboard' : 'Show keyboard'}
+            </ToggleChip>
 
-        {/* Redundant while the full keyboard is up, so it is disabled there. */}
-        <ToggleChip
-          active={!keyboardVisible && showKeys}
-          disabled={keyboardVisible}
-          onClick={() => onShowKeys(!showKeys)}
-          title={
-            keyboardVisible
-              ? 'Hide the keyboard first — the full keyboard already shows keys'
-              : showKeys
-                ? 'Stop showing the pressed key'
-                : 'Show only the key you press'
-          }
-        >
-          <SquareDot size={14} />
-          Show keys
-        </ToggleChip>
+            {/* Redundant while the full keyboard is up, so it is disabled there. */}
+            <ToggleChip
+              active={!keyboardVisible && showKeys}
+              disabled={keyboardVisible}
+              onClick={() => onShowKeys(!showKeys)}
+              title={
+                keyboardVisible
+                  ? 'Hide the keyboard first — the full keyboard already shows keys'
+                  : showKeys
+                    ? 'Stop showing the pressed key'
+                    : 'Show only the key you press'
+              }
+            >
+              <SquareDot size={14} />
+              Show keys
+            </ToggleChip>
 
-        <ToggleChip
-          active={showStats}
-          onClick={() => onShowStats(!showStats)}
-          title={showStats ? 'Hide the live metrics panel' : 'Show the live metrics panel'}
-        >
-          <Activity size={14} />
-          {showStats ? 'Hide stats' : 'Show stats'}
-        </ToggleChip>
+            <ToggleChip
+              active={showStats}
+              onClick={() => onShowStats(!showStats)}
+              title={showStats ? 'Hide the live metrics panel' : 'Show the live metrics panel'}
+            >
+              <Activity size={14} />
+              {showStats ? 'Hide stats' : 'Show stats'}
+            </ToggleChip>
+          </>
+        )}
 
         {fullscreen.supported && (
           <ToggleChip

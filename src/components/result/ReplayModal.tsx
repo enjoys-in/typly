@@ -7,6 +7,7 @@ import { isDevanagari } from '@/core/text/scripts';
 import { FONT_FAMILY } from '@/ui/fonts';
 import { Modal } from '@/ui/Modal';
 import { SkeletonText } from '@/ui/Skeleton';
+import { typedAfter } from '@/core/typing/replay';
 import { ReplayPlayer } from './ReplayPlayer';
 
 interface Props {
@@ -24,8 +25,12 @@ export function ReplayModal({ testId, onClose }: Props) {
   const run = useAsync(async () => {
     const full = await platform.repo.getResult(testId);
     if (!full) return null;
-    const doc = full.row.documentId != null ? await platform.repo.getDocument(full.row.documentId) : null;
-    return { full, passage: doc?.content ?? '' };
+    const doc =
+      full.row.documentId != null ? await platform.repo.getDocument(full.row.documentId) : null;
+    // A paper run has no document — the text it produced is reconstructed from
+    // the keystrokes themselves, which is all the player needs.
+    const passage = doc?.content ?? typedAfter(full.keystrokes, full.keystrokes.length);
+    return { full, passage };
   }, [platform, testId]);
 
   const lang = run.data?.full.row.lang;

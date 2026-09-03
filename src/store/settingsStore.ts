@@ -52,6 +52,8 @@ interface SettingsState {
   briefing: boolean;
   /** Mock exam: seconds to read the passage before the clock starts. */
   readingSec: number;
+  /** Exam-day mode: no app furniture, no notifications, no pausing. */
+  examDay: boolean;
   setLang: (lang: Lang) => void;
   setBoard: (board: ExamBoard) => void;
   setTiming: (timing: TimingMode) => void;
@@ -76,6 +78,7 @@ interface SettingsState {
   setHindiFont: (v: HindiFont) => void;
   setBriefing: (v: boolean) => void;
   setReadingSec: (v: number) => void;
+  setExamDay: (v: boolean) => void;
 }
 
 /** The persisted slice — every field above except the setters. */
@@ -106,6 +109,7 @@ const DEFAULTS: Persisted = {
   hindiFont: HindiFont.System,
   briefing: false,
   readingSec: 0,
+  examDay: false,
 };
 
 // Single row in the Dexie `settings` table, so preferences live in IndexedDB
@@ -137,6 +141,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setInputMethod: (inputMethod) => set({ inputMethod }),
   setHindiFont: (hindiFont) => set({ hindiFont }),
   setBriefing: (briefing) => set({ briefing }),
+  setExamDay: (examDay) => set({ examDay }),
   // Clamped here so callers can pass raw input.
   setReadingSec: (readingSec) =>
     set({ readingSec: Math.min(MAX_READING_SEC, Math.max(0, Math.round(readingSec) || 0)) }),
@@ -163,13 +168,16 @@ export function examBase(s: SettingsState): SeriesBase {
     examLock: s.examLock,
     briefing: s.briefing,
     readingSec: s.readingSec,
+    examDay: s.examDay,
+    // Turned on by the New Test page, never remembered as a preference.
+    paper: false,
     ghostTestId: null,
   };
 }
 
 /** Same, for generated drills — a practice drill is never a mock exam. */
 export function drillBase(s: SettingsState): SeriesBase {
-  return { ...examBase(s), briefing: false, readingSec: 0 };
+  return { ...examBase(s), briefing: false, readingSec: 0, examDay: false };
 }
 
 /**

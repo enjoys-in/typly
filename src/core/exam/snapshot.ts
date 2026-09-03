@@ -45,6 +45,8 @@ function isSnapshot(value: unknown): value is ExamSnapshot {
     typeof s.config === 'object' &&
     s.config !== null &&
     typeof (s.config as ExamConfig).passage === 'string' &&
-    (s.config as ExamConfig).passage.length > 0
+    // A paper run has no passage on screen, so an empty one is valid there and
+    // nowhere else.
+    ((s.config as ExamConfig).passage.length > 0 || (s.config as ExamConfig).paper === true)
   );
 }
