@@ -3,6 +3,7 @@ import { Swords } from 'lucide-react';
 import { CHALLENGE_EXT } from '@/core/constants';
 import { useAcceptChallenge } from '@/hooks/useAcceptChallenge';
 import { Card } from '@/ui/Card';
+import { FileButton } from '@/ui/FileButton';
 import { useT } from '@/i18n';
 
 /**
@@ -19,8 +20,7 @@ export function ChallengeOpener() {
   const accept = useAcceptChallenge();
   const [error, setError] = useState<string | null>(null);
 
-  async function onPick(file: File | undefined) {
-    if (!file) return;
+  async function onPick(file: File) {
     setError(null);
     const bytes = new Uint8Array(await file.arrayBuffer());
     if (!accept({ name: file.name, bytes })) setError(t('challenge.unreadable'));
@@ -36,15 +36,9 @@ export function ChallengeOpener() {
         <p className="mt-0.5 text-xs text-fg-muted">{t('challenge.openHint')}</p>
         {error && <p className="mt-1 text-xs text-danger-text">{error}</p>}
       </div>
-      <label className="inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-control border border-edge bg-surface px-3 py-2 text-sm font-semibold transition-colors hover:bg-surface-hover">
+      <FileButton accept={CHALLENGE_EXT} onPick={(file) => void onPick(file)}>
         {t('challenge.openButton')}
-        <input
-          type="file"
-          accept={CHALLENGE_EXT}
-          className="sr-only"
-          onChange={(e) => void onPick(e.target.files?.[0])}
-        />
-      </label>
+      </FileButton>
     </Card>
   );
 }

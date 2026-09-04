@@ -3,6 +3,7 @@ import { Building2, Upload, X } from 'lucide-react';
 import { MAX_LOGO_BYTES, type InstituteBrand } from '@/core/institute/brand';
 import { useInstituteBrand } from '@/hooks/useInstituteBrand';
 import { Button } from '@/ui/Button';
+import { FileButton } from '@/ui/FileButton';
 import { Card } from '@/ui/Card';
 import { useT } from '@/i18n';
 
@@ -32,8 +33,7 @@ export function InstituteCard() {
     setDraft({ ...value, ...next });
   }
 
-  async function onLogo(file: File | undefined) {
-    if (!file) return;
+  async function onLogo(file: File) {
     if (file.size > MAX_LOGO_BYTES) {
       setError(t('institute.logoTooBig', { kb: Math.round(MAX_LOGO_BYTES / 1024) }));
       return;
@@ -109,16 +109,13 @@ export function InstituteCard() {
             </button>
           </span>
         ) : (
-          <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-control border border-edge bg-surface px-3 py-2 text-sm font-semibold transition-colors hover:bg-surface-hover">
+          <FileButton
+            accept="image/png,image/jpeg,image/svg+xml"
+            onPick={(file) => void onLogo(file)}
+          >
             <Upload size={15} />
             {t('institute.uploadLogo')}
-            <input
-              type="file"
-              accept="image/png,image/jpeg,image/svg+xml"
-              className="sr-only"
-              onChange={(e) => void onLogo(e.target.files?.[0])}
-            />
-          </label>
+          </FileButton>
         )}
         <Button
           disabled={!dirty}

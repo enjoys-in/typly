@@ -32,13 +32,13 @@ export function AppShell() {
     void loadDesktopFontCache();
   }, [platform]);
   return (
-    <div className="flex h-full">
+    <div className="flex h-full overflow-hidden">
       {/* First stop for a keyboard user: past the whole sidebar in one press. */}
       <a href="#main" className="sr-only skip-link">
         {t('nav.skipToContent')}
       </a>
       {!bare && <Sidebar />}
-      <main id="main" tabIndex={-1} className="h-full flex-1 overflow-y-auto outline-none">
+      <main id="main" tabIndex={-1} className="min-w-0 flex-1 overflow-y-auto outline-none">
         <div className={bare ? 'px-4 py-4' : 'px-6 py-8 sm:px-8'}>
           {/* Suspense sits inside the shell so a route change only skeletons the
               content area — the sidebar never flashes. Keyed on the path so each

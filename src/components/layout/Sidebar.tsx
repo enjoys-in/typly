@@ -70,13 +70,15 @@ export function Sidebar() {
 
   return (
     <aside
-      className={`flex shrink-0 flex-col border-r border-line bg-surface p-3 transition-[width] duration-200 ease-out ${
+      className={`flex h-full shrink-0 flex-col border-r border-line bg-surface p-3 transition-[width] duration-200 ease-out ${
         collapsed ? 'w-16' : 'w-64'
       }`}
     >
       {/* Brand + the collapse control. Collapsed, the logo tile becomes the
           expand button so the rail never costs more than one icon of width. */}
-      <div className={`mb-6 flex items-center ${collapsed ? 'justify-center' : 'gap-3 px-1'}`}>
+      <div
+        className={`mb-6 flex shrink-0 items-center ${collapsed ? 'justify-center' : 'gap-3 px-1'}`}
+      >
         {collapsed ? (
           <button
             type="button"
@@ -108,7 +110,13 @@ export function Sidebar() {
         )}
       </div>
 
-      <nav aria-label={t('nav.label')} className="flex flex-col gap-1">
+      {/* The one part that may not fit: `min-h-0` is what lets a flex child
+          actually shrink below its content, without which the overflow escapes
+          the sidebar entirely. */}
+      <nav
+        aria-label={t('nav.label')}
+        className="dt-scroll flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto"
+      >
         {LINKS.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
@@ -144,7 +152,7 @@ export function Sidebar() {
 
       {/* Language sits with About: both are about the app rather than the
           practice, and both have to be reachable from the collapsed rail. */}
-      <div className="mt-auto flex flex-col gap-1 pt-3">
+      <div className="flex shrink-0 flex-col gap-1 pt-3">
         <LanguageMenu collapsed={collapsed} />
         <button
           type="button"
@@ -159,7 +167,7 @@ export function Sidebar() {
         </button>
       </div>
 
-      <div className="border-t border-line pt-3">
+      <div className="shrink-0 border-t border-line pt-3">
         <div
           className={`mb-2 flex items-center ${collapsed ? 'justify-center' : 'gap-2 px-1'}`}
           title={collapsed ? (label ?? '') : undefined}
