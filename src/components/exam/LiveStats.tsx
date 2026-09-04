@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
-import { Ban, Gauge, Target, TriangleAlert, Type } from 'lucide-react';
+import { Ban, Gauge, Keyboard, Target, TriangleAlert, Type } from 'lucide-react';
 import { evaluate } from '@/core/typing/typingEngine';
 import { grossWpm } from '@/core/scoring/scoring';
+import { kdph } from '@/core/scoring/kdph';
 import { CHARS_PER_WORD } from '@/core/constants';
 import { countWords } from '@/core/typing/diff';
 import { ProgressBar } from '@/ui/ProgressBar';
@@ -17,6 +18,15 @@ interface Props {
   targetAccuracy?: number;
   /** Keystrokes the exam rules refused, so a blocked key is accounted for. */
   blocked?: number;
+  /**
+   * Key depressions so far, for a post graded in KDPH. Without this a
+   * data-entry run shows no sign of the one number it is marked on — the
+   * register view has its own reading, but a prose passage on a KDPH board
+   * would otherwise show nothing at all.
+   */
+  depressions?: number;
+  /** The post's depressions-per-hour bar; zero for a WPM-scored profile. */
+  targetKdph?: number;
 }
 
 // Live metrics panel shown beside the passage during the test.
@@ -27,6 +37,8 @@ export function LiveStats({
   targetWpm = 0,
   targetAccuracy = 0,
   blocked = 0,
+  depressions = 0,
+  targetKdph = 0,
 }: Props) {
   const t = useT();
   const { correctChars } = useMemo(() => evaluate(passage, typed), [passage, typed]);
@@ -40,6 +52,10 @@ export function LiveStats({
 
   const wpmOnPace = started && targetWpm > 0 ? wpm >= targetWpm : null;
   const accOnPace = accuracy !== null && targetAccuracy > 0 ? accuracy >= targetAccuracy : null;
+  // Rates over the first seconds swing wildly, so the pass/fail colour waits
+  // until there is enough elapsed time for the figure to mean anything.
+  const rate = targetKdph > 0 ? kdph(depressions, elapsedMs) : 0;
+  const kdphOnPace = targetKdph > 0 && elapsedMs > 3_000 ? rate >= targetKdph : null;
 
   return (
     <div className="flex flex-col gap-4 rounded-panel border border-line bg-surface p-5">
@@ -51,6 +67,18 @@ export function LiveStats({
         onPace={wpmOnPace}
         big
       />
+
+      {targetKdph > 0 && (
+        <div className="border-t border-line pt-4">
+          <Metric
+            icon={Keyboard}
+            label={t('stats.kdph')}
+            value={started ? rate.toLocaleString() : '—'}
+            target={t('stats.target', { value: targetKdph.toLocaleString() })}
+            onPace={kdphOnPace}
+          />
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4 border-t border-line pt-4">
         <Metric

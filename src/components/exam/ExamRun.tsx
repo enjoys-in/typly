@@ -38,6 +38,8 @@ import { keymapFor, isPhonetic } from '@/core/text/keymaps';
 import { isDevanagari } from '@/core/text/scripts';
 import { grossWpm } from '@/core/scoring/scoring';
 import { pacerAvailable } from '@/core/exam/pacer';
+import { depressionsOf } from '@/core/scoring/kdph';
+import { strictPossible } from '@/core/typing/strict';
 import {
   CHARS_PER_WORD,
   ExamMode,
@@ -482,8 +484,12 @@ export function ExamRun({ config, resume }: Props) {
   // Error-free mode compares each key against the passage, so it cannot apply
   // when the passage is on paper.
   const enforceCorrect = config.examMode === ExamMode.ErrorFree && !config.paper;
-  // Strict mode gates the word boundary, which likewise needs a passage.
-  const strict = config.examMode === ExamMode.Strict && !config.paper;
+  // Strict mode gates the word boundary, which likewise needs a passage — and
+  // a way out of a wrong word, or the run would deadlock on the first slip.
+  const strict =
+    config.examMode === ExamMode.Strict &&
+    !config.paper &&
+    strictPossible(config.backspaceEnabled);
   // A data-entry post is graded on depressions, and its source is a table — but
   // only if the passage actually *is* one. A prose passage on a KDPH board still
   // scores in depressions; it just reads better in the ordinary passage view.
@@ -624,6 +630,12 @@ export function ExamRun({ config, resume }: Props) {
             targetWpm={rules.minWpm}
             targetAccuracy={rules.minAccuracy}
             blocked={blocked}
+            depressions={depressionsOf({
+              charsTyped: typed.length,
+              backspaces: countBackspaces(keystrokes.current),
+              deletes: countDeletes(keystrokes.current),
+            })}
+            targetKdph={rules.minKdph}
           />
         )}
       </div>

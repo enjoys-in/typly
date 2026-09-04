@@ -113,12 +113,3 @@ function shiftBand(band: PassageBand, step: number): PassageBand {
   const next = bandIndex(band) + step;
   return PASSAGE_BANDS[Math.min(PASSAGE_BANDS.length - 1, Math.max(0, next))]!;
 }
-
-/** One line for the report: what the run proved. */
-export function adaptiveVerdict(run: AdaptiveRun): {
-  minutes: number;
-  laps: number;
-  band: PassageBand;
-} {
-  return { minutes: run.minutesAtPace, laps: run.laps.length, band: run.peakBand };
-}

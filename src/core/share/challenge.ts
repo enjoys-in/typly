@@ -20,7 +20,6 @@ import {
   Lang,
   MAX_DURATION_MIN,
 } from '../constants';
-import type { ExamProfile } from '../types';
 
 /** The sender's half of the head-to-head. */
 export interface ChallengeScore {
@@ -144,11 +143,6 @@ export function headToHead(
 export function challengeFilename(title: string): string {
   const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   return `typly-challenge-${slug || 'passage'}.typly`;
-}
-
-/** The duration a challenge should run for, respecting the profile's own. */
-export function durationFor(challenge: Challenge, profile: ExamProfile): number {
-  return challenge.durationSec > 0 ? challenge.durationSec : profile.durationSec;
 }
 
 function clampSeconds(value: unknown): number {

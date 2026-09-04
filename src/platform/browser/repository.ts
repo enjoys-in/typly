@@ -9,7 +9,7 @@ import type {
   TestResult,
   TestRow,
 } from '@/core/types';
-import type { FullResult, BackupBundle, Repository } from '../ports';
+import type { FullResult, BackupBundle, Repository, TestSummary } from '../ports';
 
 interface TestRecord extends TestRow {}
 interface ResultRecord extends TestResult {
@@ -171,10 +171,32 @@ export class BrowserRepository implements Repository {
     return logs.flat();
   }
 
-  async recentResults(limit: number): Promise<FullResult[]> {
+  async recentSummaries(limit: number): Promise<TestSummary[]> {
     const recent = (await this.listHistory()).slice(0, limit);
-    const full = await Promise.all(recent.map((row) => this.getResult(row.id)));
-    return full.filter((r): r is FullResult => r !== null);
+    const ids = new Set(recent.map((row) => row.id));
+    // Two table scans rather than two queries per test: Dexie has no join, and
+    // filtering once is cheaper than `limit` round trips.
+    const [mistakes, timeline] = await Promise.all([
+      this.table('mistakes').filter((m) => ids.has((m as MistakeRecord).testId)).toArray(),
+      this.table('timeline').filter((t) => ids.has((t as TimelineRecord).testId)).toArray(),
+    ]);
+    const byTest = <T extends { testId: number }>(rows: T[]) => {
+      const map = new Map<number, T[]>();
+      for (const row of rows) {
+        const list = map.get(row.testId);
+        if (list) list.push(row);
+        else map.set(row.testId, [row]);
+      }
+      return map;
+    };
+    const mistakesBy = byTest(mistakes as MistakeRecord[]);
+    const timelineBy = byTest(timeline as TimelineRecord[]);
+
+    return recent.map((row) => ({
+      row,
+      mistakes: mistakesBy.get(row.id) ?? [],
+      timeline: (timelineBy.get(row.id) ?? []).sort((a, b) => a.bucket - b.bucket),
+    }));
   }
 
   async exportBackup(): Promise<BackupBundle> {

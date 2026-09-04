@@ -12,7 +12,7 @@
  */
 
 import type { ExamProfile, ScoringRules, TestRow } from '../types';
-import { ExamBoard, ScoringMode, TestStatus } from '../constants';
+import { ExamBoard, ScoringMode } from '../constants';
 import { gradedBoards, profileFor } from '../scoring/examProfiles';
 import { wpmToKdph } from '../scoring/kdph';
 import { realAttempts } from '../stats';
@@ -144,11 +144,6 @@ function withinReach(rules: ScoringRules, speedGap: number): boolean {
 
 function bySpeedGap(a: PostStanding, b: PostStanding): number {
   return a.speedGap - b.speedGap || b.clearedRuns - a.clearedRuns;
-}
-
-/** How many stored attempts actually passed, for a one-line summary. */
-export function passedCount(rows: TestRow[]): number {
-  return realAttempts(rows).filter((r) => r.status === TestStatus.Passed).length;
 }
 
 function round1(n: number): number {

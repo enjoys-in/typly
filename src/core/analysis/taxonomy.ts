@@ -115,8 +115,3 @@ export function mistakeTaxonomy(mistakes: Mistake[]): KindCount[] {
     .map((b) => ({ ...b, share: total ? Math.round((b.count / total) * 100) : 0 }))
     .sort((a, b) => b.count - a.count);
 }
-
-/** The kind that cost the most, for a one-line verdict. Null with no mistakes. */
-export function dominantKind(mistakes: Mistake[]): KindCount | null {
-  return mistakeTaxonomy(mistakes)[0] ?? null;
-}

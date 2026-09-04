@@ -10,10 +10,9 @@
 
 import { differenceInCalendarDays } from 'date-fns';
 import { diffChars } from 'diff';
-import type { FullResult } from '@/platform/ports';
-import type { Keystroke, Mistake, TimelinePoint } from '../types';
+import type { TestSummary } from '@/platform/ports';
+import type { Mistake } from '../types';
 import { keyIdForChar } from '../keyboard/layout';
-import { buildTimeline } from '../typing/typingEngine';
 
 /** Days a "recent" window covers, and the comparison window before it. */
 export const HEATMAP_WINDOW_DAYS = 30;
@@ -50,7 +49,7 @@ const TRACKABLE = /^[a-z0-9!@#$%^&*()\-_=+[\]{};:'",.<>/?\\|`~ ]$/;
  * so a key counted here is the same key the Trainer would drill.
  */
 export function longitudinalKeys(
-  results: FullResult[],
+  results: TestSummary[],
   days = HEATMAP_WINDOW_DAYS,
   now = new Date(),
 ): LongitudinalKeys {
@@ -130,11 +129,11 @@ const MIN_MINUTES = 3;
 /**
  * How speed holds up *inside* a run, averaged across runs.
  *
- * Timelines are rebuilt from the keystroke log rather than read from the stored
- * timeline table, because that is the one shape both stores agree on and it
- * keeps this a pure function of what `recentResults` returns.
+ * Reads the per-minute timeline each attempt already stored. That data was
+ * being written from the first release and never read across attempts, which
+ * is why the question "do I fade?" had no answer despite the numbers existing.
  */
-export function fatigueCurve(results: FullResult[]): FatigueCurve {
+export function fatigueCurve(results: TestSummary[]): FatigueCurve {
   const sums: number[] = [];
   const counts: number[] = [];
   const firsts: number[] = [];
@@ -142,7 +141,7 @@ export function fatigueCurve(results: FullResult[]): FatigueCurve {
   let runs = 0;
 
   for (const full of results) {
-    const timeline = timelineOf(full.keystrokes, full.row.durationSec * 1000);
+    const timeline = full.timeline;
     if (timeline.length < MIN_MINUTES) continue;
     runs++;
     timeline.forEach((point, minute) => {
@@ -169,11 +168,6 @@ export function fatigueCurve(results: FullResult[]): FatigueCurve {
     dropPct: firstMinute > 0 ? round1(((lastMinute - firstMinute) / firstMinute) * 100) : 0,
     runs,
   };
-}
-
-function timelineOf(keystrokes: Keystroke[], elapsedMs: number): TimelinePoint[] {
-  if (keystrokes.length === 0 || elapsedMs <= 0) return [];
-  return buildTimeline(keystrokes, elapsedMs);
 }
 
 function mean(values: number[]): number {

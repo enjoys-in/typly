@@ -343,7 +343,9 @@ export function Results() {
         <h2 className="font-semibold">{t('chart.title')}</h2>
         <WpmChart timeline={finished.payload.timeline} />
       </Card>
-      {rules && (
+      {/* KdphCard above is this card's equivalent for a depression-scored post,
+          where `minWpm` is zero and would read as "0 WPM required". */}
+      {rules && rules.scoringMode !== ScoringMode.Kdph && (
         <CutoffCard
           result={finished.result}
           rules={rules}

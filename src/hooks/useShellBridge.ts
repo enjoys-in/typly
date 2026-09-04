@@ -1,15 +1,12 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { usePlatform } from '@/platform/PlatformContext';
-import { useExamStore } from '@/store/examStore';
 import { useSettingsStore } from '@/store/settingsStore';
-import { SourceType } from '@/core/constants';
 import { useIncomingStore } from '@/store/incomingStore';
 import { readExamSnapshot } from '@/hooks/useExamSnapshot';
 import { currentStreak, testsToday } from '@/core/stats';
 import { readProgressMap, inProgressIds, nextPart } from '@/core/library/progress';
-import { isChallengeFile } from '@/core/text/fileKind';
-import { parseChallenge } from '@/core/share/challenge';
+import { useAcceptChallenge } from '@/hooks/useAcceptChallenge';
 import type { ShellStatus } from '@/core/ipc/shell';
 import type { OpenedFile, Platform } from '@/platform/ports';
 
@@ -31,8 +28,7 @@ export function useShellBridge(): void {
   const dnd = useSettingsStore((s) => s.dnd);
   const setDnd = useSettingsStore((s) => s.setDnd);
   const setFile = useIncomingStore((s) => s.setFile);
-  const setChallenge = useIncomingStore((s) => s.setChallenge);
-  const setDraft = useExamStore((s) => s.setDraft);
+  const acceptChallenge = useAcceptChallenge();
 
   // Routes from the tray / dock menu / jump list.
   useEffect(() => {
@@ -55,23 +51,10 @@ export function useShellBridge(): void {
   // score held for the result report.
   useEffect(() => {
     const open = (file: OpenedFile) => {
-      if (isChallengeFile(file.name)) {
-        const challenge = parseChallenge(new TextDecoder().decode(file.bytes));
-        if (challenge) {
-          setChallenge(challenge);
-          setDraft({
-            passage: challenge.passage,
-            title: challenge.title,
-            documentId: null,
-            sourceType: SourceType.Text,
-            lang: challenge.lang,
-          });
-          navigate('/app/setup');
-          return;
-        }
-        // Unreadable: fall through and let the ordinary import try, so a
-        // mis-named text file still opens as a passage rather than vanishing.
-      }
+      // A challenge carries its own rules and a score to beat, so it skips
+      // import entirely. An unreadable one falls through to the ordinary path,
+      // so a mis-named text file still opens as a passage rather than vanishing.
+      if (acceptChallenge(file)) return;
       setFile(file);
       navigate('/app/new');
     };
@@ -80,7 +63,7 @@ export function useShellBridge(): void {
       if (file) open(file);
     });
     return off;
-  }, [platform, navigate, setFile, setChallenge, setDraft]);
+  }, [platform, navigate, setFile, acceptChallenge]);
 
   // Recomputed on every navigation: finishing a test, resuming one or splitting
   // a document all end in a route change, so the tray is never stale.

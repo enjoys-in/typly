@@ -1,5 +1,6 @@
 import { useState, type KeyboardEvent } from 'react';
 import { toDevanagari } from '@/core/text/hindiPhonetic';
+import { isWordBoundary, wordComplete } from '@/core/typing/strict';
 import type { Keymap } from '@/core/text/keymap';
 import { useFlash } from '@/hooks/useFlash';
 import { useT } from '@/i18n';
@@ -93,7 +94,7 @@ export function TypingInput({
     // and fix a mistake, but you cannot carry it into the next word. Blocking
     // every wrong key would be error-free mode, which is a different exercise.
     const strictBlocked =
-      strict && !remapped && isBoundary(e.key) && !wordComplete(passage, typed);
+      strict && !remapped && isWordBoundary(e.key) && !wordComplete(passage, typed);
     const blocked =
       (!backspaceEnabled && (e.key === 'Backspace' || e.key === 'Delete')) ||
       (!spaceEnabled && e.key === ' ') ||
@@ -138,23 +139,4 @@ export function TypingInput({
       }
     />
   );
-}
-
-/** A key that would finish the current word. */
-function isBoundary(key: string): boolean {
-  return key === ' ' || key === 'Enter' || key === 'Tab';
-}
-
-/**
- * Whether everything typed since the last boundary matches the passage.
- *
- * Compared over the *current word only*: an earlier mistake the typist has
- * already moved past must not lock the input forever, or a single slip would
- * end the attempt.
- */
-function wordComplete(passage: string, typed: string): boolean {
-  if (!passage) return true;
-  const start = typed.lastIndexOf(' ') + 1;
-  const word = typed.slice(start);
-  return passage.slice(start, start + word.length) === word;
 }

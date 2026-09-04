@@ -125,18 +125,6 @@ function verdict(
   return 'ok';
 }
 
-/** Heat value per key for the existing `KeyHeatmap`, so it renders the report. */
-export function healthHeat(report: HealthReport): Map<string, number> {
-  const values = new Map<string, number>();
-  for (const key of report.keys) {
-    // Faults are hot; a healthy key is cold and an untested one is absent, so
-    // the map reads as "what is wrong" rather than "what has been pressed".
-    if (key.health === 'ghosting') values.set(key.id, 3);
-    else if (key.health === 'sticky') values.set(key.id, 2);
-  }
-  return values;
-}
-
 /** True when nothing is wrong with any key that was actually tested. */
 export function healthy(report: HealthReport): boolean {
   return report.sticky.length === 0 && report.ghosting.length === 0;

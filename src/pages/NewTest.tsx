@@ -18,6 +18,8 @@ import { SourceType } from '@/core/constants';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { PaperModeCard } from '@/components/uploader/PaperModeCard';
+import { ChallengeOpener } from '@/components/share/ChallengeOpener';
+import { useAcceptChallenge } from '@/hooks/useAcceptChallenge';
 import { SpeakButton } from '@/ui/SpeakButton';
 import { useT } from '@/i18n';
 
@@ -33,6 +35,7 @@ export function NewTest() {
   const { lang } = useSettingsStore();
   const setDraft = useExamStore((s) => s.setDraft);
   const startPaperRun = usePaperRun();
+  const acceptChallenge = useAcceptChallenge();
   const incoming = useIncomingStore((s) => s.file);
   const takeIncoming = useIncomingStore((s) => s.takeFile);
   const [passage, setPassage] = useState('');
@@ -127,10 +130,14 @@ export function NewTest() {
               onText={handleText}
               incoming={incoming}
               onIncomingTaken={takeIncoming}
+              onChallenge={acceptChallenge}
             />
           </Card>
           {/* No passage needed: the text is on paper in front of the typist. */}
           <PaperModeCard onStart={startPaperRun} />
+          {/* The only route to a challenge on the web, where a .typly file has
+              no OS association to open it with. */}
+          <ChallengeOpener />
         </>
       ) : (
         <Card className="space-y-5">

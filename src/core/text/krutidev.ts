@@ -68,30 +68,59 @@ const TO_KRUTIDEV: [string, string][] = (() => {
  * would mean re-implementing the cluster rules against the key table.
  */
 export function krutiDevToUnicode(text: string): string {
-  return logicalOrder(replaceAll(text, TO_UNICODE));
+  return logicalOrder(replaceAll(text, UNICODE_INDEX));
 }
 
 /** Unicode Devanagari to Kruti Dev bytes, for a font that expects them. */
 export function unicodeToKrutiDev(text: string): string {
-  return replaceAll(visualOrder(text), TO_KRUTIDEV);
+  return replaceAll(visualOrder(text), KRUTIDEV_INDEX);
 }
 
+/**
+ * A table indexed by first character, each bucket longest-match first.
+ *
+ * Without this, every position in the text is tried against all ninety-odd
+ * entries — five million string comparisons for a 60,000-character document,
+ * on every keystroke in the converter's textarea. Bucketing by first character
+ * cuts that to the handful of entries that could possibly match.
+ */
+type Index = Map<string, [string, string][]>;
+
+function indexOf(table: [string, string][]): Index {
+  const index: Index = new Map();
+  for (const entry of table) {
+    const head = entry[0][0];
+    if (head === undefined) continue;
+    const bucket = index.get(head);
+    if (bucket) bucket.push(entry);
+    else index.set(head, [entry]);
+  }
+  // Longest first inside each bucket, so a multi-character source wins over the
+  // single character that starts it.
+  for (const bucket of index.values()) bucket.sort((a, b) => b[0].length - a[0].length);
+  return index;
+}
+
+const UNICODE_INDEX = indexOf(TO_UNICODE);
+const KRUTIDEV_INDEX = indexOf(TO_KRUTIDEV);
+
 /** Longest-match substitution, left to right, without re-scanning output. */
-function replaceAll(text: string, table: [string, string][]): string {
-  let out = '';
+function replaceAll(text: string, index: Index): string {
+  const out: string[] = [];
   let i = 0;
   outer: while (i < text.length) {
-    for (const [from, to] of table) {
-      if (from.length > 0 && text.startsWith(from, i)) {
-        out += to;
+    for (const [from, to] of index.get(text[i]!) ?? []) {
+      if (text.startsWith(from, i)) {
+        out.push(to);
         i += from.length;
         continue outer;
       }
     }
-    out += text[i];
+    out.push(text[i]!);
     i++;
   }
-  return out;
+  // Joining once beats repeated concatenation on a document-sized input.
+  return out.join('');
 }
 
 /** Visual order → logical: `ि` moves after its cluster, reph moves before it. */

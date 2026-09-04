@@ -68,10 +68,6 @@ export const PAPER_TEMPLATES: PaperTemplate[] = [
   },
 ];
 
-export function templateFor(id: string): PaperTemplate | null {
-  return PAPER_TEMPLATES.find((t) => t.id === id) ?? null;
-}
-
 /**
  * A paper as series items. Each section carries its own language, clock and
  * profile, so the run switches between them without the user touching setup —

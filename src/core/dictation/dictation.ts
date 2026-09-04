@@ -48,7 +48,7 @@ export interface DictationPlan {
  * where one is close by. A voice that pauses mid-clause is hard to follow, and
  * following it is the whole skill being tested.
  */
-export function chunkPassage(passage: string, chunkWords = DICTATION_CHUNK_WORDS): string[] {
+function chunkPassage(passage: string, chunkWords = DICTATION_CHUNK_WORDS): string[] {
   const words = passage.trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return [];
 

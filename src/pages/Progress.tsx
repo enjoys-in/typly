@@ -40,10 +40,13 @@ export function Progress() {
     platform.repo.listHistory().then(setRows);
   }, [platform]);
 
-  // Whole recent runs — keystroke logs included — for the two readings that
-  // need history rather than one attempt. Deliberately capped: parsing every
-  // stored log would mean reading the entire database to draw one heatmap.
-  const recent = useAsync(() => platform.repo.recentResults(KEYSTROKE_SCAN_TESTS * 3), [platform]);
+  // Recent attempts as summaries — mistakes and the stored per-minute timeline,
+  // no keystroke logs — for the two readings that need history rather than one
+  // attempt. Capped so this never turns into reading the whole database.
+  const recent = useAsync(
+    () => platform.repo.recentSummaries(KEYSTROKE_SCAN_TESTS * 3),
+    [platform],
+  );
 
   const overTime = useMemo(() => {
     const results = recent.data;

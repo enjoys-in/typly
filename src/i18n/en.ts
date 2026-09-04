@@ -1506,6 +1506,23 @@ export const en = {
   'tabulate.hint':
     '{rows} rows of about {columns} columns. Convert the column gaps to Tabs and it runs as a data-entry test, scored in key depressions per hour.',
   'tabulate.apply': 'Convert to fields',
+
+  'challenge.openTitle': 'Answer a challenge',
+  'challenge.openHint':
+    'Someone sent you a .typly file? Open it here and you type their passage under their rules, with their score to beat. You can also drop it on the box above.',
+  'challenge.openButton': 'Open challenge file',
+  'challenge.unreadable':
+    'That challenge file could not be read. It may be damaged, or saved by a newer version of Typly.',
+  'upload.errUnreadable': 'Typly can’t read “{name}”. Paste the text instead.',
+
+  'practice.forYourExam': 'Your exam',
+
+  'setup.strictHint':
+    'You cannot move past a word until it is exactly right. Mistakes inside a word are fine — carrying one into the next word is not.',
+  'setup.strictNeedsBackspace':
+    'Strict mode needs Backspace: with corrections off there would be no way out of a mistyped word. Turn Backspace on, or the run will behave as Standard.',
+
+  'stats.kdph': 'Depressions/hour',
 } as const;
 
 export type TKey = keyof typeof en;

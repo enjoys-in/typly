@@ -8,7 +8,7 @@ import { preprocessImageForOcr } from '@/platform/browser/imagePreprocess';
 import { AiRequestError } from '@/platform/browser/aiTransport';
 import { RATE_LIMIT_STATUS } from '@/core/ai/rateLimit';
 import { currentAiSettings, isAiEnabled, useAiSettingsStore } from '@/store/aiSettingsStore';
-import { sourceForFile } from '@/core/text/fileKind';
+import { isChallengeFile, sourceForFile } from '@/core/text/fileKind';
 import { Lang, SourceType } from '@/core/constants';
 import { Button } from '@/ui/Button';
 import { ProgressBar } from '@/ui/ProgressBar';
@@ -27,6 +27,12 @@ interface Props {
   incoming?: { name: string; bytes: Uint8Array } | null;
   /** Called once `incoming` has been picked up, so it is never re-imported. */
   onIncomingTaken?: () => void;
+  /**
+   * A `.typly` challenge file, which is not an import: it carries its own rules
+   * and a score to beat. Returns true if it was accepted, so a malformed one
+   * can still fall through to the ordinary error.
+   */
+  onChallenge?: (file: { name: string; bytes: Uint8Array }) => boolean;
 }
 
 type Phase = 'idle' | SourceType.Image | SourceType.Pdf | SourceType.Docx;
@@ -42,7 +48,13 @@ function fmt(ms: number): string {
   return s >= 60 ? `${Math.floor(s / 60)}m ${s % 60}s` : `${s}s`;
 }
 
-export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }: Props) {
+export function TextUploader({
+  lang,
+  onText,
+  incoming = null,
+  onIncomingTaken,
+  onChallenge,
+}: Props) {
   const t = useT();
   const platform = usePlatform();
   const ai = useAiSettingsStore();
@@ -98,9 +110,14 @@ export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }:
     if (!incoming || importedRef.current === incoming.bytes) return;
     importedRef.current = incoming.bytes;
     onIncomingTaken?.();
+    if (isChallengeFile(incoming.name) && onChallenge?.(incoming)) return;
     const source = sourceForFile(incoming.name);
     if (!source) {
-      setError(`Typly can't read "${incoming.name}". Paste the text instead.`);
+      setError(
+        isChallengeFile(incoming.name)
+          ? t('challenge.unreadable')
+          : t('upload.errUnreadable', { name: incoming.name }),
+      );
       return;
     }
     void process(source, incoming.bytes);
@@ -247,6 +264,15 @@ export function TextUploader({ lang, onText, incoming = null, onIncomingTaken }:
     if (working) return;
     const file = e.dataTransfer.files?.[0];
     if (!file) return;
+    // A challenge file arrives through the same drop zone but is not text to
+    // extract — and this is the only route to one on the web, where there are
+    // no OS file associations.
+    if (isChallengeFile(file.name)) {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      if (onChallenge?.({ name: file.name, bytes })) return;
+      setError(t('challenge.unreadable'));
+      return;
+    }
     const source = sourceForFile(file.name, file.type);
     if (!source) {
       setError(t('upload.errUnsupported'));

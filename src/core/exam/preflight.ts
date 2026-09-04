@@ -96,8 +96,3 @@ function looksDevanagariLayout(layout: string | null): boolean {
 export function preflightClear(checks: PreflightCheck[]): boolean {
   return !checks.some((c) => c.level === 'blocked');
 }
-
-/** How many checks passed, out of how many ran — the headline of the card. */
-export function preflightScore(checks: PreflightCheck[]): { passed: number; total: number } {
-  return { passed: checks.filter((c) => c.level === 'ok').length, total: checks.length };
-}

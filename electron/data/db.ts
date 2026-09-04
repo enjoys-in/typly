@@ -69,6 +69,11 @@ interface DocumentRow extends DocumentInput {
   charCount: number;
   createdAt: string;
 }
+interface TestSummary {
+  row: TestRow;
+  mistakes: Mistake[];
+  timeline: TimelinePoint[];
+}
 interface FullResult {
   row: TestRow;
   result: TestResultRow;
@@ -257,16 +262,27 @@ export class SqliteRepository {
   }
 
   /**
-   * The newest `limit` tests in full, kept per test rather than flattened —
-   * what a longitudinal heatmap or a fatigue curve reads.
+   * The newest `limit` tests as summaries — per test rather than flattened, and
+   * deliberately without the keystroke logs, which are by far the largest thing
+   * a test stores. A longitudinal heatmap needs the mistakes and a fatigue
+   * curve needs the stored per-minute timeline; neither needs the raw log, and
+   * sixty of them would be tens of megabytes across the IPC boundary.
    */
-  recentResults(limit: number): FullResult[] {
-    const ids = this.db
-      .prepare(`SELECT id FROM tests ORDER BY createdAt DESC LIMIT ?`)
-      .all(limit) as { id: number }[];
-    return ids
-      .map((row) => this.getResult(row.id))
-      .filter((full): full is FullResult => full !== null);
+  recentSummaries(limit: number): TestSummary[] {
+    const rows = this.db
+      .prepare(`SELECT * FROM tests ORDER BY createdAt DESC LIMIT ?`)
+      .all(limit) as TestRow[];
+    const mistakes = this.db.prepare(
+      `SELECT category, expected, typed, "index" FROM mistakes WHERE testId = ?`,
+    );
+    const timeline = this.db.prepare(
+      `SELECT bucket, wpm, accuracy FROM timeline WHERE testId = ? ORDER BY bucket`,
+    );
+    return rows.map((row) => ({
+      row,
+      mistakes: mistakes.all(row.id) as Mistake[],
+      timeline: timeline.all(row.id) as TimelinePoint[],
+    }));
   }
 
   exportBackup(): BackupBundle {

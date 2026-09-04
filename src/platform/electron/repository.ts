@@ -1,4 +1,4 @@
-import type { BackupBundle, FullResult, Repository } from '../ports';
+import type { BackupBundle, FullResult, Repository, TestSummary } from '../ports';
 import type { ShellStatus } from '@/core/ipc/shell';
 import type {
   DocumentInput,
@@ -95,8 +95,8 @@ export class ElectronRepository implements Repository {
   recentKeystrokes(limit: number): Promise<Keystroke[]> {
     return this.call('recentKeystrokes', [limit]);
   }
-  recentResults(limit: number): Promise<FullResult[]> {
-    return this.call('recentResults', [limit]);
+  recentSummaries(limit: number): Promise<TestSummary[]> {
+    return this.call('recentSummaries', [limit]);
   }
   exportBackup(): Promise<BackupBundle> {
     return this.call('exportBackup');

@@ -52,16 +52,6 @@ export function wpmToKdph(wpm: number): number {
   return Math.round(wpm * CHARS_PER_WORD * MINUTES_PER_HOUR);
 }
 
-/** Depressions still needed per minute to reach `target` by the deadline. */
-export function kdphPaceGap(
-  depressions: number,
-  elapsedMs: number,
-  target: number,
-): { current: number; needed: number; gap: number } {
-  const current = kdph(depressions, elapsedMs);
-  return { current, needed: target, gap: current - target };
-}
-
 function round1(n: number): number {
   return Math.round(n * 10) / 10;
 }

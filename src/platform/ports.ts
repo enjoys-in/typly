@@ -7,6 +7,7 @@ import type {
   SaveTestPayload,
   TestResult,
   TestRow,
+  TimelinePoint,
   Mistake,
 } from '@/core/types';
 
@@ -47,6 +48,22 @@ export interface FullResult {
   keystrokes: Keystroke[];
 }
 
+/**
+ * One past attempt, without its keystroke log.
+ *
+ * The longitudinal readings — a 30-day key heatmap and a fatigue curve — need
+ * many attempts at once, and the keystroke log is by far the largest thing a
+ * test stores. Shipping sixty of them across the desktop IPC boundary to draw
+ * two charts would move tens of megabytes for data already summarised: the
+ * mistakes give the heatmap its keys, and the stored per-minute timeline is
+ * exactly what the fatigue curve plots.
+ */
+export interface TestSummary {
+  row: TestRow;
+  mistakes: Mistake[];
+  timeline: TimelinePoint[];
+}
+
 export interface Repository {
   saveTest(payload: SaveTestPayload): Promise<number>;
   listHistory(): Promise<TestRow[]>;
@@ -64,12 +81,12 @@ export interface Repository {
   /** Keystrokes of the most recent `limit` tests, flattened for timing analysis. */
   recentKeystrokes(limit: number): Promise<Keystroke[]>;
   /**
-   * The most recent `limit` tests in full — row, score, mistakes and keystroke
-   * log, per test rather than flattened. What a longitudinal report needs:
-   * `recentKeystrokes` loses the boundary between runs, and a fatigue curve or
-   * a per-day heatmap is meaningless without it.
+   * The most recent `limit` tests as summaries — per test rather than
+   * flattened, and without the keystroke logs. What a longitudinal report
+   * needs: `recentKeystrokes` loses the boundary between runs, and a fatigue
+   * curve or a per-day heatmap is meaningless without it.
    */
-  recentResults(limit: number): Promise<FullResult[]>;
+  recentSummaries(limit: number): Promise<TestSummary[]>;
   exportBackup(): Promise<BackupBundle>;
   importBackup(bundle: BackupBundle): Promise<void>;
 }

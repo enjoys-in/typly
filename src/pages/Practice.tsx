@@ -22,6 +22,7 @@ import {
 import { useExamStore } from '@/store/examStore';
 import { drillBase, useSettingsStore } from '@/store/settingsStore';
 import { generateDrill } from '@/core/practice/generators';
+import { isDataEntry } from '@/core/scoring/examProfiles';
 import { isMacOS } from '@/platform/detect';
 import {
   DRILL_DIFFICULTY_ORDER,
@@ -69,6 +70,9 @@ export function Practice() {
   const setConfig = useExamStore((s) => s.setConfig);
   const settings = useSettingsStore();
   const t = useT();
+  // True when the chosen exam profile is graded on key depressions, which is
+  // what makes the tabular drill the one that matters rather than a curiosity.
+  const dataEntryExam = isDataEntry(settings.board);
 
   function start(kind: PracticeKind) {
     setConfig({
@@ -97,11 +101,17 @@ export function Practice() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {DRILLS.map((kind) => {
           const Icon = DRILL_ICON[kind];
+          // Eighteen flat cards give a DEST candidate no clue which one is
+          // their actual exam. One quiet marker on the drill that matches the
+          // selected profile fixes that without reordering the list.
+          const forExam = kind === PracticeKind.DataEntry && dataEntryExam;
           return (
             <button
               key={kind}
               onClick={() => start(kind)}
-              className="group flex cursor-pointer flex-col items-start gap-3 rounded-panel border border-line bg-surface p-5 text-left transition-colors duration-150 hover:border-accent-border hover:bg-surface-2"
+              className={`group flex cursor-pointer flex-col items-start gap-3 rounded-panel border bg-surface p-5 text-left transition-colors duration-150 hover:border-accent-border hover:bg-surface-2 ${
+                forExam ? 'border-accent-border' : 'border-line'
+              }`}
             >
               <div className="flex w-full items-start justify-between gap-3">
                 <span className="brand-gradient flex h-11 w-11 items-center justify-center rounded-control text-white">
@@ -109,8 +119,11 @@ export function Practice() {
                 </span>
                 {/* Quiet on purpose: it informs the choice without ranking the
                     cards or implying anything is locked. */}
-                <span className="mt-1 text-[11px] font-medium tracking-wide text-fg-subtle uppercase">
-                  {t(`drill.${PRACTICE_DIFFICULTY[kind]}`)}
+                <span className="mt-1 text-right text-[11px] font-medium tracking-wide uppercase">
+                  {forExam && (
+                    <span className="block text-accent-text">{t('practice.forYourExam')}</span>
+                  )}
+                  <span className="text-fg-subtle">{t(`drill.${PRACTICE_DIFFICULTY[kind]}`)}</span>
                 </span>
               </div>
               <h2 className="text-base font-semibold">{t(`practice.${kind}`)}</h2>

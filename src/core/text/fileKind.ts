@@ -11,7 +11,7 @@ import { CHALLENGE_EXT, SourceType } from '../constants';
 export const TEXT_EXTENSIONS = ['.txt', '.text', '.md', '.markdown', '.log', '.csv'] as const;
 
 /** Everything the app can turn into a passage, by extension. */
-export const PASSAGE_EXTENSIONS = [...TEXT_EXTENSIONS, '.pdf', '.docx'] as const;
+const PASSAGE_EXTENSIONS = [...TEXT_EXTENSIONS, '.pdf', '.docx'] as const;
 
 /**
  * Everything the desktop app registers itself as an opener for — passages plus

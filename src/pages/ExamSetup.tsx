@@ -286,6 +286,9 @@ export function ExamSetup() {
             onChange={settings.setExamMode}
             ariaLabel={t('setup.modeAria')}
           />
+          {settings.examMode === ExamMode.Strict && (
+            <p className="mt-1 text-xs text-fg-muted">{t('setup.strictHint')}</p>
+          )}
         </Field>
 
         <Field label={t('setup.timing')}>
@@ -445,6 +448,12 @@ export function ExamSetup() {
               checked={settings.backspaceEnabled}
               onChange={settings.setBackspaceEnabled}
             />
+            {/* Strict mode blocks the word boundary until the word is right, so
+                forbidding corrections as well would leave no way out of a
+                mistake. Said plainly rather than silently ignored. */}
+            {settings.examMode === ExamMode.Strict && !settings.backspaceEnabled && (
+              <p className="max-w-2xl text-xs text-danger-text">{t('setup.strictNeedsBackspace')}</p>
+            )}
             <Toggle
               label={t('setup.allowSpace')}
               hint={t('setup.allowSpaceHint')}
