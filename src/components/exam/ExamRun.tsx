@@ -663,7 +663,9 @@ export function ExamRun({ config, resume }: Props) {
     <div
       ref={rootRef}
       className={`flex flex-col gap-5 ${
-        fullscreen.isFullscreen ? 'h-screen overflow-auto bg-canvas p-6' : 'h-[calc(100vh-4rem)]'
+        fullscreen.isFullscreen
+          ? 'h-screen overflow-auto bg-canvas p-6'
+          : 'h-[calc(100vh-4rem-var(--titlebar-inset,0px))]'
       }`}
     >
       <ExamToolbar

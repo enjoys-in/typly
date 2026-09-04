@@ -29,6 +29,17 @@ export const EMPTY_SHELL_STATUS: ShellStatus = {
   dnd: false,
 };
 
+/**
+ * Vertical space the macOS window buttons need, in pixels.
+ *
+ * The window is `titleBarStyle: 'hiddenInset'`, which means the traffic lights
+ * are painted over the page rather than in a title bar of their own — so
+ * anything at the top-left of the content sits underneath them. The buttons are
+ * pinned at y=12 (see createMainWindow) and are 16px tall, so 36 clears them
+ * with room to spare.
+ */
+export const TITLEBAR_INSET = 36;
+
 /** One line of practice status, for the tray menu header and its tooltip. */
 export function statusLine(status: ShellStatus): string {
   const goal =

@@ -10,6 +10,14 @@ export function isMacOS(): boolean {
   return /mac/i.test(platform);
 }
 
+/**
+ * True only in the macOS desktop build, where the window buttons are drawn over
+ * the content and the layout has to leave room for them. A Mac *browser* has no
+ * such buttons, so `isMacOS()` alone is the wrong test.
+ */
+export function needsTitlebarInset(): boolean {
+  return isElectron() && isMacOS() && !isQuickDrill();
+}
 
 /**
  * True when the renderer was opened as the quick-drill overlay rather than the

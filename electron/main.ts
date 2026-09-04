@@ -129,6 +129,11 @@ function createMainWindow(): BrowserWindow {
     show: false,
     backgroundColor: '#0b0b0f',
     titleBarStyle: 'hiddenInset',
+    // macOS draws the window buttons *over* the web content with this style, so
+    // the renderer has to leave room for them (see TITLEBAR_INSET). Pinning the
+    // position means that reserved height is a known quantity instead of a
+    // guess at the platform default.
+    trafficLightPosition: { x: 14, y: 12 },
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
