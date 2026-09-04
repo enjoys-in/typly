@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, Table2 } from 'lucide-react';
 import { TextUploader } from '@/components/uploader/TextUploader';
 import { TextInfoPanel } from '@/components/uploader/TextInfoPanel';
 import { NO_SPLIT, PassageSplitPanel } from '@/components/uploader/PassageSplitPanel';
@@ -11,6 +11,7 @@ import { useIncomingStore } from '@/store/incomingStore';
 import { usePaperRun } from '@/hooks/usePaperRun';
 import { useSettingsStore } from '@/store/settingsStore';
 import { stripEmoji } from '@/core/text/ocrCleanup';
+import { isTabSeparated, looksTabular, tabulate } from '@/core/text/tabulate';
 import { isLongPassage, splitTexts, suggestChunkChars } from '@/core/text/splitter';
 import { startProgress } from '@/core/library/progress';
 import { SourceType } from '@/core/constants';
@@ -61,6 +62,13 @@ export function NewTest() {
 
   const isEmpty = passage.trim().length === 0;
   const hasText = passage.length > 0;
+  // A scanned register comes out of OCR as space-aligned columns. Offering the
+  // conversion is what connects an imported form to the data-entry mode, which
+  // needs Tab-separated fields to count key depressions the way DEST does.
+  const tabularOffer = useMemo(
+    () => (hasText && !isTabSeparated(passage) && looksTabular(passage) ? tabulate(passage) : null),
+    [hasText, passage],
+  );
   const splittable = hasText && isLongPassage(passage);
   const suggested = useMemo(() => suggestChunkChars(passage.trim().length), [passage]);
   const partCount = useMemo(
@@ -166,6 +174,26 @@ export function NewTest() {
               </p>
             )}
           </div>
+          {tabularOffer && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-panel border border-accent-border bg-accent-soft px-4 py-3">
+              <div className="min-w-0">
+                <p className="flex items-center gap-1.5 text-sm font-semibold">
+                  <Table2 size={15} className="shrink-0" />
+                  {t('tabulate.title')}
+                </p>
+                <p className="mt-0.5 text-xs text-fg-muted">
+                  {t('tabulate.hint', {
+                    rows: tabularOffer.rows,
+                    columns: tabularOffer.columns,
+                  })}
+                </p>
+              </div>
+              <Button size="sm" onClick={() => setPassage(tabularOffer.text)}>
+                {t('tabulate.apply')}
+              </Button>
+            </div>
+          )}
+
           {splittable && (
             <PassageSplitPanel
               text={passage}

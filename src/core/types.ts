@@ -5,7 +5,9 @@ import type {
   ErrorCategory,
   ExamBoard,
   ExamMode,
+  ExamSkin,
   Lang,
+  ScoringMode,
   SourceType,
   TestStatus,
   TimingMode,
@@ -45,6 +47,23 @@ export interface ScoringRules {
   pasteAllowed: boolean;
   minWpm: number;
   minAccuracy: number;
+  /** Which measure decides the pass: words per minute, or key depressions. */
+  scoringMode: ScoringMode;
+  /** Key depressions per hour required to pass; only read in Kdph mode. */
+  minKdph: number;
+}
+
+/**
+ * A Stenographer skill test: the passage is *dictated* at a fixed speed, then
+ * transcribed against the clock. Nothing is on screen while it is read.
+ */
+export interface DictationSpec {
+  /** Words per minute the passage is read at. */
+  wpm: number;
+  /** Minutes of dictation in the real skill test. */
+  minutes: number;
+  /** Minutes allowed to transcribe it afterwards. */
+  transcriptionMinutes: number;
 }
 
 export interface ExamProfile {
@@ -56,6 +75,10 @@ export interface ExamProfile {
   durationSec: number;
   timing: TimingMode;
   rules: ScoringRules;
+  /** Set on Stenographer posts, whose skill test is dictation + transcription. */
+  dictation?: DictationSpec;
+  /** Set on data-entry posts, where the work is tabular rather than prose. */
+  dataEntry?: boolean;
 }
 
 export interface TimelinePoint {
@@ -166,6 +189,24 @@ export interface ExamConfig {
   paper: boolean;
   /** Race a past run of the same passage, shown as a live progress ghost. */
   ghostTestId: number | null;
+  /**
+   * Pace against the exam's own cut-off rather than a past attempt: a marker
+   * advancing at exactly `minWpm`, so falling behind it means failing.
+   */
+  pacer: boolean;
+  /** How the exam screen is dressed — Typly's layout, or the exam client's. */
+  skin: ExamSkin;
+  /**
+   * Exam-hall nerves, on purpose: a flashing clock near the end, hall noise and
+   * a rank ticker. People lose real WPM to pressure and cannot otherwise
+   * rehearse it.
+   */
+  pressure: boolean;
+  /**
+   * Stenographer mode: the passage is dictated before it is typed. Null for
+   * every ordinary run.
+   */
+  dictation: DictationSpec | null;
   /** Set when this run is a curriculum lesson, so completion can be recorded. */
   lessonId?: string | null;
   /** Position in a split document, so finishing marks that part done. */
@@ -174,11 +215,19 @@ export interface ExamConfig {
   partCount?: number | null;
 }
 
-/** Passage-specific fields for one item in a test series. */
+/**
+ * Passage-specific fields for one item in a test series.
+ *
+ * The optional half is what makes a *multi-section paper* possible: CPCT and
+ * several state exams test English and Hindi in one sitting, so a section has
+ * to be able to override the language, the clock and even the profile that
+ * grades it. Left undefined, each falls back to the series' shared base.
+ */
 export type SeriesItem = Pick<
   ExamConfig,
   'passage' | 'title' | 'documentId' | 'sourceType' | 'partIndex' | 'partCount'
->;
+> &
+  Partial<Pick<ExamConfig, 'lang' | 'board' | 'durationSec' | 'dictation' | 'paper'>>;
 /** Shared config applied to every item in a series. */
 export type SeriesBase = Omit<
   ExamConfig,
@@ -234,6 +283,16 @@ export interface PaperResult {
   misspelled: string[];
   grammar: GrammarIssue[];
   spellChecked: boolean;
+}
+
+/** One section of a multi-section paper (CPCT and several state exams). */
+export interface PaperSection {
+  /** Section name shown in the briefing and the combined report. */
+  title: string;
+  passage: string;
+  lang: Lang;
+  durationSec: number;
+  board: ExamBoard;
 }
 
 /** A checkpoint of an attempt in progress, so a reload can pick it back up. */

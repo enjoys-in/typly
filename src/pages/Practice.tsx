@@ -13,6 +13,7 @@ import {
   Keyboard,
   Quote,
   Rows3,
+  Table,
   ArrowUpToLine,
   ArrowDownToLine,
   Type,
@@ -29,6 +30,7 @@ import {
   PRACTICE_LABEL,
   SourceType,
 } from '@/core/constants';
+import { EndlessCard } from '@/components/exam/EndlessCard';
 import { useT } from '@/i18n';
 
 const DRILL_ICON: Record<PracticeKind, LucideIcon> = {
@@ -49,6 +51,7 @@ const DRILL_ICON: Record<PracticeKind, LucideIcon> = {
   [PracticeKind.SameFinger]: Fingerprint,
   [PracticeKind.Shortcuts]: Command,
   [PracticeKind.Mixed]: Layers,
+  [PracticeKind.DataEntry]: Table,
 };
 
 /**
@@ -86,6 +89,11 @@ export function Practice() {
           {t('practice.subtitle')}
         </p>
       </div>
+
+      {/* Not a drill: every card below runs for a fixed length, and this is the
+          one that runs until you cannot hold the pace. */}
+      <EndlessCard />
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {DRILLS.map((kind) => {
           const Icon = DRILL_ICON[kind];

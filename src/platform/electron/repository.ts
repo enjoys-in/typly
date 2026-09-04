@@ -95,6 +95,9 @@ export class ElectronRepository implements Repository {
   recentKeystrokes(limit: number): Promise<Keystroke[]> {
     return this.call('recentKeystrokes', [limit]);
   }
+  recentResults(limit: number): Promise<FullResult[]> {
+    return this.call('recentResults', [limit]);
+  }
   exportBackup(): Promise<BackupBundle> {
     return this.call('exportBackup');
   }

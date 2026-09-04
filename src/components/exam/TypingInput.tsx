@@ -13,6 +13,14 @@ interface Props {
   enterEnabled: boolean;
   /** Error-free mode: reject any printable key that isn't the next expected character. */
   enforceCorrect?: boolean;
+  /**
+   * Strict mode: nothing advances past a word until that word is correct. The
+   * standard cure for typing fast and fixing later — a habit that passes a
+   * practice app and fails an accuracy-gated exam like DEST at 90%.
+   */
+  strict?: boolean;
+  /** The passage, needed by strict mode to know what the current word should be. */
+  passage?: string;
   expectedChar?: string;
   /** Phonetic input: type Roman, compare Devanagari against the passage. */
   phonetic?: boolean;
@@ -36,6 +44,8 @@ export function TypingInput({
   spaceEnabled,
   enterEnabled,
   enforceCorrect = false,
+  strict = false,
+  passage = '',
   expectedChar,
   phonetic = false,
   keymap = null,
@@ -79,10 +89,16 @@ export function TypingInput({
       }
     }
     const remapped = phonetic || keymap !== null;
+    // Strict mode gates only the word *boundary*: inside a word you may make
+    // and fix a mistake, but you cannot carry it into the next word. Blocking
+    // every wrong key would be error-free mode, which is a different exercise.
+    const strictBlocked =
+      strict && !remapped && isBoundary(e.key) && !wordComplete(passage, typed);
     const blocked =
       (!backspaceEnabled && (e.key === 'Backspace' || e.key === 'Delete')) ||
       (!spaceEnabled && e.key === ' ') ||
       (!enterEnabled && e.key === 'Enter') ||
+      strictBlocked ||
       (!remapped && enforceCorrect && e.key.length === 1 && e.key !== expectedChar);
     if (blocked) {
       e.preventDefault();
@@ -122,4 +138,23 @@ export function TypingInput({
       }
     />
   );
+}
+
+/** A key that would finish the current word. */
+function isBoundary(key: string): boolean {
+  return key === ' ' || key === 'Enter' || key === 'Tab';
+}
+
+/**
+ * Whether everything typed since the last boundary matches the passage.
+ *
+ * Compared over the *current word only*: an earlier mistake the typist has
+ * already moved past must not lock the input forever, or a single slip would
+ * end the attempt.
+ */
+function wordComplete(passage: string, typed: string): boolean {
+  if (!passage) return true;
+  const start = typed.lastIndexOf(' ') + 1;
+  const word = typed.slice(start);
+  return passage.slice(start, start + word.length) === word;
 }

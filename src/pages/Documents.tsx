@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ChevronDown,
@@ -27,15 +27,25 @@ import {
   type ProgressMap,
 } from '@/core/library/progress';
 import { TestStatus } from '@/core/constants';
+import { fitFor, rankForTypist } from '@/core/text/difficulty';
+import { wpmAverages } from '@/core/stats';
+import { DifficultyBadge, FitNote } from '@/components/library/DifficultyBadge';
+import { PackList } from '@/components/library/PackList';
 import { Card } from '@/ui/Card';
 import { Button } from '@/ui/Button';
 import { useConfirm } from '@/ui/Confirm';
 import { useT } from '@/i18n';
+import type { TKey } from '@/i18n/en';
 import { useDateFormat } from '@/hooks/useDateFormat';
 import { Segmented, type SegmentedOption } from '@/ui/Segmented';
 import { SkeletonTable } from '@/ui/Skeleton';
 
 type SeriesOrder = 'serial' | 'preference';
+
+/** `wordLength` → `WordLength`, so a factor id can index its own label key. */
+function cap(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
 
 export function Documents() {
   const platform = usePlatform();
@@ -59,6 +69,17 @@ export function Documents() {
   ];
 
   const docById = useMemo(() => new Map((docs ?? []).map((d) => [d.id, d])), [docs]);
+  // The typist's current form, so each paragraph can say whether it suits them.
+  // `recentNet` rather than the lifetime average: what matters is the level
+  // they are at now, not the one they started from.
+  const currentWpm = useMemo(() => wpmAverages(history).recentNet, [history]);
+  // The best-matched paragraph for this typist. Rated once per document list
+  // rather than per render — the rating is pure, and a library of fifty
+  // paragraphs would otherwise be re-measured on every checkbox click.
+  const recommended = useMemo(() => {
+    if (!docs || docs.length === 0 || currentWpm <= 0) return null;
+    return rankForTypist(docs, (doc) => doc.content, currentWpm)[0] ?? null;
+  }, [docs, currentWpm]);
 
   function toggleSelect(id: number) {
     setSelectedIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
@@ -75,11 +96,15 @@ export function Documents() {
     });
   }
 
+  const loadDocs = useCallback(() => {
+    void platform.repo.listDocuments().then(setDocs);
+  }, [platform]);
+
   useEffect(() => {
-    platform.repo.listDocuments().then(setDocs);
+    loadDocs();
     platform.repo.listHistory().then(setHistory);
     readProgressMap((key) => platform.repo.getSetting(key)).then(setProgress);
-  }, [platform]);
+  }, [platform, loadDocs]);
 
   const getSetting = (key: string) => platform.repo.getSetting(key);
   const setSetting = (key: string, value: string) => platform.repo.setSetting(key, value);
@@ -251,6 +276,28 @@ export function Documents() {
         </Card>
       )}
 
+      {/* The recommendation half of the rating: which saved paragraph actually
+          suits this typist right now. Only worth showing once there is a
+          measured speed and more than one paragraph to choose between. */}
+      {docs && docs.length > 1 && currentWpm > 0 && recommended && (
+        <Card className="flex flex-wrap items-center justify-between gap-3 border-accent-border bg-accent-soft">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold tracking-wide text-fg-muted uppercase">
+              {t('difficultyRating.recommend')}
+            </p>
+            <p className="truncate text-sm font-semibold">{recommended.item.title}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <DifficultyBadge difficulty={recommended.difficulty} />
+            <Button size="sm" onClick={() => startPart(recommended.item)}>
+              <Play size={13} /> {t('library.start')}
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      <PackList onImported={loadDocs} />
+
       {docs === null ? (
         <SkeletonTable rows={6} cols={6} />
       ) : docs.length === 0 ? (
@@ -297,6 +344,7 @@ export function Documents() {
                       open={open}
                       selected={selectedIds.includes(doc.id)}
                       progress={progress[String(doc.id)] ?? null}
+                      currentWpm={currentWpm}
                       onSelect={() => toggleSelect(doc.id)}
                       onToggle={() => setOpenId(open ? null : doc.id)}
                       // Resumes the next unfinished part, or runs the whole
@@ -325,6 +373,7 @@ function DocRow({
   open,
   selected,
   progress,
+  currentWpm,
   onSelect,
   onToggle,
   onRun,
@@ -340,6 +389,8 @@ function DocRow({
   selected: boolean;
   /** Split progress, or null when the paragraph is a single passage. */
   progress: PartProgress | null;
+  /** The typist's current net WPM, so the passage can be judged against it. */
+  currentWpm: number;
   onSelect: () => void;
   onToggle: () => void;
   onRun: () => void;
@@ -351,6 +402,10 @@ function DocRow({
   const t = useT();
   const done = progress ? percentDone(progress) : null;
   const splittable = !progress && isLongPassage(doc.content);
+  // Imported text arrives unranked, so people practise on material that is
+  // wrong for them without knowing. The chip is the rating; the note in the
+  // expanded row is the recommendation.
+  const fit = useMemo(() => fitFor(doc.content, currentWpm), [doc.content, currentWpm]);
   return (
     <>
       <tr className="transition-colors hover:bg-surface-hover">
@@ -390,6 +445,7 @@ function DocRow({
                 {t('library.long')}
               </span>
             )}
+            <DifficultyBadge difficulty={fit.difficulty} />
           </button>
         </td>
         <td className="truncate px-3 py-2.5 text-fg-muted">{t(`lang.${doc.lang}`)}</td>
@@ -423,6 +479,17 @@ function DocRow({
       {open && (
         <tr>
           <td colSpan={7} className="space-y-4 bg-surface-2 px-3 py-4">
+            <div className="space-y-1.5">
+              <FitNote fit={fit} />
+              <p className="flex flex-wrap gap-2 text-[11px] text-fg-subtle">
+                <span className="font-medium">{t('difficultyRating.factors')}:</span>
+                {fit.difficulty.factors.slice(0, 3).map((factor) => (
+                  <span key={factor.id} className="tabular-nums">
+                    {t(`difficultyRating.factor${cap(factor.id)}` as TKey)} {factor.value}
+                  </span>
+                ))}
+              </p>
+            </div>
             <DocumentParts
               doc={doc}
               progress={progress}

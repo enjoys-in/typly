@@ -10,6 +10,7 @@ import {
   ExamBoard,
   MAX_READING_SEC,
   ExamMode,
+  ExamSkin,
   HindiFont,
   InputMethod,
   Lang,
@@ -59,6 +60,14 @@ interface SettingsState {
   examDay: boolean;
   /** Language of the interface itself, separate from the passage language. */
   uiLang: UiLang;
+  /** How the exam screen is dressed — Typly's layout, or the exam client's. */
+  examSkin: ExamSkin;
+  /** Pace against the exam's own cut-off, not against a past attempt. */
+  pacer: boolean;
+  /** Exam-hall distractions, on purpose. */
+  pressure: boolean;
+  /** Break nudges (20-20-20 and posture) during a long session. */
+  breakNudges: boolean;
   setLang: (lang: Lang) => void;
   setBoard: (board: ExamBoard) => void;
   setTiming: (timing: TimingMode) => void;
@@ -86,6 +95,10 @@ interface SettingsState {
   setReadingSec: (v: number) => void;
   setExamDay: (v: boolean) => void;
   setUiLang: (v: UiLang) => void;
+  setExamSkin: (v: ExamSkin) => void;
+  setPacer: (v: boolean) => void;
+  setPressure: (v: boolean) => void;
+  setBreakNudges: (v: boolean) => void;
 }
 
 /** The persisted slice — every field above except the setters. */
@@ -119,6 +132,12 @@ const DEFAULTS: Persisted = {
   readingSec: 0,
   examDay: false,
   uiLang: 'en',
+  examSkin: ExamSkin.Modern,
+  pacer: false,
+  pressure: false,
+  // On by default: the cost of a nudge is a banner, the cost of skipping it is
+  // an injury months down the line.
+  breakNudges: true,
 };
 
 // Single row in the Dexie `settings` table, so preferences live in IndexedDB
@@ -152,6 +171,10 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setHindiFont: (hindiFont) => set({ hindiFont }),
   setBriefing: (briefing) => set({ briefing }),
   setExamDay: (examDay) => set({ examDay }),
+  setExamSkin: (examSkin) => set({ examSkin }),
+  setPacer: (pacer) => set({ pacer }),
+  setPressure: (pressure) => set({ pressure }),
+  setBreakNudges: (breakNudges) => set({ breakNudges }),
   // The document language travels with it, for screen readers and fonts.
   setUiLang: (uiLang) => {
     applyHtmlLang(uiLang);
@@ -184,15 +207,29 @@ export function examBase(s: SettingsState): SeriesBase {
     briefing: s.briefing,
     readingSec: s.readingSec,
     examDay: s.examDay,
+    skin: s.examSkin,
+    pacer: s.pacer,
+    pressure: s.pressure,
     // Turned on by the New Test page, never remembered as a preference.
     paper: false,
     ghostTestId: null,
+    // Set from the exam profile when the run starts, never a stored preference.
+    dictation: null,
   };
 }
 
 /** Same, for generated drills — a practice drill is never a mock exam. */
 export function drillBase(s: SettingsState): SeriesBase {
-  return { ...examBase(s), briefing: false, readingSec: 0, examDay: false };
+  return {
+    ...examBase(s),
+    briefing: false,
+    readingSec: 0,
+    examDay: false,
+    // A drill is not a rehearsal, so nothing that exists to imitate exam day
+    // carries over into one.
+    pressure: false,
+    dictation: null,
+  };
 }
 
 /**

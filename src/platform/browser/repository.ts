@@ -171,6 +171,12 @@ export class BrowserRepository implements Repository {
     return logs.flat();
   }
 
+  async recentResults(limit: number): Promise<FullResult[]> {
+    const recent = (await this.listHistory()).slice(0, limit);
+    const full = await Promise.all(recent.map((row) => this.getResult(row.id)));
+    return full.filter((r): r is FullResult => r !== null);
+  }
+
   async exportBackup(): Promise<BackupBundle> {
     const [tests, results, mistakes, timeline, keystrokes, documents, settings] = await Promise.all([
       this.table('tests').toArray(),

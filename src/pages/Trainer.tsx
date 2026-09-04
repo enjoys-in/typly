@@ -7,6 +7,7 @@ import { drillBase, useSettingsStore } from '@/store/settingsStore';
 import { useAsync } from '@/hooks/useAsync';
 import { KEYSTROKE_SCAN_TESTS, SourceType } from '@/core/constants';
 import { confusedPairs, weakKeys, weakWords } from '@/core/analysis/analysis';
+import { mistakeTaxonomy } from '@/core/analysis/taxonomy';
 import { generateSpeedDrill, generateWeaknessDrill } from '@/core/practice/generators';
 import { Card } from '@/ui/Card';
 import { Button } from '@/ui/Button';
@@ -15,7 +16,9 @@ import { SkeletonCard } from '@/ui/Skeleton';
 import { Chip, ChipRow } from '@/components/trainer/Chips';
 import { KeyHeatmap } from '@/components/trainer/KeyHeatmap';
 import { SpeedPanel, speedFocus } from '@/components/trainer/SpeedPanel';
+import { FingerLoadCard } from '@/components/analysis/FingerLoadCard';
 import { useT } from '@/i18n';
+import type { TKey } from '@/i18n/en';
 
 /** Accuracy and speed are separate weaknesses and need separate drills. */
 type Focus = 'errors' | 'speed';
@@ -50,6 +53,9 @@ export function Trainer() {
       words: weakWords(data.data.mistakes, 12),
       heat: new Map(keys.map((k) => [k.key, k.count])),
       max: keys.reduce((m, k) => Math.max(m, k.count), 0),
+      // Across the whole history rather than one run: a pattern that shows up
+      // in every attempt is the one actually worth a change of technique.
+      kinds: mistakeTaxonomy(data.data.mistakes),
     };
   }, [data.data]);
 
@@ -102,7 +108,12 @@ export function Trainer() {
       {data.loading ? (
         <SkeletonCard lines={4} />
       ) : focus === 'speed' ? (
-        <SpeedPanel keystrokes={data.data?.keystrokes ?? []} />
+        <>
+          <SpeedPanel keystrokes={data.data?.keystrokes ?? []} />
+          {/* The mechanics behind a plateau: which finger is overloaded, and
+              how far each one is travelling. */}
+          <FingerLoadCard keystrokes={data.data?.keystrokes ?? []} />
+        </>
       ) : !hasErrors ? (
         <Card className="flex flex-col items-start gap-3">
           <Crosshair className="text-fg-subtle" />
@@ -122,6 +133,28 @@ export function Trainer() {
               emptyLabel={t('trainer.noErrors')}
             />
           </Card>
+
+          {errors.kinds.length > 0 && (
+            <Card className="space-y-3">
+              <h2 className="font-semibold">{t('trainer.taxonomy')}</h2>
+              <p className="text-sm text-fg-muted">
+                {t('trainer.taxonomyHint', {
+                  kind: t(`mistakeKind.${errors.kinds[0]!.kind}` as TKey),
+                  share: errors.kinds[0]!.share,
+                })}
+              </p>
+              <ChipRow>
+                {errors.kinds.map((kind) => (
+                  <Chip key={kind.kind} meta={`${kind.share}%`}>
+                    {t(`mistakeKind.${kind.kind}` as TKey)}
+                  </Chip>
+                ))}
+              </ChipRow>
+              <p className="text-xs text-fg-muted">
+                {t(`mistakeFix.${errors.kinds[0]!.kind}` as TKey)}
+              </p>
+            </Card>
+          )}
 
           {errors.pairs.length > 0 && (
             <Card className="space-y-3">

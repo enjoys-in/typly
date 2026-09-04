@@ -1,7 +1,7 @@
 {
   "name": "typly",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Offline-first typing-exam practice for Indian competitive exams.",
   "desktopName": "typly.desktop",
   "author": {
@@ -24,7 +24,8 @@
     "rebuild": "electron-builder install-app-deps",
     "dist": "bun run ocr:assets && bun run build && bun run electron:build && bun run rebuild && electron-builder --mac",
     "dist:universal": "bun run ocr:assets && bun run build && bun run electron:build && bun run rebuild && electron-builder --mac --universal",
-    "dist:desktop": "bash scripts/build-desktop.sh"
+    "dist:desktop": "bash scripts/build-desktop.sh",
+    "dist:portable": "bun run ocr:assets && bun run build && bun run electron:build && electron-builder --win portable"
   },
   "dependencies": {
     "@enjoys/react-api": "^0.0.8",
@@ -97,6 +98,13 @@
         "name": "Word passage",
         "description": "Open as a Typly typing test",
         "role": "Viewer"
+      },
+      {
+        "ext": ["typly"],
+        "name": "Typly challenge",
+        "description": "A passage and a score — type it head-to-head",
+        "role": "Editor",
+        "mimeType": "application/x-typly-challenge"
       }
     ],
     "protocols": [{
@@ -147,9 +155,17 @@
         {
           "target": "nsis",
           "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
         }
       ],
       "icon": "build/icon.ico"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-portable.${ext}",
+      "requestExecutionLevel": "user"
     },
     "nsis": {
       "oneClick": false,
@@ -176,6 +192,10 @@
         {
           "target": "deb",
           "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "tar.gz",
+          "arch": ["x64"]
         }
       ],
       "icon": "build/icons",

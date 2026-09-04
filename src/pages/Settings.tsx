@@ -20,6 +20,7 @@ import { ProfileCard } from '@/components/settings/ProfileCard';
 import { UI_LANGS, UI_LANG_LABEL, useT, type UiLang } from '@/i18n';
 import { DeviceSyncCard } from '@/components/settings/DeviceSyncCard';
 import { LanguageToolsCard } from '@/components/settings/LanguageToolsCard';
+import { InstituteCard } from '@/components/settings/InstituteCard';
 import { StorageCard } from '@/components/settings/StorageCard';
 import { ThemeCard } from '@/components/settings/ThemeCard';
 import { registerFontFromDataUrl, fontSettingKey, UPLOADED_FAMILY, cacheFontToDesktop } from '@/ui/fonts';
@@ -363,6 +364,14 @@ export function Settings() {
           checked={settings.reminderEnabled}
           onChange={toggleReminder}
         />
+        {/* Cheap to offer, and the one preference here that is about the
+            typist's body rather than their score. */}
+        <Toggle
+          label={t('breaks.toggle')}
+          hint={t('breaks.toggleHint')}
+          checked={settings.breakNudges}
+          onChange={settings.setBreakNudges}
+        />
         {settings.reminderEnabled && notifyPermission !== 'granted' && (
           <p className="max-w-2xl text-xs text-danger-text">
             {t(
@@ -432,6 +441,8 @@ export function Settings() {
           <p className="text-xs text-fg-subtle">{t('settings.nothingToExport')}</p>
         )}
       </Card>
+
+      <InstituteCard />
 
       <DeviceSyncCard />
 

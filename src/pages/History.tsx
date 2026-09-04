@@ -9,6 +9,7 @@ import { TestStatus } from '@/core/constants';
 import { profileFor } from '@/core/scoring/examProfiles';
 import { ProgressChart } from '@/components/history/ProgressChart';
 import { ReplayModal } from '@/components/result/ReplayModal';
+import { BatchCertificates } from '@/components/institute/BatchCertificates';
 import { Card } from '@/ui/Card';
 import { DataTable, type Column } from '@/ui/DataTable';
 import { ToggleChip } from '@/ui/ToggleChip';
@@ -147,6 +148,9 @@ export function History() {
         empty={t('history.empty')}
         maxHeight="32rem"
       />
+      {/* A coaching centre issues certificates in batches, from the list of
+          results — not one at a time from twenty result pages. */}
+      {rows && rows.length > 0 && <BatchCertificates rows={rows} />}
       {replayId !== null && <ReplayModal testId={replayId} onClose={() => setReplayId(null)} />}
     </div>
   );

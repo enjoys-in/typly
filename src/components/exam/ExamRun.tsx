@@ -14,6 +14,8 @@ import { useFullscreen } from '@/hooks/useFullscreen';
 import { useAsync } from '@/hooks/useAsync';
 import { useExamSnapshot } from '@/hooks/useExamSnapshot';
 import { useConfirm } from '@/ui/Confirm';
+import { useAuthStore } from '@/store/authStore';
+import { useBreakNudge } from '@/hooks/useBreakNudge';
 import { Button } from '@/ui/Button';
 import type {
   ExamConfig,
@@ -34,11 +36,16 @@ import { resolveLessonTargets } from '@/core/lessons/customLessons';
 import { markPartDone } from '@/core/library/progress';
 import { keymapFor, isPhonetic } from '@/core/text/keymaps';
 import { isDevanagari } from '@/core/text/scripts';
+import { grossWpm } from '@/core/scoring/scoring';
+import { pacerAvailable } from '@/core/exam/pacer';
 import {
+  CHARS_PER_WORD,
   ExamMode,
+  ExamSkin,
   HindiFont,
   IDLE_SECONDS,
   SETTING_KEY,
+  ScoringMode,
   TimingMode,
 } from '@/core/constants';
 import { FONT_FAMILY, isLegacyFont } from '@/ui/fonts';
@@ -56,14 +63,27 @@ import { ExamToolbar } from './ExamToolbar';
 import { ExamBriefing } from './ExamBriefing';
 import { ReadingBanner } from './ReadingBanner';
 import { GhostBar } from './GhostBar';
+import { PacerBar } from './PacerBar';
+import { PressureLayer } from './PressureLayer';
+import { DataEntryPanel } from './DataEntryPanel';
+import { BreakNudge } from './BreakNudge';
+import { ExamClientChrome } from './skins/ExamClientChrome';
+import { DictationStage } from '@/components/dictation/DictationStage';
 import type { ExamLayout } from './LayoutSwitcher';
 
-/** Briefing → reading → typing. A plain run starts at `typing`. */
-type Phase = 'briefing' | 'reading' | 'typing';
+/**
+ * Briefing → dictation → reading → typing. A plain run starts at `typing`.
+ *
+ * Dictation sits before reading rather than replacing it: a Stenographer test
+ * dictates the passage and *then* gives transcription time, which is exactly
+ * this order.
+ */
+type Phase = 'briefing' | 'dictation' | 'reading' | 'typing';
 
 function initialPhase(config: ExamConfig, resume: ExamSnapshot | null): Phase {
   if (resume) return 'typing'; // an interrupted run is already past the gates
   if (config.briefing) return 'briefing';
+  if (config.dictation) return 'dictation';
   return config.readingSec > 0 ? 'reading' : 'typing';
 }
 
@@ -96,6 +116,7 @@ export function ExamRun({ config, resume }: Props) {
   const setExamZoom = useSettingsStore((s) => s.setExamZoom);
   const showStats = useSettingsStore((s) => s.showStats);
   const setShowStats = useSettingsStore((s) => s.setShowStats);
+  const account = useAuthStore((s) => s.account);
 
   const setBare = useChromeStore((s) => s.setBare);
   const t = useT();
@@ -160,9 +181,16 @@ export function ExamRun({ config, resume }: Props) {
   }, []);
 
   const leaveBriefing = () => {
-    if (config.readingSec > 0) setPhase('reading');
+    if (config.dictation) setPhase('dictation');
+    else if (config.readingSec > 0) setPhase('reading');
     else startTyping();
   };
+
+  /** The dictation is over (finished or skipped) — reading, then the clock. */
+  const leaveDictation = useCallback(() => {
+    if (config.readingSec > 0) setPhase('reading');
+    else startTyping();
+  }, [config.readingSec, startTyping]);
 
   const clearSnapshot = useExamSnapshot({
     active: typing,
@@ -454,6 +482,22 @@ export function ExamRun({ config, resume }: Props) {
   // Error-free mode compares each key against the passage, so it cannot apply
   // when the passage is on paper.
   const enforceCorrect = config.examMode === ExamMode.ErrorFree && !config.paper;
+  // Strict mode gates the word boundary, which likewise needs a passage.
+  const strict = config.examMode === ExamMode.Strict && !config.paper;
+  // A data-entry post is graded on depressions, and its source is a table — but
+  // only if the passage actually *is* one. A prose passage on a KDPH board still
+  // scores in depressions; it just reads better in the ordinary passage view.
+  const kdphMode = rules.scoringMode === ScoringMode.Kdph && !config.paper;
+  const tabular = kdphMode && config.passage.includes('\t');
+  const examClient = config.skin === ExamSkin.ExamClient;
+  // The pacer needs a cut-off to pace against and a passage to measure into.
+  const pacerOn = config.pacer && pacerAvailable(rules) && !config.paper && typing;
+  // Pressure furniture only makes sense against a countdown — there is nothing
+  // to flash about on a stopwatch.
+  const pressureOn = config.pressure && isCountdown && typing;
+  // Nothing may interrupt a live run, so the break prompt waits for the gap
+  // between attempts.
+  const breakNudge = useBreakNudge(active);
   // Legacy Devanagari fonts apply to the passage, input, and the on-screen keys.
   const fontActive = isDevanagari(config.lang) && hindiFont !== HindiFont.System;
   const fontFamily = fontActive ? FONT_FAMILY[hindiFont] : undefined;
@@ -462,9 +506,145 @@ export function ExamRun({ config, resume }: Props) {
   // keyboard is dropped there to keep the passage readable.
   const keyboardVisible = showKeyboard && isSplit && !blind && typing;
   const statsVisible = showStats && !blind;
+  const timer = isCountdown ? (
+    <Timer remainingSec={countdown.remainingSec} />
+  ) : (
+    <Timer elapsedMs={stopwatch.elapsedMs} />
+  );
+  // Gross speed over the characters actually produced. The rank ticker and the
+  // pressure furniture read this; the graded score is computed at submission.
+  const liveWpm = grossWpm(typed.length, Math.max(elapsedMs / 60_000, 1 / 60_000), CHARS_PER_WORD);
+
+  const workingPane = (
+    <div
+      className={
+        isSplit
+          ? `grid min-h-0 flex-1 grid-cols-1 gap-5 ${statsVisible ? 'lg:grid-cols-[1fr_18rem]' : ''}`
+          : 'flex min-h-0 flex-1 flex-col gap-5'
+      }
+    >
+      <div className="relative flex min-h-0 flex-1 flex-col gap-4">
+        {config.paper ? (
+          <PaperPanel
+            lang={config.lang}
+            words={liveWordCount(typed)}
+            chars={typed.length}
+            backspaces={countBackspaces(keystrokes.current)}
+          />
+        ) : tabular ? (
+          /* A data-entry source is a register, not prose: drawn as a table so
+             it looks like the form a real candidate is copying from. */
+          <DataEntryPanel
+            source={config.passage}
+            typed={typed}
+            elapsedMs={elapsedMs}
+            targetKdph={rules.minKdph}
+            backspaces={countBackspaces(keystrokes.current)}
+            deletes={countDeletes(keystrokes.current)}
+          />
+        ) : (
+          <PassageView
+            passage={config.passage}
+            typed={typed}
+            className="min-h-0 flex-1"
+            fontScale={examZoom}
+            blind={blind}
+            fontFamily={fontFamily}
+            caret={typing && !blind}
+            toolbar={<ZoomControl zoom={examZoom} onChange={setExamZoom} />}
+          />
+        )}
+        {pacerOn && (
+          <PacerBar
+            rules={rules}
+            elapsedMs={elapsedMs}
+            typedChars={typed.length}
+            passageLength={config.passage.length}
+          />
+        )}
+        {ghost.data && typing && (
+          <GhostBar
+            track={ghost.data.track}
+            ghostWpm={ghost.data.wpm}
+            elapsedMs={elapsedMs}
+            typedChars={typed.length}
+            passageLength={config.passage.length}
+          />
+        )}
+        <TypingInput
+          typed={typed}
+          disabled={!active && phase !== 'reading'}
+          pasteAllowed={rules.pasteAllowed}
+          backspaceEnabled={config.backspaceEnabled}
+          spaceEnabled={config.spaceEnabled}
+          enterEnabled={config.enterEnabled}
+          enforceCorrect={enforceCorrect}
+          strict={strict}
+          passage={config.passage}
+          expectedChar={config.passage[typed.length]}
+          phonetic={phonetic}
+          keymap={keymap}
+          fontFamily={fontFamily}
+          fontScale={examZoom}
+          onChange={onChange}
+          onKeyDown={onKeyDown}
+          onBlocked={onBlocked}
+        />
+        {keyboardVisible && !config.paper ? (
+          <Keyboard
+            nextChar={config.passage[typed.length]}
+            fontFamily={keymap ? undefined : keyFontFamily}
+            keymap={keymap}
+          />
+        ) : (
+          showKeys && typing && <PressedKey pressed={lastKey} />
+        )}
+        {paused && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-panel bg-canvas/85 backdrop-blur-sm">
+            <p className="text-xl font-bold">{t('exam.paused')}</p>
+            <Button onClick={togglePause}>
+              <Play size={16} /> {t('exam.resume')}
+            </Button>
+          </div>
+        )}
+      </div>
+      <div className={`${statsVisible ? '' : 'hidden'} ${isSplit ? '' : 'shrink-0'}`}>
+        {config.paper ? (
+          <PaperStats
+            typed={typed}
+            elapsedMs={elapsedMs}
+            backspaces={countBackspaces(keystrokes.current)}
+            targetWpm={rules.minWpm}
+          />
+        ) : (
+          <LiveStats
+            passage={config.passage}
+            typed={typed}
+            elapsedMs={elapsedMs}
+            targetWpm={rules.minWpm}
+            targetAccuracy={rules.minAccuracy}
+            blocked={blocked}
+          />
+        )}
+      </div>
+    </div>
+  );
 
   if (phase === 'briefing') {
     return <ExamBriefing config={config} profile={profile} rules={rules} onStart={leaveBriefing} />;
+  }
+
+  // The dictation owns the whole screen: the passage must not be visible, which
+  // is the one condition that makes a Stenographer test what it is.
+  if (phase === 'dictation' && config.dictation) {
+    return (
+      <DictationStage
+        passage={config.passage}
+        spec={config.dictation}
+        lang={config.lang}
+        onDone={leaveDictation}
+      />
+    );
   }
 
   return (
@@ -490,110 +670,44 @@ export function ExamRun({ config, resume }: Props) {
         showStats={showStats}
         onShowStats={setShowStats}
         fullscreen={fullscreen}
-        timer={
-          isCountdown ? (
-            <Timer remainingSec={countdown.remainingSec} />
-          ) : (
-            <Timer elapsedMs={stopwatch.elapsedMs} />
-          )
-        }
+        // The exam-client skin puts the clock in its own header, where the real
+        // software puts it — two clocks would be worse than either.
+        timer={examClient ? null : timer}
       />
 
       {phase === 'reading' && (
         <ReadingBanner remainingSec={reading.remainingSec} onStart={startTyping} />
       )}
 
-      <div
-        className={
-          isSplit
-            ? `grid min-h-0 flex-1 grid-cols-1 gap-5 ${statsVisible ? 'lg:grid-cols-[1fr_18rem]' : ''}`
-            : 'flex min-h-0 flex-1 flex-col gap-5'
-        }
-      >
-        <div className="relative flex min-h-0 flex-1 flex-col gap-4">
-          {config.paper ? (
-            <PaperPanel
-              lang={config.lang}
-              words={liveWordCount(typed)}
-              chars={typed.length}
-              backspaces={countBackspaces(keystrokes.current)}
-            />
-          ) : (
-            <PassageView
-              passage={config.passage}
-              typed={typed}
-              className="min-h-0 flex-1"
-              fontScale={examZoom}
-              blind={blind}
-              fontFamily={fontFamily}
-              caret={typing && !blind}
-              toolbar={<ZoomControl zoom={examZoom} onChange={setExamZoom} />}
-            />
-          )}
-          {ghost.data && typing && (
-            <GhostBar
-              track={ghost.data.track}
-              ghostWpm={ghost.data.wpm}
-              elapsedMs={elapsedMs}
-              typedChars={typed.length}
-              passageLength={config.passage.length}
-            />
-          )}
-          <TypingInput
-            typed={typed}
-            disabled={!active && phase !== 'reading'}
-            pasteAllowed={rules.pasteAllowed}
-            backspaceEnabled={config.backspaceEnabled}
-            spaceEnabled={config.spaceEnabled}
-            enterEnabled={config.enterEnabled}
-            enforceCorrect={enforceCorrect}
-            expectedChar={config.passage[typed.length]}
-            phonetic={phonetic}
-            keymap={keymap}
-            fontFamily={fontFamily}
-            fontScale={examZoom}
-            onChange={onChange}
-            onKeyDown={onKeyDown}
-            onBlocked={onBlocked}
-          />
-          {keyboardVisible && !config.paper ? (
-            <Keyboard
-              nextChar={config.passage[typed.length]}
-              fontFamily={keymap ? undefined : keyFontFamily}
-              keymap={keymap}
-            />
-          ) : (
-            showKeys && typing && <PressedKey pressed={lastKey} />
-          )}
-          {paused && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-panel bg-canvas/85 backdrop-blur-sm">
-              <p className="text-xl font-bold">{t('exam.paused')}</p>
-              <Button onClick={togglePause}>
-                <Play size={16} /> {t('exam.resume')}
-              </Button>
-            </div>
-          )}
-        </div>
-        <div className={`${statsVisible ? '' : 'hidden'} ${isSplit ? '' : 'shrink-0'}`}>
-          {config.paper ? (
-            <PaperStats
-              typed={typed}
-              elapsedMs={elapsedMs}
-              backspaces={countBackspaces(keystrokes.current)}
-              targetWpm={rules.minWpm}
-            />
-          ) : (
-            <LiveStats
-              passage={config.passage}
-              typed={typed}
-              elapsedMs={elapsedMs}
-              targetWpm={rules.minWpm}
-              targetAccuracy={rules.minAccuracy}
-              blocked={blocked}
-            />
-          )}
-        </div>
-      </div>
+      {/* Between attempts only — a break prompt during a run would cost the
+          very attempt it exists to protect. */}
+      {breakNudge.due && <BreakNudge kind={breakNudge.due} onDismiss={breakNudge.dismiss} />}
+
+      {pressureOn && (
+        <PressureLayer
+          remainingSec={countdown.remainingSec}
+          currentWpm={Math.round(liveWpm)}
+          targetWpm={rules.minWpm}
+          active={active}
+          sound={sound}
+        />
+      )}
+
+      {/* The exam-software skin wraps the same panes rather than
+          duplicating them: only the chrome differs, so the rules, the
+          scoring and the keyboard behaviour cannot drift between skins. */}
+      {examClient ? (
+        <ExamClientChrome
+          config={config}
+          profile={profile}
+          candidate={account?.name ?? ''}
+          timer={timer}
+        >
+          {workingPane}
+        </ExamClientChrome>
+      ) : (
+        workingPane
+      )}
 
       <div className="flex shrink-0 items-center justify-between">
         {nonStop ? (

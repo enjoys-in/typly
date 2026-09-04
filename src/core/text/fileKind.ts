@@ -1,4 +1,4 @@
-import { SourceType } from '../constants';
+import { CHALLENGE_EXT, SourceType } from '../constants';
 
 /**
  * Which extraction pipeline a file needs, decided from its name (and MIME type
@@ -11,7 +11,14 @@ import { SourceType } from '../constants';
 export const TEXT_EXTENSIONS = ['.txt', '.text', '.md', '.markdown', '.log', '.csv'] as const;
 
 /** Everything the app can turn into a passage, by extension. */
-export const OPENABLE_EXTENSIONS = [...TEXT_EXTENSIONS, '.pdf', '.docx'] as const;
+export const PASSAGE_EXTENSIONS = [...TEXT_EXTENSIONS, '.pdf', '.docx'] as const;
+
+/**
+ * Everything the desktop app registers itself as an opener for — passages plus
+ * challenge files, which are not passages: a `.typly` carries a passage *and* a
+ * score, and opening one starts a head-to-head rather than an ordinary test.
+ */
+export const OPENABLE_EXTENSIONS = [...PASSAGE_EXTENSIONS, CHALLENGE_EXT] as const;
 
 export function extensionOf(name: string): string {
   const dot = name.lastIndexOf('.');
@@ -34,4 +41,9 @@ export function sourceForFile(name: string, mime = ''): SourceType | null {
 /** True for files the desktop app registers itself as an opener for. */
 export function isOpenableFile(name: string): boolean {
   return (OPENABLE_EXTENSIONS as readonly string[]).includes(extensionOf(name));
+}
+
+/** True for a challenge file, which takes a different path than a passage. */
+export function isChallengeFile(name: string): boolean {
+  return extensionOf(name) === CHALLENGE_EXT;
 }

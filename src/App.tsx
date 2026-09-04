@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { RequireAccount } from '@/components/layout/RequireAccount';
+import { isQuickDrill } from '@/platform/detect';
 import { FullPageLoader } from '@/ui/Skeleton';
 import { useT } from '@/i18n';
 
@@ -20,9 +21,25 @@ const Results = lazy(() => import('@/pages/Results').then((m) => ({ default: m.R
 const History = lazy(() => import('@/pages/History').then((m) => ({ default: m.History })));
 const Progress = lazy(() => import('@/pages/Progress').then((m) => ({ default: m.Progress })));
 const Settings = lazy(() => import('@/pages/Settings').then((m) => ({ default: m.Settings })));
+const Tools = lazy(() => import('@/pages/Tools').then((m) => ({ default: m.Tools })));
+const QuickDrill = lazy(() =>
+  import('@/pages/QuickDrill').then((m) => ({ default: m.QuickDrill })),
+);
 
 export function App() {
   const t = useT();
+
+  // The tray/hotkey overlay is the same bundle with no shell around it: no
+  // router, no sidebar, no account gate — one drill and a clock, which is what
+  // makes it cost nothing to start.
+  if (isQuickDrill()) {
+    return (
+      <Suspense fallback={<FullPageLoader label={t('common.loading')} />}>
+        <QuickDrill />
+      </Suspense>
+    );
+  }
+
   return (
     <HashRouter>
       <Routes>
@@ -55,6 +72,7 @@ export function App() {
           <Route path="result" element={<Results />} />
           <Route path="history" element={<History />} />
           <Route path="progress" element={<Progress />} />
+          <Route path="tools" element={<Tools />} />
           <Route path="settings" element={<Settings />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

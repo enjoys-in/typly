@@ -63,6 +63,13 @@ export interface Repository {
   getKeystrokes(testId: number): Promise<Keystroke[]>;
   /** Keystrokes of the most recent `limit` tests, flattened for timing analysis. */
   recentKeystrokes(limit: number): Promise<Keystroke[]>;
+  /**
+   * The most recent `limit` tests in full — row, score, mistakes and keystroke
+   * log, per test rather than flattened. What a longitudinal report needs:
+   * `recentKeystrokes` loses the boundary between runs, and a fatigue curve or
+   * a per-day heatmap is meaningless without it.
+   */
+  recentResults(limit: number): Promise<FullResult[]>;
   exportBackup(): Promise<BackupBundle>;
   importBackup(bundle: BackupBundle): Promise<void>;
 }
@@ -119,7 +126,12 @@ export interface Notifications {
   notify(title: string, body?: string): void;
 }
 
-export type SoundCue = 'key' | 'error' | 'complete';
+/**
+ * `hall` is the ambient noise of other people typing, used by pressure mode. It
+ * is deliberately its own cue rather than a quieter `key`: it has to sit under
+ * the typist's own feedback instead of competing with it.
+ */
+export type SoundCue = 'key' | 'error' | 'complete' | 'hall';
 
 export interface Sound {
   available(): boolean;
@@ -127,10 +139,28 @@ export interface Sound {
   vibrate(pattern: number[]): void;
 }
 
+/** How a passage should be spoken. Everything optional — plain reading needs none. */
+export interface SpeakOptions {
+  lang?: Lang;
+  /**
+   * Speech rate multiplier. Dictation drives this from a words-per-minute
+   * target; ordinary "read aloud" leaves it at the voice's own pace.
+   */
+  rate?: number;
+  onEnd?: () => void;
+  onError?: () => void;
+}
+
 export interface Tts {
   available(): boolean;
-  speak(text: string, lang?: Lang, onEnd?: () => void): void;
+  /**
+   * `lang` and `onEnd` stay positional for the many plain callers; a dictation
+   * passes `SpeakOptions` instead, which is the only form that can set a rate.
+   */
+  speak(text: string, lang?: Lang | SpeakOptions, onEnd?: () => void): void;
   stop(): void;
+  /** True while something is being spoken, so a queue can wait for it. */
+  speaking(): boolean;
 }
 
 /** A file the OS handed to the app ("Open with Typly", or a launch argument). */

@@ -1,4 +1,5 @@
 import { PracticeKind } from '../constants';
+import { generateDataEntry } from './dataEntry';
 
 // Small frequent-word list for word/capital/punctuation drills.
 const WORDS = [
@@ -179,6 +180,10 @@ export function generateDrill(kind: PracticeKind, isMac = false): string {
       return times(24, () => pick(isMac ? MAC_SHORTCUTS : WIN_SHORTCUTS)).join(' ');
     case PracticeKind.Sentences:
       return times(5, () => pick(SENTENCES)).join(' ');
+    // A data-entry drill is a table, not a paragraph: Tab-separated fields and
+    // one record per line, the way the exam client presents them.
+    case PracticeKind.DataEntry:
+      return generateDataEntry().text;
     case PracticeKind.Bigrams:
       // Each pair three times, then inside a nonsense word, so the motion is
       // learnt and then used cold.

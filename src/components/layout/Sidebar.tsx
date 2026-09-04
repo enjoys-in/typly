@@ -14,6 +14,7 @@ import {
   PlusCircle,
   Settings as SettingsIcon,
   TrendingUp,
+  Wrench,
   type LucideIcon,
 } from 'lucide-react';
 import { usePlatform } from '@/platform/PlatformContext';
@@ -35,6 +36,7 @@ const LINKS: { to: string; label: TKey; icon: LucideIcon; end?: boolean }[] = [
   { to: '/app/library', label: 'nav.library', icon: Library },
   { to: '/app/history', label: 'nav.history', icon: HistoryIcon },
   { to: '/app/progress', label: 'nav.progress', icon: TrendingUp },
+  { to: '/app/tools', label: 'nav.tools', icon: Wrench },
   { to: '/app/settings', label: 'nav.settings', icon: SettingsIcon },
 ];
 

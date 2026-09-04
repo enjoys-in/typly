@@ -20,6 +20,8 @@ import { registerFontIpc } from './ipc/fonts';
 import { createReminderScheduler } from './ipc/reminders';
 import { registerAiIpc } from './ipc/ai';
 import { registerAppSchemePrivileges, registerAppProtocol, appUrl } from './shell/protocol';
+import { applyPortablePaths, portableRoot } from './shell/portable';
+import { openQuickTest, registerQuickTest, unregisterQuickTest } from './shell/quickTest';
 import { IpcChannel } from '../src/core/ipc/channels';
 import { isShellStatus, type ShellRoute } from '../src/core/ipc/shell';
 import { DEFAULT_REMINDER_TIME } from '../src/core/reminder/schedule';
@@ -33,6 +35,10 @@ const DIST_DIR = path.join(__dirname, '../dist');
 // Windows needs the AppUserModelID to match the installer's for jump lists and
 // notifications to be attributed to Typly rather than to the Electron host.
 const APP_ID = 'in.enjoys.typly';
+
+// Portable mode redirects Electron's own storage, which Chromium reads during
+// startup — so it has to be applied before anything else touches a path.
+applyPortablePaths();
 
 // Privileged scheme must be declared before the app is ready.
 registerAppSchemePrivileges();
@@ -175,6 +181,8 @@ function createMainWindow(): BrowserWindow {
 
 function bootstrap(): void {
   app.setAppUserModelId(APP_ID);
+  const portable = portableRoot();
+  if (portable) console.log(`[typly] portable mode — data in ${portable}`);
 
   // Packaged builds get the dock/Finder icon from the bundled .icns; in dev we
   // point the dock at the source icon so it isn't the default Electron logo.
@@ -255,6 +263,12 @@ function bootstrap(): void {
 
   registerFontIpc();
   registerAiIpc();
+  // The 60-second drill in its own overlay window, from the tray or a global
+  // hotkey. Loads the same renderer with ?quick=1 — no second codebase.
+  registerQuickTest({
+    url: isDev ? DEV_URL : appUrl(),
+    preload: path.join(__dirname, 'preload.cjs'),
+  });
   // Serve the built renderer (and its bundled OCR assets) over app://.
   registerAppProtocol(DIST_DIR);
   registerOpenWith(() => mainWindow, focusMainWindow);
@@ -283,10 +297,17 @@ function bootstrap(): void {
     },
     // "Not today, thanks": today's nudge is dropped, the reminder stays on.
     dismissReminder: () => reminders?.dismissToday(),
+    quickTest: openQuickTest,
     quit,
   });
   createDock({ show: focusMainWindow, navigate, resume }, () => mainWindow);
-  createAppMenu({ navigate, openFile: () => void promptForFile(), resume, quit });
+  createAppMenu({
+    navigate,
+    openFile: () => void promptForFile(),
+    resume,
+    quickTest: openQuickTest,
+    quit,
+  });
 
   // A file that started the app (Windows/Linux pass it as an argument; macOS
   // uses the open-file event registered above).
@@ -324,4 +345,7 @@ app.on('before-quit', () => {
   quitting = true;
   destroyDock();
   destroyTray();
+  // A global accelerator outlives the window it was registered from, so it has
+  // to be given back explicitly.
+  unregisterQuickTest();
 });

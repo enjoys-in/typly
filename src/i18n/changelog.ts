@@ -20,6 +20,37 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    version: '0.4.0',
+    date: '2026-09-04',
+    items: [
+      'changelog.dictation',
+      'changelog.kdph',
+      'changelog.examSkin',
+      'changelog.pacer',
+      'changelog.pressure',
+      'changelog.strict',
+      'changelog.endless',
+      'changelog.eligibility',
+      'changelog.taxonomy',
+      'changelog.longitudinal',
+      'changelog.backspaceCost',
+      'changelog.fingerLoad',
+      'changelog.difficulty',
+      'changelog.packs',
+      'changelog.shareCard',
+      'changelog.challenge',
+      'changelog.recap',
+      'changelog.krutidev',
+      'changelog.keyboardHealth',
+      'changelog.preflight',
+      'changelog.multiSection',
+      'changelog.institute',
+      'changelog.quickDrill',
+      'changelog.breaks',
+      'changelog.portable',
+    ],
+  },
+  {
     version: '0.3.0',
     date: '2026-09-04',
     items: [

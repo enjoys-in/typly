@@ -1,5 +1,6 @@
 import { app, Menu, shell, type MenuItemConstructorOptions } from 'electron';
 import type { ShellRoute } from '../../src/core/ipc/shell';
+import { QUICK_HOTKEY } from './quickTest';
 import { PRIMARY_ACTIONS, SECONDARY_ACTIONS } from './quickActions';
 
 /**
@@ -13,6 +14,8 @@ export interface AppMenuHandlers {
   /** File ▸ Open… — the picker counterpart to "Open with Typly". */
   openFile: () => void;
   resume: () => void;
+  /** The 60-second drill in its own small window. */
+  quickTest: () => void;
   quit: () => void;
 }
 
@@ -67,6 +70,11 @@ export function createAppMenu(handlers: AppMenuHandlers): void {
           ? ([{ role: 'recentDocuments', submenu: [{ role: 'clearRecentDocuments' }] }] as MenuItemConstructorOptions[])
           : []),
         { type: 'separator' },
+        {
+          label: 'Quick 60-Second Drill',
+          accelerator: QUICK_HOTKEY,
+          click: () => handlers.quickTest(),
+        },
         { label: 'Resume Unfinished Test', click: () => handlers.resume() },
         { type: 'separator' },
         isMac ? { role: 'close' } : { label: 'Quit Typly', accelerator: 'Alt+F4', click: () => handlers.quit() },

@@ -43,10 +43,77 @@ export enum ErrorCategory {
   Punctuation = 'punctuation',
 }
 
+/**
+ * How a run is graded. Typing tests are scored in words per minute; data-entry
+ * recruitment (DEST, DEO) is officially scored in *key depressions per hour*,
+ * which counts every keystroke — corrections included — rather than words.
+ */
+export enum ScoringMode {
+  Wpm = 'wpm',
+  Kdph = 'kdph',
+}
+
+/**
+ * *How* a mistake was made, as opposed to what was wrong with it
+ * (`ErrorCategory`). Each kind implies a different fix — a transposition is a
+ * rhythm problem, a shift error is a finger-coordination one — so the coach can
+ * be specific instead of saying "practice more".
+ */
+export enum MistakeKind {
+  /** Two adjacent characters swapped: "teh" for "the". */
+  Transposition = 'transposition',
+  /** A character typed twice: "thhe". */
+  Doubling = 'doubling',
+  /** A character left out: "th". */
+  Omission = 'omission',
+  /** A character replaced by another: "tge". */
+  Substitution = 'substitution',
+  /** Right letter, wrong case — Shift held, missed, or stuck. */
+  Shift = 'shift',
+  /** A space or line break in the wrong place, or missing. */
+  Spacing = 'spacing',
+  /** Anything the rules above cannot explain. */
+  Other = 'other',
+}
+
+/** Every kind, in the order the report lists them. */
+export const MISTAKE_KINDS: readonly MistakeKind[] = [
+  MistakeKind.Transposition,
+  MistakeKind.Doubling,
+  MistakeKind.Omission,
+  MistakeKind.Substitution,
+  MistakeKind.Shift,
+  MistakeKind.Spacing,
+  MistakeKind.Other,
+];
+
+/**
+ * How hard a passage is to type, as a band over the computed score. Bands
+ * rather than a bare number, because "hard for you" is the useful reading.
+ */
+export enum PassageBand {
+  VeryEasy = 'veryEasy',
+  Easy = 'easy',
+  Moderate = 'moderate',
+  Hard = 'hard',
+  VeryHard = 'veryHard',
+}
+
+export const PASSAGE_BANDS: readonly PassageBand[] = [
+  PassageBand.VeryEasy,
+  PassageBand.Easy,
+  PassageBand.Moderate,
+  PassageBand.Hard,
+  PassageBand.VeryHard,
+];
+
 export enum ExamBoard {
   SscChsl = 'ssc_chsl',
   SscCgl = 'ssc_cgl',
   SscSteno = 'ssc_steno',
+  SscStenoC = 'ssc_steno_c',
+  SscDeoDest = 'ssc_deo_dest',
+  DeoGradeA = 'deo_grade_a',
   SscMts = 'ssc_mts',
   RrbNtpc = 'rrb_ntpc',
   BankClerk = 'bank_clerk',
@@ -98,6 +165,7 @@ export enum PracticeKind {
   Numpad = 'numpad',
   Shortcuts = 'shortcuts',
   Sentences = 'sentences',
+  DataEntry = 'data_entry',
 }
 
 export enum ExamMode {
@@ -106,6 +174,19 @@ export enum ExamMode {
   ErrorFree = 'error_free',
   Accuracy = 'accuracy',
   Speed = 'speed',
+  /** Nothing advances until the current word is right — the fix-later cure. */
+  Strict = 'strict',
+}
+
+/**
+ * How the exam screen is dressed. `Modern` is Typly's own layout; `ExamClient`
+ * imitates the government test software — candidate header, passage above a
+ * plain input, the countdown where it really sits — so the mock feels like the
+ * exam rather than like a nice app.
+ */
+export enum ExamSkin {
+  Modern = 'modern',
+  ExamClient = 'exam_client',
 }
 
 export enum InputMethod {
@@ -144,6 +225,45 @@ export enum SpellEngine {
 
 // Tunables — imported everywhere, never re-typed inline.
 export const CHARS_PER_WORD = 5;
+
+// --- Key depressions per hour (DEST / DEO) --------------------------------
+// The official measure for data-entry recruitment: every key depression counts,
+// corrections included, over an hour. 8,000 KDPH is the DEST bar; 15,000 is
+// Data Entry Operator Grade 'A'.
+export const KDPH_DEST = 8_000;
+export const KDPH_DEO_GRADE_A = 15_000;
+/** Minutes in an hour — the unit conversion KDPH is defined in. */
+export const MINUTES_PER_HOUR = 60;
+
+// --- Dictation (Stenographer skill test) ----------------------------------
+/**
+ * Words per minute a browser speech voice reads at when its rate is left at 1.
+ * Measured across the common system voices; the dictation clock corrects for
+ * any drift by pacing the gaps between chunks, so this only has to be close.
+ */
+export const TTS_BASE_WPM = 150;
+/** Rate bounds the Web Speech API accepts, narrowed to what stays intelligible. */
+export const TTS_RATE_MIN = 0.4;
+export const TTS_RATE_MAX = 2.5;
+/** Words per chunk the dictation reads before pausing to re-sync its pace. */
+export const DICTATION_CHUNK_WORDS = 12;
+
+// --- Breaks (RSI) ----------------------------------------------------------
+/** 20-20-20: every 20 minutes, look 20 feet away for 20 seconds. */
+export const BREAK_EYE_MINUTES = 20;
+export const BREAK_EYE_REST_SEC = 20;
+/** Wrist and posture prompt, offset from the eye break so they don't collide. */
+export const BREAK_POSTURE_MINUTES = 30;
+
+// --- Adaptive / endless runs ----------------------------------------------
+/** Consecutive passages below the cut-off that end an endless run. */
+export const ENDLESS_FAIL_STREAK = 3;
+/** Difficulty step an endless run takes when the target is held (or missed). */
+export const ENDLESS_STEP = 1;
+
+// --- Challenge files -------------------------------------------------------
+export const CHALLENGE_EXT = '.typly';
+export const CHALLENGE_VERSION = 1;
 // Passage/input text scale bounds for the in-exam zoom control.
 export const EXAM_ZOOM_MIN = 0.75;
 export const EXAM_ZOOM_MAX = 2;
@@ -158,6 +278,8 @@ export const SNAPSHOT_SAVE_MS = 5_000;
 // mean parsing every stored run).
 export const KEYSTROKE_SCAN_TESTS = 20;
 
+// The tray/hotkey drill: short enough that starting one is never a decision.
+export const QUICK_DRILL_SECONDS = 60;
 export const WARNING_SECONDS = 60; // T-1 min warning
 export const IDLE_SECONDS = 20; // no-typing gap that triggers an idle notification
 export const SERIES_ADVANCE_SECONDS = 4; // countdown before auto-starting the next test in a series
@@ -184,6 +306,14 @@ export const SETTING_KEY = {
   ChangelogSeen: 'changelog:seen',
   /** The exam being prepared for: board and date, as JSON. */
   ExamTarget: 'exam:target',
+  /** Institute name, logo and signatory for batch certificates, as JSON. */
+  InstituteBrand: 'institute:brand',
+  /** Bundled passage packs already imported into the library. */
+  PacksSeeded: 'packs:seeded',
+  /** Newest month whose recap has been shown, as `YYYY-MM`. */
+  RecapSeen: 'recap:seen',
+  /** Last keyboard health check, as JSON. */
+  KeyboardHealth: 'keyboard:health',
 } as const;
 
 export const LANG_LABEL: Record<Lang, string> = {
@@ -238,6 +368,7 @@ export const PRACTICE_DIFFICULTY: Record<PracticeKind, DrillDifficulty> = {
   [PracticeKind.Punctuation]: DrillDifficulty.Medium,
   [PracticeKind.Numbers]: DrillDifficulty.Medium,
   [PracticeKind.Sentences]: DrillDifficulty.Medium,
+  [PracticeKind.DataEntry]: DrillDifficulty.Hard,
   [PracticeKind.AllRows]: DrillDifficulty.Hard,
   [PracticeKind.Bigrams]: DrillDifficulty.Hard,
   [PracticeKind.Alternating]: DrillDifficulty.Hard,
@@ -267,6 +398,7 @@ export const PRACTICE_LABEL: Record<PracticeKind, string> = {
   [PracticeKind.Numpad]: 'Numpad',
   [PracticeKind.Shortcuts]: 'Keyboard shortcuts',
   [PracticeKind.Sentences]: 'Sentences',
+  [PracticeKind.DataEntry]: 'Data entry (tables)',
 };
 
 export const EXAM_MODE_LABEL: Record<ExamMode, string> = {
@@ -275,6 +407,17 @@ export const EXAM_MODE_LABEL: Record<ExamMode, string> = {
   [ExamMode.ErrorFree]: 'Error-free',
   [ExamMode.Accuracy]: 'Accuracy',
   [ExamMode.Speed]: 'Speed',
+  [ExamMode.Strict]: 'Strict',
+};
+
+export const EXAM_SKIN_LABEL: Record<ExamSkin, string> = {
+  [ExamSkin.Modern]: 'Typly',
+  [ExamSkin.ExamClient]: 'Exam software',
+};
+
+export const SCORING_MODE_LABEL: Record<ScoringMode, string> = {
+  [ScoringMode.Wpm]: 'Words per minute',
+  [ScoringMode.Kdph]: 'Key depressions per hour',
 };
 
 export const INPUT_METHOD_LABEL: Record<InputMethod, string> = {

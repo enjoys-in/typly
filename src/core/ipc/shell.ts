@@ -72,6 +72,7 @@ export const SHELL_ROUTES = [
   '/app/library',
   '/app/history',
   '/app/progress',
+  '/app/tools',
   '/app/settings',
 ] as const;
 

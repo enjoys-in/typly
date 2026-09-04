@@ -1018,4 +1018,494 @@ export const hi: Record<TKey, string> = {
   'countdown.verdictPassed': 'वह तारीख़ बीत गई। नई उलटी गिनती शुरू करने के लिए अगली तारीख़ डालें।',
   'countdown.habit': 'रोज़ लगभग {minutes} मिनट, पिछले 14 में से {days} दिन।',
   'countdown.habitNone': 'पिछले दो हफ़्तों में कोई अभ्यास नहीं — पूर्वानुमान मानता है कि आप फिर शुरू करेंगे।',
+
+  // Exam mode / drill additions
+  'examMode.strict': 'सख़्त',
+  'practice.data_entry': 'डेटा एंट्री (तालिका)',
+  'practiceDesc.data_entry':
+    'रोल नंबर, नाम, तारीख़ और राशि की एक रजिस्टर — Tab से अलग किए फ़ील्ड। DEST या DEO पद का असली काम यही है।',
+
+  // Dictation (Stenographer skill test)
+  'dictation.heading': 'स्टेनोग्राफ़र कौशल परीक्षा',
+  'dictation.title': '{wpm} शब्द प्रति मिनट की श्रुतलेख',
+  'dictation.subtitle':
+    'गद्यांश {wpm} WPM की गति से बोला जाएगा। स्क्रीन पर कुछ नहीं दिखेगा। समाप्त होने पर उसे टाइप करने के लिए {minutes} मिनट मिलेंगे।',
+  'dictation.progress': 'श्रुतलेख',
+  'dictation.chunkOf': 'अंश {current} / {total}',
+  'dictation.words': 'कुल {words} शब्द।',
+  'dictation.ready': 'सुनने के लिए तैयार हों तो प्ले दबाएँ।',
+  'dictation.listening': 'सुन रहे हैं — गद्यांश बोला जा रहा है।',
+  'dictation.finished': 'श्रुतलेख पूरा। अब टाइप करना शुरू करें।',
+  'dictation.start': 'श्रुतलेख शुरू करें',
+  'dictation.resume': 'जारी रखें',
+  'dictation.pause': 'रोकें',
+  'dictation.repeat': 'फिर बोलें',
+  'dictation.skip': 'सीधे टाइपिंग पर जाएँ',
+  'dictation.skipToTyping': 'इसकी जगह टाइप करें',
+  'dictation.beginTranscription': 'टाइप करना शुरू करें',
+  'dictation.unsupportedTitle': 'कोई स्पीच वॉइस उपलब्ध नहीं',
+  'dictation.unsupportedBody':
+    'इस डिवाइस में टेक्स्ट-टू-स्पीच वॉइस नहीं है, इसलिए गद्यांश बोला नहीं जा सकता। आप इसे सामान्य टाइपिंग टेस्ट की तरह चला सकते हैं।',
+  'dictation.badge': '{wpm} WPM पर श्रुतलेख',
+
+  // Cut-off pacer
+  'pacer.title': 'कट-ऑफ़ गति · {wpm} WPM',
+  'pacer.you': 'आप',
+  'pacer.cutoff': 'पास लाइन ({wpm} WPM)',
+  'pacer.ahead': '{seconds}से. की बढ़त',
+  'pacer.behind': '{seconds}से. पीछे',
+  'pacer.hintAhead': 'आप पास लाइन से ऊपर हैं। यही गति बनाए रखें तो निकल जाएँगे।',
+  'pacer.hintBehind': 'इस गति से आप पास नहीं होते। यह निशान कट-ऑफ़ है, कोई प्रतियोगी नहीं।',
+  'pacer.toggle': 'कट-ऑफ़ के मुक़ाबले गति',
+  'pacer.toggleHint':
+    'एक निशान ठीक परीक्षा की न्यूनतम गति से चलता है। उससे पीछे रह गए तो आप फ़ेल होते — इसके लिए पिछले प्रयास की ज़रूरत नहीं।',
+
+  // Pressure mode
+  'pressure.rank': 'रैंक {rank} / {of}',
+  'pressure.hint': 'परीक्षा हॉल जैसी स्थिति',
+  'pressure.warning': '{seconds}से. बचे',
+  'pressure.urgent': 'केवल {seconds}से. बचे',
+  'pressure.toggle': 'दबाव मोड',
+  'pressure.toggleHint':
+    'अंत में चमकती घड़ी, लाइव रैंक और हॉल का शोर। परीक्षा के दिन घबराहट में लोग 5–8 WPM खो देते हैं और उसका अभ्यास कहीं नहीं होता।',
+
+  // Exam software skin
+  'skin.section': 'टाइपिंग कौशल परीक्षा',
+  'skin.candidate': 'अभ्यर्थी',
+  'skin.timeLeft': 'शेष समय',
+  'skin.footer': 'इस विंडो को रीफ़्रेश या बंद न करें। आपका उत्तर स्वतः सहेजा जा रहा है।',
+  'skin.label': 'परीक्षा स्क्रीन',
+  'skin.modern': 'Typly',
+  'skin.examClient': 'परीक्षा सॉफ़्टवेयर',
+  'skin.hint':
+    'परीक्षा-सॉफ़्टवेयर स्किन असली टेस्ट क्लाइंट की नक़ल करती है — अभ्यर्थी हेडर, बॉक्स में गद्यांश, सादा इनपुट, कोने में घड़ी। नियम दोनों में एक जैसे रहते हैं।',
+
+  // Pre-flight checks
+  'preflight.title': 'शुरू करने के लिए तैयार',
+  'preflight.titleBlocked': 'शुरू करने से पहले इन्हें ठीक करें',
+  'preflight.capsLock.ok': 'Caps Lock बंद है',
+  'preflight.capsLock.bad': 'Caps Lock — जाँचने के लिए कोई कुंजी दबाएँ, या इसे बंद करें',
+  'preflight.inputMethod.ok': 'सिस्टम इनपुट मेथड बाधा नहीं डालेगा',
+  'preflight.inputMethod.bad':
+    'आपका सिस्टम देवनागरी इनपुट मेथड पर है — उसे अंग्रेज़ी करें, वरना लेआउट टकराएगा',
+  'preflight.font.ok': 'चुना गया हिंदी फ़ॉन्ट लोड है',
+  'preflight.font.bad': 'चुने गए हिंदी फ़ॉन्ट के लिए कोई फ़ाइल अपलोड नहीं — गद्यांश ठीक नहीं दिखेगा',
+  'preflight.layoutData.ok': 'कीबोर्ड लेआउट डेटा स्थापित है',
+  'preflight.layoutData.bad': 'इस इनपुट मेथड का लेआउट डेटा मौजूद नहीं है',
+  'preflight.keyboardLayout.ok': 'कीबोर्ड लेआउट गद्यांश से मेल खाता है',
+  'preflight.keyboardLayout.bad': 'अंग्रेज़ी टेस्ट के लिए देवनागरी लेआउट सक्रिय लगता है',
+  'preflight.fullscreen.ok': 'पूर्ण स्क्रीन',
+  'preflight.fullscreen.bad': 'पूर्ण स्क्रीन नहीं — असली क्लाइंट पूरी स्क्रीन भरता है',
+
+  // Data-entry (KDPH)
+  'dataEntry.title': 'स्रोत रजिस्टर',
+  'dataEntry.kdph': 'KDPH',
+  'dataEntry.hint': 'हर फ़ील्ड भरें, फिर Tab दबाएँ। नई पंक्ति अगला रिकॉर्ड शुरू करती है।',
+
+  // Breaks
+  'breaks.done': 'हो गया',
+  'breaks.toggle': 'विराम अनुस्मारक',
+  'breaks.toggleHint':
+    'हर 20 मिनट पर 20-20-20 आँखों का विराम और हर 30 मिनट पर कलाई की याद। टेस्ट के दौरान कभी नहीं। महीनों के रोज़ अभ्यास से ही टाइपिंग की चोटें आती हैं।',
+
+  'briefing.kdphCutoff': '{value} की-डिप्रेशन/घंटा',
+  'briefing.dictationTitle': 'यह टेस्ट {wpm} WPM की श्रुतलेख से शुरू होता है',
+  'briefing.dictationBody':
+    'गद्यांश {wpm} शब्द प्रति मिनट की गति से बोला जाएगा और स्क्रीन पर नहीं दिखेगा। उसके बाद उसे टाइप करने के लिए {minutes} मिनट मिलेंगे।',
+
+  // Multi-section mock papers
+  'paper.title': 'बहु-खंड पेपर',
+  'paper.hint':
+    'CPCT और कई राज्य परीक्षाएँ एक ही बैठक में दो भाषाओं की परीक्षा लेती हैं। पेपर इन खंडों को एक ही रन में जोड़ देता है और एक संयुक्त रिपोर्ट देता है — भाषा बदलने का वह क्षण भी शामिल, जहाँ अभ्यर्थी असल में अंक खोते हैं।',
+  'paper.start': 'पेपर शुरू करें',
+  'paper.missing': 'गद्यांश चाहिए',
+  'paper.needPassage': 'पहले इस पेपर की प्रत्येक भाषा में एक गद्यांश लाइब्रेरी में सहेजें।',
+  'paper.reportTitle': 'पेपर रिपोर्ट',
+  'paper.section': 'खंड',
+  'paper.average': 'औसत',
+  'paper.cleared': 'हर खंड ने अपना कट-ऑफ़ पार किया।',
+  'paper.notCleared': 'पेपर तभी पास होता है जब हर खंड पास हो — {section} रह गया।',
+  'paper.incomplete': 'यह पेपर अभी पूरा नहीं हुआ।',
+
+  'setup.targetKdph': ' · लक्ष्य {kdph} की-डिप्रेशन/घंटा, {accuracy}% शुद्धता पर',
+  'setup.dictationLabel': 'श्रुतलेख',
+  'setup.dictationToggle': 'पहले गद्यांश {wpm} WPM पर बोला जाए',
+  'setup.dictationHint':
+    'असली कौशल परीक्षा में गद्यांश {wpm} शब्द प्रति मिनट की गति से बोला जाता है, फिर उसे टाइप करने के लिए {minutes} मिनट मिलते हैं। इसे बंद करने पर यह सामान्य टाइपिंग टेस्ट बन जाता है।',
+  'setup.pacing': 'गति और दबाव',
+
+  // Mistake taxonomy
+  'taxonomy.title': 'ग़लती किस तरह हुई',
+  'taxonomy.verdict': 'आपकी ज़्यादातर ग़लतियाँ ({share}%) {kind} थीं। इसका इलाज एकदम विशेष है।',
+  'mistakeKind.transposition': 'अक्षर उलट जाना',
+  'mistakeKind.doubling': 'कुंजी दो बार दबना',
+  'mistakeKind.omission': 'अक्षर छूट जाना',
+  'mistakeKind.substitution': 'ग़लत अक्षर',
+  'mistakeKind.shift': 'Shift और केस',
+  'mistakeKind.spacing': 'स्पेस',
+  'mistakeKind.other': 'अन्य',
+  'mistakeFix.transposition':
+    'दो अक्षर आपस में बदल गए — हाथ आँखों से आगे चल रहे हैं। एक ड्रिल अपनी अधिकतम गति के 80% पर करें; शुद्धता से पहले यही ग़लती ख़त्म होती है।',
+  'mistakeFix.doubling':
+    'कुंजी दो बार चली। आमतौर पर हल्का, टिका हुआ स्पर्श — या अटकती कुंजी। अगर हर बार वही अक्षर हो तो कीबोर्ड जाँच चलाएँ।',
+  'mistakeFix.omission':
+    'अक्षर पड़ा ही नहीं। यह जानकारी की नहीं, दबाव की समस्या है: उँगली हिली पर कुंजी पूरी नहीं दबी।',
+  'mistakeFix.substitution':
+    'सही कुंजी के बजाय पड़ोस की या उसी उँगली की कुंजी। ट्रेनर की "भ्रमित जोड़ी" ड्रिल ठीक इसी के लिए है।',
+  'mistakeFix.shift':
+    'अक्षर सही, केस ग़लत। Shift को अक्षर के बाद ही छोड़ें, और शुरू करने से पहले Caps Lock जाँच लें।',
+  'mistakeFix.spacing':
+    'स्पेस छूटा या ग़लत जगह पड़ा। लंबे गद्यांश में अंगूठे सुस्त हो जाते हैं — स्पेस बार एक कीस्ट्रोक है, विराम नहीं।',
+  'mistakeFix.other': 'यहाँ कोई एक पैटर्न नहीं दिखा। नीचे की सूची में अलग-अलग शब्द हैं।',
+
+  // Cost of backspace
+  'backspace.title': 'सुधार की क़ीमत',
+  'backspace.none': 'कोई सुधार नहीं — कुछ दोबारा नहीं टाइप हुआ। यही आदत बनाए रखें।',
+  'backspace.verdict': 'सुधारों में लगभग {seconds} सेकंड गए — यानी करीब {wpm} WPM।',
+  'backspace.corrections': 'सुधार',
+  'backspace.share': 'कीस्ट्रोक का {share}%',
+  'backspace.timeLost': 'गया समय',
+  'backspace.each': 'प्रत्येक ~{ms}मि.से.',
+  'backspace.wpmCost': 'WPM का नुक़सान',
+  'backspace.wpmHint': 'वापस पाया जा सकता',
+  'backspace.retyped': 'दोबारा टाइप',
+  'backspace.retypedHint': 'अक्षर जो दो बार पड़े',
+  'backspace.adviceHabit':
+    'यह "बाद में ठीक कर लेंगे" की आदत है, और 35 WPM वाला टाइपिस्ट 30 क्यों पाता है — इसका सबसे आम कारण यही है। ग़लती के बावजूद आगे टाइप करें और गद्यांश ख़त्म होने तक कुछ न सुधारें; नेट गति लगभग हमेशा बढ़ती है।',
+  'backspace.adviceFine':
+    'थोड़ा सुधार ठीक है। ध्यान तभी दें जब यह आपके कीस्ट्रोक के लगभग 5% से ऊपर जाए।',
+
+  // Key depressions per hour
+  'kdph.title': 'की-डिप्रेशन प्रति घंटा',
+  'kdph.verdictMet': 'आप आवश्यक {target} से {value} डिप्रेशन/घंटा ऊपर हैं।',
+  'kdph.verdictShort': 'आप आवश्यक {target} से {value} डिप्रेशन/घंटा पीछे हैं।',
+  'kdph.achieved': 'प्राप्त',
+  'kdph.required': 'आवश्यक',
+  'kdph.perHour': 'प्रति घंटा',
+  'kdph.depressions': 'डिप्रेशन',
+  'kdph.depressionsHint': 'कुल दबाई गई कुंजियाँ',
+  'kdph.asWpm': 'बराबर',
+  'kdph.asWpmHint': 'WPM · कट-ऑफ़ {value}',
+  'kdph.explainCounted': 'हर कुंजी गिनी जाती है — सुधार भी',
+  'kdph.explainAccuracy': 'शुद्धता फिर भी {accuracy}% चाहिए',
+
+  // Shareable result card
+  'share.title': 'अपना परिणाम साझा करें',
+  'share.hint':
+    'WhatsApp और Instagram के नाप का वर्गाकार कार्ड — आपकी गति, शुद्धता और स्ट्रीक, और कुछ नहीं।',
+  'share.share': 'साझा करें',
+  'share.download': 'इमेज सहेजें',
+  'share.nameAria': 'कार्ड पर छपने वाला नाम',
+  'share.downloadedInstead': 'यह डिवाइस सीधे इमेज साझा नहीं कर सकता, इसलिए कार्ड सहेज दिया गया।',
+
+  // Finger load and travel
+  'fingers.title': 'उँगलियों का भार और गति-पथ',
+  'fingers.verdictOverload':
+    'आपकी {hand} {finger} उँगली {share}% काम कर रही है। पठार (plateau) की असली यांत्रिक वजह यही है, और यह बस ज़्यादा टाइप करने से नहीं सुधरेगी।',
+  'fingers.verdictSkew':
+    'आपका {hand} हाथ {share}% कीस्ट्रोक उठा रहा है। अंग्रेज़ी में कुछ असंतुलन सामान्य है; इतना असंतुलन आमतौर पर होम पोज़िशन खिसक जाने का संकेत है।',
+  'fingers.verdictBalanced': 'भार दोनों हाथों में समान रूप से बँटा है। यहाँ सुधारने को कुछ नहीं।',
+  'fingers.finger': 'उँगली',
+  'fingers.presses': 'दबाव',
+  'fingers.travel': 'गति-पथ',
+  'fingers.errorRate': 'ग़लतियाँ',
+  'fingers.travelNote':
+    'गति-पथ कुंजी-चौड़ाई में मापा गया है, इसलिए ये अंक उँगलियों की तुलना करते हैं, सेंटीमीटर नहीं नापते। कम दबाव के साथ ऊँचा अंक बताता है कि एक उँगली उन कुंजियों तक जा रही है जो दूसरी उँगली की हैं।',
+  'finger.pinky': 'कनिष्ठा',
+  'finger.ring': 'अनामिका',
+  'finger.middle': 'मध्यमा',
+  'finger.index': 'तर्जनी',
+  'finger.thumb': 'अंगूठा',
+  'hand.left': 'बायाँ',
+  'hand.right': 'दायाँ',
+
+  // Challenge files
+  'challenge.title': 'किसी मित्र को चुनौती दें',
+  'challenge.hint':
+    'यह गद्यांश और आपका स्कोर एक छोटी .typly फ़ाइल में सहेजता है। जो इसे खोलेगा वही गद्यांश उन्हीं नियमों पर टाइप करेगा और आमने-सामने का परिणाम पाएगा — कोई खाता नहीं, कोई सर्वर नहीं।',
+  'challenge.export': 'चुनौती फ़ाइल सहेजें',
+  'challenge.youWon': 'यह चुनौती आपने जीती',
+  'challenge.youLost': 'इस बार नहीं',
+  'challenge.you': 'आप',
+  'challenge.challenger': 'चुनौती देने वाला',
+  'challenge.margin': 'आप दोनों के बीच {wpm} WPM और {accuracy} प्रतिशत अंक का अंतर।',
+  'challenge.sendBack': 'उन्हें वापस चुनौती दें',
+  'challenge.incomingTitle': 'एक चुनौती प्रतीक्षा में है',
+  'challenge.incomingBody':
+    '{name} ने यह गद्यांश {wpm} WPM पर {accuracy}% शुद्धता से टाइप किया। वही गद्यांश, वही नियम, वही घड़ी।',
+  'challenge.accept': 'चुनौती स्वीकारें',
+  'challenge.decline': 'अभी नहीं',
+
+  // Longitudinal heatmap
+  'longitudinal.title': '{days} दिनों में कमज़ोर कुंजियाँ',
+  'longitudinal.subtitle':
+    'पिछले {days} दिनों के {runs} प्रयास, उससे पहले के {days} दिनों के मुक़ाबले — जिससे पता चले कि जिस कुंजी पर आप काम कर रहे हैं वह सुधर रही है या नहीं।',
+  'longitudinal.empty':
+    'पिछले {days} दिनों में कोई प्रयास नहीं। इस चार्ट को तुलना के लिए इतिहास चाहिए, जो अभ्यास के साथ बनता जाएगा।',
+  'longitudinal.keyErrors': 'इस अवधि में {count} ग़लतियाँ',
+  'longitudinal.noErrors': 'कोई ग़लती नहीं',
+  'longitudinal.healing': 'सुधर रही हैं',
+  'longitudinal.healingHint': 'पिछली अवधि से कम ग़लतियाँ।',
+  'longitudinal.worsening': 'बिगड़ रही हैं',
+  'longitudinal.worseningHint': 'पिछली अवधि से ज़्यादा ग़लतियाँ — इन पर लक्षित ड्रिल करें।',
+  'longitudinal.noneHealing': 'अभी मापने योग्य कोई सुधार नहीं।',
+  'longitudinal.noneWorsening': 'कुछ बिगड़ नहीं रहा। अच्छा है।',
+
+  // Fatigue curve
+  'fatigue.title': 'क्या आप थक जाते हैं?',
+  'fatigue.empty':
+    'इसके लिए तीन मिनट या उससे लंबे कुछ प्रयास चाहिए। छोटी ड्रिल में तुलना के लिए अंतिम मिनट ही नहीं होता।',
+  'fatigue.verdictFading':
+    '{runs} प्रयासों में आप पहले और अंतिम मिनट के बीच लगभग {drop} WPM ({pct}%) खो देते हैं। 10 मिनट का टेस्ट अधिकतम गति से नहीं, इसी से फ़ेल होता है।',
+  'fatigue.verdictSteady':
+    '{runs} प्रयासों में आपकी गति अंत तक बनी रहती है। सहनशक्ति आपकी सीमा नहीं है।',
+  'fatigue.firstMinute': 'पहला मिनट',
+  'fatigue.lastMinute': 'अंतिम मिनट',
+  'fatigue.change': 'बदलाव',
+  'fatigue.minute': 'मिनट {minute}',
+  'fatigue.samples': '{count} प्रयास',
+  'fatigue.advice':
+    'अगर आप थकते हैं तो परीक्षा से तेज़ नहीं, परीक्षा से लंबा अभ्यास करें: एक 15 मिनट का रन तीन 5 मिनट के रन से ज़्यादा सहनशक्ति बनाता है।',
+
+  // Retroactive eligibility
+  'eligibility.title': 'आप कौन-सा पद निकाल सकते हैं?',
+  'eligibility.subtitle':
+    'आपके सभी {attempts} प्रयास, सभी 13 परीक्षा प्रोफ़ाइलों पर फिर से जाँचे गए। {cleared} आप अभी पास करते हैं।',
+  'eligibility.empty':
+    'एक टेस्ट दें और यह आपके पूरे इतिहास को हर परीक्षा प्रोफ़ाइल पर जाँचेगा — उन पर भी जो आपने कभी चुनी नहीं।',
+  'eligibility.cleared': 'ये आप पास करते हैं',
+  'eligibility.clearedHint': 'इस परीक्षा की भाषा में आपके सर्वश्रेष्ठ प्रयास ने दोनों कट-ऑफ़ पार किए।',
+  'eligibility.close': 'पहुँच में',
+  'eligibility.closeHint': 'कुछ ही WPM दूर। अगला निशाना यही होना चाहिए।',
+  'eligibility.far': 'अभी नहीं',
+  'eligibility.farHint': 'और दूर, या इस परीक्षा की भाषा में अभी कोई प्रयास नहीं।',
+  'eligibility.noneCleared': 'अभी कोई नहीं — ऊपर की सूची बताती है कि सबसे नज़दीक क्या है।',
+  'eligibility.noneClose': 'इस समय कुछ सीमारेखा पर नहीं है।',
+  'eligibility.noneFar': 'कुछ भी पहुँच से बाहर नहीं।',
+  'eligibility.met': 'पास',
+  'eligibility.wpmShort': '{value} WPM पीछे',
+  'eligibility.kdphShort': '{value} KDPH पीछे',
+  'eligibility.accuracyShort': '{value}% शुद्धता पीछे',
+  'eligibility.repeatable': '{runs} अलग-अलग प्रयासों में पास — यह संयोग नहीं, दोहराने योग्य है।',
+  'eligibility.onceOnly': '{runs} बार पास। भरोसा करने से पहले दो बार और कर लें।',
+  'eligibility.bestSoFar': 'अब तक सर्वश्रेष्ठ: {wpm} WPM, {accuracy}% पर।',
+
+  // Monthly recap
+  'recap.title': 'आपका {month}',
+  'recap.empty': 'उस महीने कोई अभ्यास दर्ज नहीं।',
+  'recap.subtitleFirst': '{tests} टेस्ट और कीबोर्ड पर {hours} घंटे। यह आपका पहला पूरा महीना है।',
+  'recap.subtitleUp': '{tests} टेस्ट, {hours} घंटे, और पिछले महीने से {gained} WPM तेज़।',
+  'recap.subtitleDown': '{tests} टेस्ट और {hours} घंटे। आपका औसत पिछले महीने से {gained} WPM कम रहा।',
+  'recap.hours': 'घंटे',
+  'recap.hoursHint': 'कीबोर्ड पर',
+  'recap.tests': 'टेस्ट',
+  'recap.passed': '{count} पास',
+  'recap.best': 'सर्वश्रेष्ठ WPM',
+  'recap.average': 'औसत {value}',
+  'recap.activeDays': 'सक्रिय दिन',
+  'recap.bestStreak': 'सर्वोत्तम स्ट्रीक {count}',
+  'recap.bestDay': 'सर्वश्रेष्ठ दिन',
+  'recap.bestDayValue': '{date} — {tests} टेस्ट, सर्वश्रेष्ठ {wpm} WPM',
+  'recap.gained': 'पिछले महीने के मुक़ाबले',
+  'recap.gainedUp': 'औसतन {value} WPM तेज़',
+  'recap.gainedDown': 'औसतन {value} WPM धीमे',
+  'recap.keysFixed': 'सुधरी हुई कुंजियाँ',
+
+  // Tools page
+  'nav.tools': 'साधन',
+  'toolbox.title': 'साधन',
+  'toolbox.subtitle':
+    'कृति देव कनवर्टर और कीबोर्ड जाँच — दोनों ऑफ़लाइन, क्योंकि दोनों की ज़रूरत उन मशीनों पर पड़ती है जो आपकी नहीं हैं।',
+
+  // Kruti Dev converter
+  'krutidev.title': 'कृति देव ⇄ यूनिकोड',
+  'krutidev.hint':
+    'पुराने कृति देव पाठ को यूनिकोड देवनागरी में और वापस बदलें। पूरी तरह इसी डिवाइस पर चलता है — कुछ अपलोड नहीं होता, जो सरकारी दस्तावेज़ के मामले में अहम है।',
+  'krutidev.toUnicode': 'कृति देव → यूनिकोड',
+  'krutidev.toKrutiDev': 'यूनिकोड → कृति देव',
+  'krutidev.directionAria': 'बदलने की दिशा',
+  'krutidev.detect': 'पहचानें',
+  'krutidev.detectHint': 'चिपकाए गए पाठ से दिशा चुनें।',
+  'krutidev.clear': 'साफ़ करें',
+  'krutidev.input': 'इनपुट',
+  'krutidev.output': 'परिणाम',
+  'krutidev.outputEmpty': 'बदला हुआ पाठ यहाँ दिखेगा।',
+  'krutidev.copy': 'कॉपी',
+  'krutidev.copied': 'कॉपी हो गया',
+  'krutidev.placeholderLegacy': 'कृति देव पाठ चिपकाएँ (वह रोमन अक्षरों जैसा दिखेगा)…',
+  'krutidev.placeholderUnicode': 'यहाँ यूनिकोड हिंदी पाठ चिपकाएँ…',
+  'krutidev.coverage':
+    'मानक परत शामिल है — व्यंजन, स्वर, मात्राएँ, एक-कुंजी संयुक्ताक्षर और विराम चिह्न — और ि तथा रेफ़ के दृश्य-से-तार्किक क्रम का सुधार भी। सजावटी रूप अनुमान लगाए बिना जैसे हैं वैसे ही निकल जाते हैं।',
+
+  // Keyboard health check
+  'health.title': 'कीबोर्ड स्वास्थ्य जाँच',
+  'health.hint':
+    'हर कुंजी एक बार दबाएँ। मरी, अटकती और भूतिया (ghosting) कुंजियाँ पकड़ी जा सकती हैं — और मॉक के दो मिनट बाद आधी मरी कुंजी मिलना पूरा सत्र बरबाद कर देता है।',
+  'health.start': 'जाँच शुरू करें',
+  'health.restart': 'फिर से शुरू करें',
+  'health.regionAria': 'कीबोर्ड परीक्षण क्षेत्र — यहाँ कुंजियाँ दबाएँ',
+  'health.tested': 'जाँची गई कुंजियाँ',
+  'health.notStarted': 'शुरू करें दबाएँ, ऊपर कीबोर्ड पर क्लिक करें, फिर हर कुंजी दबाते जाएँ।',
+  'health.pressKeys': 'अब हर कुंजी एक बार दबाएँ। Escape से जाँच समाप्त होगी।',
+  'health.remaining': '{count} कुंजियाँ अभी अनजाँची — उन्हें दबाकर जाँच पूरी करें।',
+  'health.allGood': 'हर कुंजी ने ठीक एक बार जवाब दिया। यह कीबोर्ड ठीक है।',
+  'health.stickyFound':
+    'अटकती या चटकती कुंजियाँ: {keys}। ये एक बार दबाने पर कई बार चलती हैं, जो दोहरे अक्षरों के रूप में दिखता है।',
+  'health.ghostingFound':
+    'भूतिया कुंजियाँ: {keys}। ये तब दर्ज होती हैं जब कोई दूसरी कुंजी दबी हो — मेम्ब्रेन कीबोर्ड की क्लासिक ख़राबी, और वही जो चुपचाप पूरा रन बिगाड़ती है।',
+  'health.untested': 'अभी जाँची नहीं',
+  'health.ok': 'ठीक जवाब देती है',
+  'health.sticky': 'अटकती — एक से ज़्यादा बार चलती है',
+  'health.ghosting': 'भूतिया — दूसरी कुंजी दबी होने पर चलती है',
+
+  // Passage difficulty rating
+  'passageBand.veryEasy': 'बहुत आसान',
+  'passageBand.easy': 'आसान',
+  'passageBand.moderate': 'मध्यम',
+  'passageBand.hard': 'कठिन',
+  'passageBand.veryHard': 'बहुत कठिन',
+  'difficultyRating.tooltip': 'कठिनाई {score}/100 · लगभग {wpm} WPM वाले टाइपिस्ट के लिए उपयुक्त',
+  'difficultyRating.matched': 'आपके स्तर के लिए ठीक (लगभग {wpm} WPM के अनुकूल)।',
+  'difficultyRating.tooEasy':
+    'आपके स्तर से आसान — यह गद्यांश जितना माँगता है, आप उससे {gap} WPM आगे हैं। वार्म-अप के लिए ठीक, पर इससे गति नहीं बढ़ेगी।',
+  'difficultyRating.tooHard':
+    'आपके स्तर से लगभग {gap} WPM कठिन। बाद में लौटें; अपने स्तर से ऊपर अभ्यास से ज़्यादातर निराशा ही बनती है।',
+  'difficultyRating.factorWordLength': 'लंबे शब्द',
+  'difficultyRating.factorPunctuation': 'विराम चिह्न',
+  'difficultyRating.factorCapitals': 'बड़े अक्षर',
+  'difficultyRating.factorDigits': 'अंक',
+  'difficultyRating.factorRareLetters': 'दुर्लभ अक्षर',
+  'difficultyRating.factors': 'कठिनाई की वजह',
+  'difficultyRating.recommend': 'इस समय आपके लिए अधिक उपयुक्त',
+
+  // Passage packs
+  'packs.title': 'गद्यांश पैक',
+  'packs.hint':
+    'राज्यव्यवस्था, अर्थव्यवस्था, एक संपादकीय और असली कार्यालय-ज्ञापन प्रारूप। आप सामान्य ज्ञान का पेपर भी दे रहे हैं, तो टाइपिंग का एक घंटा वही पढ़ने का घंटा भी बन जाए। ऐप के साथ ही आते हैं — नेटवर्क की ज़रूरत नहीं।',
+  'packs.import': 'लाइब्रेरी में जोड़ें',
+  'packs.importing': 'जोड़ा जा रहा है…',
+  'packs.again': 'फिर जोड़ें',
+
+  // Institute branding
+  'institute.title': 'संस्थान ब्रांडिंग',
+  'institute.hint':
+    'हर प्रमाणपत्र पर अपने केंद्र का नाम और लोगो लगाएँ, फिर इतिहास पृष्ठ से पूरे बैच के प्रमाणपत्र बनाएँ। यह इसी डिवाइस पर सहेजा जाता है और बैकअप में शामिल रहता है।',
+  'institute.name': 'संस्थान का नाम',
+  'institute.namePlaceholder': 'जैसे शर्मा कंप्यूटर इंस्टिट्यूट',
+  'institute.subtitle': 'दूसरी पंक्ति',
+  'institute.subtitlePlaceholder': 'शहर, संबद्धता या पंजीकरण',
+  'institute.signatory': 'हस्ताक्षरकर्ता',
+  'institute.signatoryPlaceholder': 'हस्ताक्षरकर्ता का नाम',
+  'institute.signatoryTitle': 'पदनाम',
+  'institute.signatoryTitlePlaceholder': 'जैसे केंद्र निदेशक',
+  'institute.uploadLogo': 'लोगो अपलोड करें',
+  'institute.removeLogo': 'लोगो हटाएँ',
+  'institute.logoTooBig': 'यह लोगो बहुत बड़ा है — इसे {kb} KB से कम रखें।',
+  'institute.save': 'ब्रांडिंग सहेजें',
+  'institute.cancel': 'बदलाव छोड़ें',
+  'certificate.branded': '{institute} की ओर से जारी',
+
+  // Batch certificates
+  'batch.title': 'बैच प्रमाणपत्र',
+  'batch.hintBranded':
+    '{count} पास प्रयास, {institute} की ओर से जारी करने के लिए तैयार। हर अभ्यर्थी का नाम लिखें, फिर पूरा बैच एक बार में डाउनलोड करें।',
+  'batch.hintUnbranded':
+    '{count} पास प्रयास। पहले सेटिंग्स में अपने संस्थान का नाम डालें, वरना ये Typly के नाम से छपेंगे।',
+  'batch.empty': 'प्रमाणित करने योग्य कोई पास प्रयास अभी नहीं।',
+  'batch.downloadAll': '{count} प्रमाणपत्र डाउनलोड करें',
+  'batch.print': 'सूची छापें',
+  'batch.candidate': 'अभ्यर्थी',
+  'batch.exam': 'परीक्षा',
+  'batch.wpm': 'नेट WPM',
+  'batch.accuracy': 'शुद्धता',
+  'batch.date': 'तारीख़',
+  'batch.namePlaceholder': 'अभ्यर्थी का नाम',
+  'batch.nameAria': 'प्रयास {id} के लिए अभ्यर्थी का नाम',
+
+  // Endless / adaptive run
+  'endless.cardTitle': 'अनंत रन',
+  'endless.cardHint':
+    'गद्यांश आते रहते हैं। जब तक आप {wpm} WPM बनाए रखते हैं कठिनाई बढ़ती है, गिरते ही घटती है, और लगातार तीन बार कट-ऑफ़ चूकने पर रन ख़त्म। उत्तर एक ही संख्या है: आप {exam} की गति कितनी देर बनाए रख सकते हैं।',
+  'endless.start': 'अनंत रन शुरू करें',
+  'endless.starting': 'शुरू हो रहा है…',
+  'endless.needLibrary':
+    'इसके लिए लाइब्रेरी में दो या अधिक कठिनाई स्तरों के गद्यांश चाहिए, वरना कठिनाई के बदलने की कोई जगह ही नहीं। लाइब्रेरी पृष्ठ से एक गद्यांश पैक जोड़ें।',
+  'endless.couldNotStart': 'शुरू करने के लिए कोई गद्यांश उपलब्ध नहीं। पहले लाइब्रेरी में कुछ जोड़ें।',
+  'endless.title': 'अनंत रन',
+  'endless.continuing':
+    'अब तक {laps} गद्यांशों में {minutes} मिनट गति पर। अगला लोड हो रहा है — गति बनी रही तो कठिन, नहीं तो आसान।',
+  'endless.finished':
+    'रन समाप्त: आपने {laps} गद्यांशों में {minutes} मिनट तक परीक्षा-गति बनाए रखी। तय लंबाई वाला टेस्ट यह संख्या नहीं दे सकता।',
+  'endless.stop': 'रन समाप्त करें',
+  'endless.atPace': 'गति पर',
+  'endless.atPaceHint': 'कट-ऑफ़ से ऊपर',
+  'endless.laps': 'गद्यांश',
+  'endless.lapsHint': 'पूरे किए',
+  'endless.peak': 'सबसे कठिन',
+  'endless.peakHint': 'कठिनाई स्तर',
+  'endless.misses': 'लगातार चूक',
+  'endless.missesHint': 'तीन पर रन ख़त्म',
+  'endless.held': 'बनी रही',
+  'endless.missed': 'चूक',
+
+  // Quick drill (tray / global hotkey overlay)
+  'quick.title': 'त्वरित ड्रिल · 60 सेकंड',
+  'quick.close': 'बंद करें',
+  'quick.placeholder': 'टाइप करना शुरू करें — पहली कुंजी से घड़ी चलेगी।',
+  'quick.inputLabel': 'त्वरित ड्रिल इनपुट',
+  'quick.netWpm': 'नेट WPM',
+  'quick.accuracy': '{value}% शुद्धता',
+  'quick.counted': 'सहेजा गया — यह आपकी स्ट्रीक और दैनिक लक्ष्य में गिना जाएगा।',
+  'quick.again': 'फिर से',
+  'quick.done': 'हो गया',
+
+  'trainer.taxonomy': 'आपकी ग़लती का प्रकार',
+  'trainer.taxonomyHint':
+    'सभी प्रयासों को मिलाकर आपकी {share}% ग़लतियाँ {kind} हैं। जो पैटर्न पूरे इतिहास में टिका रहे, तकनीक बदलने लायक वही है।',
+
+  // Release notes — 0.4.0
+  'changelog.dictation':
+    'स्टेनोग्राफ़र मोड: गद्यांश 80 या 100 WPM पर बोला जाता है, फिर आप घड़ी के साथ उसे टाइप करते हैं।',
+  'changelog.kdph':
+    'की-डिप्रेशन प्रति घंटा — जैसे DEST और DEO पदों में असल में अंक मिलते हैं — साथ में तालिका वाली डेटा-एंट्री ड्रिल।',
+  'changelog.examSkin':
+    'परीक्षा-सॉफ़्टवेयर स्किन जो असली टेस्ट क्लाइंट की नक़ल करती है, जिससे मॉक परीक्षा जैसा लगे।',
+  'changelog.pacer':
+    'कट-ऑफ़ पेसर: एक निशान ठीक परीक्षा की न्यूनतम गति से चलता है। उससे पीछे रह गए तो आप फ़ेल होते।',
+  'changelog.pressure':
+    'दबाव मोड — चमकती घड़ी, लाइव रैंक और हॉल का शोर, ताकि परीक्षा-दिन की घबराहट का अभ्यास हो सके।',
+  'changelog.strict': 'सख़्त मोड में मौजूदा शब्द सही होने तक आगे नहीं बढ़ने देता।',
+  'changelog.endless':
+    'अनंत रन: गद्यांश आते रहते हैं और कठिनाई बदलती रहती है, जब तक आप परीक्षा-गति बनाए रख सकें।',
+  'changelog.eligibility':
+    'आपका पूरा इतिहास हर परीक्षा प्रोफ़ाइल पर फिर से जाँचा गया — कौन-से पद आप अभी पास करते हैं, और कौन दो WPM दूर हैं।',
+  'changelog.taxonomy':
+    'ग़लतियाँ प्रकार से वर्गीकृत — उलटाव, दोहराव, छूटना, बदलना, Shift — हर एक का अपना इलाज।',
+  'changelog.longitudinal':
+    '30 दिनों का कमज़ोर-कुंजी हीटमैप और थकान वक्र, जिससे दिखे कि कुंजी सुधर रही है या नहीं और आप थकते हैं या नहीं।',
+  'changelog.backspaceCost': 'सुधारों की क़ीमत, सेकंड और WPM दोनों में।',
+  'changelog.fingerLoad': 'उँगलियों का भार और गति-पथ — पठार की असली यांत्रिक वजह।',
+  'changelog.difficulty':
+    'हर गद्यांश की कठिनाई रेटिंग, और जब कोई आपके स्तर से ऊपर या नीचे हो तो सुझाव भी।',
+  'changelog.packs':
+    'साथ आने वाले सामान्य ज्ञान, अर्थव्यवस्था, संपादकीय और सरकारी-पत्र गद्यांश पैक, ताकि टाइपिंग अभ्यास पढ़ाई भी बने।',
+  'changelog.shareCard': 'WhatsApp के नाप का वर्गाकार साझा-योग्य परिणाम कार्ड।',
+  'changelog.challenge':
+    'चुनौती फ़ाइलें: गद्यांश और अपना स्कोर .typly फ़ाइल में सहेजें और बिना सर्वर आमने-सामने मुक़ाबला करें।',
+  'changelog.recap': 'मासिक सारांश — अभ्यास के घंटे, बढ़ी WPM, सुधरी कुंजियाँ, सर्वश्रेष्ठ दिन।',
+  'changelog.krutidev': 'ऑफ़लाइन कृति देव ⇄ यूनिकोड कनवर्टर।',
+  'changelog.keyboardHealth': 'कीबोर्ड स्वास्थ्य जाँच, जो मरी, अटकती और भूतिया कुंजियाँ पकड़ती है।',
+  'changelog.preflight': 'घड़ी शुरू होने से पहले जाँच — Caps Lock, इनपुट मेथड, फ़ॉन्ट।',
+  'changelog.multiSection': 'CPCT और राज्य परीक्षाओं के लिए बहु-खंड मॉक पेपर, एक संयुक्त रिपोर्ट के साथ।',
+  'changelog.institute': 'कोचिंग केंद्रों के लिए संस्थान ब्रांडिंग और बैच प्रमाणपत्र।',
+  'changelog.quickDrill':
+    'ट्रे या ग्लोबल हॉटकी से 60 सेकंड की ड्रिल, एक छोटी हमेशा-ऊपर रहने वाली विंडो में।',
+  'changelog.breaks': 'लंबे सत्रों में 20-20-20 आँखों का विराम और कलाई की याद।',
+  'changelog.portable': 'पोर्टेबल बिल्ड जो अपना डेटा एक्ज़ीक्यूटेबल के पास रखता है — USB स्टिक से चलाएँ।',
+
+  // Recovering a table from an imported form
+  'tabulate.title': 'यह कोई फ़ॉर्म या रजिस्टर लगता है',
+  'tabulate.hint':
+    'लगभग {columns} स्तंभों की {rows} पंक्तियाँ। स्तंभों के बीच की जगह को Tab में बदल दें और यह डेटा-एंट्री टेस्ट की तरह चलेगा, जिसका मूल्यांकन की-डिप्रेशन प्रति घंटा में होगा।',
+  'tabulate.apply': 'फ़ील्ड में बदलें',
 };

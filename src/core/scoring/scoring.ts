@@ -1,5 +1,6 @@
 import type { ScoringRules, TestResult } from '../types';
-import { Difficulty, ErrorPenalty, ExamMode, TestStatus } from '../constants';
+import { Difficulty, ErrorPenalty, ExamMode, ScoringMode, TestStatus } from '../constants';
+import { depressionsOf, kdph } from './kdph';
 
 export interface ScoreInput {
   charsTyped: number;
@@ -21,6 +22,7 @@ export function applyDifficulty(rules: ScoringRules, difficulty: Difficulty): Sc
       return {
         ...rules,
         minWpm: round1(rules.minWpm * 0.7),
+        minKdph: Math.round(rules.minKdph * 0.7),
         minAccuracy: Math.max(0, rules.minAccuracy - 5),
         penaltyValue: rules.penaltyValue * 0.5,
       };
@@ -28,6 +30,7 @@ export function applyDifficulty(rules: ScoringRules, difficulty: Difficulty): Sc
       return {
         ...rules,
         minWpm: round1(rules.minWpm * 1.3),
+        minKdph: Math.round(rules.minKdph * 1.3),
         minAccuracy: Math.min(100, rules.minAccuracy + 3),
         penaltyValue: rules.penaltyValue * 1.5,
       };
@@ -53,11 +56,15 @@ export function applyMode(rules: ScoringRules, mode: ExamMode): ScoringRules {
       return {
         ...rules,
         minWpm: round1(rules.minWpm * 1.15),
+        minKdph: Math.round(rules.minKdph * 1.15),
         minAccuracy: Math.max(0, rules.minAccuracy - 5),
         penaltyValue: rules.penaltyValue * 0.5,
       };
     case ExamMode.ErrorFree:
       return { ...rules, minAccuracy: 100 };
+    // Strict mode changes the *input* (nothing advances until the word is
+    // right), not the thresholds — accuracy is enforced rather than scored.
+    case ExamMode.Strict:
     case ExamMode.Blind:
     case ExamMode.Standard:
       return rules;
@@ -95,7 +102,13 @@ export function score(input: ScoreInput): TestResult {
   // Flat penalty: each mistake subtracts penaltyValue WPM directly from the gross speed.
   const net = Math.max(0, gross - penalty(rules, input.errors, input.wrongWords));
   const accuracy = input.charsTyped === 0 ? 0 : (input.correctChars / input.charsTyped) * 100;
-  const passed = net >= rules.minWpm && accuracy >= rules.minAccuracy;
+  // A KDPH post is graded on depressions per hour, not on net speed — every
+  // keystroke counts, so corrections help the count and hurt the accuracy.
+  const speedMet =
+    rules.scoringMode === ScoringMode.Kdph
+      ? kdph(depressionsOf(input), input.elapsedMs) >= rules.minKdph
+      : net >= rules.minWpm;
+  const passed = speedMet && accuracy >= rules.minAccuracy;
 
   return {
     grossWpm: round1(gross),

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { statusLine, shellTooltip, type ShellRoute } from '../../src/core/ipc/shell';
 import { formatClock, TRAY_PENDING_TITLE } from '../../src/core/reminder/schedule';
 import { PRIMARY_ACTIONS, SECONDARY_ACTIONS } from './quickActions';
+import { QUICK_HOTKEY } from './quickTest';
 import { practicePending, reminderState, shellStatus, subscribeShellState } from './state';
 
 /** Whether this platform can be told to start the app at login. */
@@ -38,6 +39,8 @@ export interface TrayHandlers {
   resume: () => void;
   /** Stop nudging about today's practice, without turning the reminder off. */
   dismissReminder: () => void;
+  /** Open the 60-second drill in its own small window, without the full app. */
+  quickTest: () => void;
   /** Really quit, rather than hiding back to the tray. */
   quit: () => void;
 }
@@ -98,7 +101,14 @@ function reminderItems(pending: boolean): MenuItemConstructorOptions[] {
   }
   return [
     { label: 'Typing practice pending today', enabled: false },
-    { label: 'Practice now', click: () => handlers?.navigate('/app/new') },
+    // A 60-second drill answers the nudge without opening the app, which is the
+    // whole reason the streak survives a busy evening.
+    {
+      label: 'Quick 60-second drill',
+      accelerator: QUICK_HOTKEY,
+      click: () => handlers?.quickTest(),
+    },
+    { label: 'Full test instead', click: () => handlers?.navigate('/app/new') },
     { label: 'Not today, thanks', click: () => handlers?.dismissReminder() },
     { type: 'separator' },
   ];
@@ -159,6 +169,11 @@ function refresh(): void {
       { type: 'separator' },
       ...reminderItems(pending),
       { label: 'Open Typly', click: () => handlers?.show() },
+      {
+        label: 'Quick 60-second drill',
+        accelerator: QUICK_HOTKEY,
+        click: () => handlers?.quickTest(),
+      },
       ...(status.hasUnfinished || resumeLabel
         ? ([
             {

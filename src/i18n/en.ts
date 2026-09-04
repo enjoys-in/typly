@@ -1015,6 +1015,497 @@ export const en = {
   'countdown.verdictPassed': 'That date has gone. Set the next one to start a new countdown.',
   'countdown.habit': 'About {minutes} minutes a day, on {days} of the last 14.',
   'countdown.habitNone': 'No practice in the last two weeks — the forecast assumes you start again.',
+
+  // Exam mode / drill additions
+  'examMode.strict': 'Strict',
+  'practice.data_entry': 'Data entry (tables)',
+  'practiceDesc.data_entry':
+    'A register of roll numbers, names, dates and amounts, Tab-separated — the work a DEST or DEO post is actually for.',
+
+  // Dictation (Stenographer skill test)
+  'dictation.heading': 'Stenographer skill test',
+  'dictation.title': 'Dictation at {wpm} words a minute',
+  'dictation.subtitle':
+    'The passage is read aloud at {wpm} WPM. Nothing is shown on screen. When it ends you have {minutes} minutes to transcribe it.',
+  'dictation.progress': 'Dictation',
+  'dictation.chunkOf': 'Passage {current} of {total}',
+  'dictation.words': '{words} words in total.',
+  'dictation.ready': 'Press play when you are ready to listen.',
+  'dictation.listening': 'Listening — the passage is being read.',
+  'dictation.finished': 'Dictation complete. Begin transcribing.',
+  'dictation.start': 'Start dictation',
+  'dictation.resume': 'Resume',
+  'dictation.pause': 'Pause',
+  'dictation.repeat': 'Repeat that',
+  'dictation.skip': 'Skip to typing',
+  'dictation.skipToTyping': 'Type it instead',
+  'dictation.beginTranscription': 'Begin transcription',
+  'dictation.unsupportedTitle': 'No speech voice available',
+  'dictation.unsupportedBody':
+    'This device has no text-to-speech voice, so the passage cannot be dictated. You can still run the transcription as an ordinary typing test.',
+  'dictation.badge': 'Dictated at {wpm} WPM',
+
+  // Cut-off pacer
+  'pacer.title': 'Cut-off pace · {wpm} WPM',
+  'pacer.you': 'You',
+  'pacer.cutoff': 'Pass line ({wpm} WPM)',
+  'pacer.ahead': '{seconds}s of cushion',
+  'pacer.behind': '{seconds}s behind',
+  'pacer.hintAhead': 'You are above the pass line. Hold this and you clear it.',
+  'pacer.hintBehind': 'At this pace you would not pass. The marker is the cut-off, not a rival.',
+  'pacer.toggle': 'Pace against the cut-off',
+  'pacer.toggleHint':
+    'A marker moves at exactly the exam’s minimum speed. Fall behind it and you would have failed — no past attempt needed.',
+
+  // Pressure mode
+  'pressure.rank': 'Rank {rank} of {of}',
+  'pressure.hint': 'Exam-hall conditions',
+  'pressure.warning': '{seconds}s left',
+  'pressure.urgent': 'Only {seconds}s left',
+  'pressure.toggle': 'Pressure mode',
+  'pressure.toggleHint':
+    'A flashing clock near the end, a live rank and hall noise. People lose 5–8 WPM to nerves on the day and cannot otherwise practise it.',
+
+  // Exam software skin
+  'skin.section': 'Typing Skill Test',
+  'skin.candidate': 'Candidate',
+  'skin.timeLeft': 'Time left',
+  'skin.footer': 'Do not refresh or close this window. Your response is saved automatically.',
+  'skin.label': 'Exam screen',
+  'skin.modern': 'Typly',
+  'skin.examClient': 'Exam software',
+  'skin.hint':
+    'The exam-software skin imitates the real test client — candidate header, boxed passage, plain input, the clock in the corner. The rules are identical either way.',
+
+  // Pre-flight checks
+  'preflight.title': 'Ready to start',
+  'preflight.titleBlocked': 'Fix these before you start',
+  'preflight.capsLock.ok': 'Caps Lock is off',
+  'preflight.capsLock.bad': 'Caps Lock — press any key to check, or turn it off',
+  'preflight.inputMethod.ok': 'System input method will not interfere',
+  'preflight.inputMethod.bad':
+    'Your system is set to a Devanagari input method — switch it to English or the layout will fight it',
+  'preflight.font.ok': 'Selected Hindi font is loaded',
+  'preflight.font.bad': 'No font uploaded for the selected Hindi font — the passage will not render',
+  'preflight.layoutData.ok': 'Keyboard layout data installed',
+  'preflight.layoutData.bad': 'Layout data for this input method is missing',
+  'preflight.keyboardLayout.ok': 'Keyboard layout matches the passage',
+  'preflight.keyboardLayout.bad': 'A Devanagari layout looks active for an English test',
+  'preflight.fullscreen.ok': 'Fullscreen',
+  'preflight.fullscreen.bad': 'Not fullscreen — the real client fills the screen',
+
+  // Data-entry (KDPH)
+  'dataEntry.title': 'Source register',
+  'dataEntry.kdph': 'KDPH',
+  'dataEntry.hint': 'Enter each field, then Tab. A new line starts the next record.',
+
+  // Breaks
+  'breaks.done': 'Done',
+  'breaks.toggle': 'Break reminders',
+  'breaks.toggleHint':
+    'A 20-20-20 eye break every 20 minutes and a wrist prompt every 30. Never during a run. Months of daily drilling is where typing injuries come from.',
+
+  'briefing.kdphCutoff': '{value} key depressions/hour',
+  'briefing.dictationTitle': 'This test begins with dictation at {wpm} WPM',
+  'briefing.dictationBody':
+    'The passage is read aloud at {wpm} words a minute and is not shown on screen. You then have {minutes} minutes to transcribe it.',
+
+  // Multi-section mock papers
+  'paper.title': 'Multi-section paper',
+  'paper.hint':
+    'CPCT and several state exams test two languages in one sitting. A paper chains the sections into one run with a single combined report — including the language switch, which is where candidates actually lose marks.',
+  'paper.start': 'Start paper',
+  'paper.missing': 'Needs a passage',
+  'paper.needPassage':
+    'Save a paragraph in each of this paper’s languages to your library first.',
+  'paper.reportTitle': 'Paper report',
+  'paper.section': 'Section',
+  'paper.average': 'Average',
+  'paper.cleared': 'Every section cleared its cut-off.',
+  'paper.notCleared': 'A paper is only cleared when every section is — {section} fell short.',
+  'paper.incomplete': 'This paper is not finished yet.',
+
+  'setup.targetKdph': ' · Target {kdph} key depressions/hour at {accuracy}% accuracy',
+  'setup.dictationLabel': 'Dictation',
+  'setup.dictationToggle': 'Dictate the passage at {wpm} WPM first',
+  'setup.dictationHint':
+    'The real skill test reads the passage aloud at {wpm} words a minute, then gives you {minutes} minutes to transcribe it. Switch this off to run it as a plain typing test.',
+  'setup.pacing': 'Pacing & pressure',
+
+  // Mistake taxonomy
+  'taxonomy.title': 'How you erred',
+  'taxonomy.verdict': 'Most of your mistakes ({share}%) were {kind}. That has a specific fix.',
+  'mistakeKind.transposition': 'Transpositions',
+  'mistakeKind.doubling': 'Doubled keys',
+  'mistakeKind.omission': 'Dropped letters',
+  'mistakeKind.substitution': 'Wrong letters',
+  'mistakeKind.shift': 'Shift & case',
+  'mistakeKind.spacing': 'Spacing',
+  'mistakeKind.other': 'Other',
+  'mistakeFix.transposition':
+    'Two letters swapped — your hands are ahead of your eyes. Slow to 80% of your top speed for one drill; transpositions vanish before accuracy does.',
+  'mistakeFix.doubling':
+    'A key fired twice. Usually a light, lingering touch — or a sticky key. Run the keyboard check if it is always the same letter.',
+  'mistakeFix.omission':
+    'A letter never landed. This is a pressure problem, not a knowledge one: the finger moved but did not complete the press.',
+  'mistakeFix.substitution':
+    'A neighbouring or same-finger key instead of the right one. The Trainer’s confused-pairs drill is built for exactly this.',
+  'mistakeFix.shift':
+    'Right letter, wrong case. Release Shift only after the letter, and check Caps Lock before you start.',
+  'mistakeFix.spacing':
+    'A space missing or misplaced. Thumbs get lazy on long passages — the space bar is a keystroke, not a pause.',
+  'mistakeFix.other': 'No single pattern here. The mistake list below has the individual words.',
+
+  // Cost of backspace
+  'backspace.title': 'What corrections cost you',
+  'backspace.none': 'No corrections at all — nothing was retyped. That is the habit to keep.',
+  'backspace.verdict': 'Corrections cost you about {seconds} seconds — roughly {wpm} WPM.',
+  'backspace.corrections': 'Corrections',
+  'backspace.share': '{share}% of keystrokes',
+  'backspace.timeLost': 'Time lost',
+  'backspace.each': '~{ms}ms each',
+  'backspace.wpmCost': 'WPM cost',
+  'backspace.wpmHint': 'recoverable',
+  'backspace.retyped': 'Retyped',
+  'backspace.retypedHint': 'characters done twice',
+  'backspace.adviceHabit':
+    'This is the fix-later habit, and it is the most common reason a 35 WPM typist scores 30. Type through a mistake and correct nothing until the passage ends — your net speed almost always goes up.',
+  'backspace.adviceFine':
+    'A light touch of correction is fine. Watch it only if the share climbs above about 5% of your keystrokes.',
+
+  // Key depressions per hour
+  'kdph.title': 'Key depressions per hour',
+  'kdph.verdictMet': 'You are {value} depressions/hour above the {target} required.',
+  'kdph.verdictShort': 'You are {value} depressions/hour short of the {target} required.',
+  'kdph.achieved': 'Achieved',
+  'kdph.required': 'Required',
+  'kdph.perHour': 'per hour',
+  'kdph.depressions': 'Depressions',
+  'kdph.depressionsHint': 'keys pressed in total',
+  'kdph.asWpm': 'Same as',
+  'kdph.asWpmHint': 'WPM · cut-off is {value}',
+  'kdph.explainCounted': 'Every key counts — corrections included',
+  'kdph.explainAccuracy': 'Accuracy must still reach {accuracy}%',
+
+  // Shareable result card
+  'share.title': 'Share your result',
+  'share.hint':
+    'A square card sized for WhatsApp and Instagram — your speed, accuracy and streak, nothing else.',
+  'share.share': 'Share',
+  'share.download': 'Save image',
+  'share.nameAria': 'Name to print on the card',
+  'share.downloadedInstead': 'This device cannot share images directly, so the card was saved instead.',
+
+  // Finger load and travel
+  'fingers.title': 'Finger load and travel',
+  'fingers.verdictOverload':
+    'Your {hand} {finger} is doing {share}% of the work. That is the mechanics behind a plateau, and it will not improve by typing more.',
+  'fingers.verdictSkew':
+    'Your {hand} hand is carrying {share}% of the keystrokes. Some imbalance is normal in English; this much usually means a home position that has drifted.',
+  'fingers.verdictBalanced': 'The load is spread evenly across both hands. Nothing to fix here.',
+  'fingers.finger': 'Finger',
+  'fingers.presses': 'Presses',
+  'fingers.travel': 'Travel',
+  'fingers.errorRate': 'Errors',
+  'fingers.travelNote':
+    'Travel is measured in key widths, so the numbers compare fingers rather than measure centimetres. A high figure with a low press count means a finger reaching for keys another one should take.',
+  'finger.pinky': 'pinky',
+  'finger.ring': 'ring',
+  'finger.middle': 'middle',
+  'finger.index': 'index',
+  'finger.thumb': 'thumb',
+  'hand.left': 'Left',
+  'hand.right': 'Right',
+
+  // Challenge files
+  'challenge.title': 'Challenge a friend',
+  'challenge.hint':
+    'Saves this passage and your score as a small .typly file. Whoever opens it types the same passage under the same rules and gets a head-to-head — no accounts, no server.',
+  'challenge.export': 'Save challenge file',
+  'challenge.youWon': 'You won this challenge',
+  'challenge.youLost': 'Not this time',
+  'challenge.you': 'You',
+  'challenge.challenger': 'Challenger',
+  'challenge.margin': '{wpm} WPM and {accuracy} percentage points between you.',
+  'challenge.sendBack': 'Challenge them back',
+  'challenge.incomingTitle': 'A challenge is waiting',
+  'challenge.incomingBody':
+    '{name} typed this passage at {wpm} WPM with {accuracy}% accuracy. Same passage, same rules, same clock.',
+  'challenge.accept': 'Accept challenge',
+  'challenge.decline': 'Not now',
+
+  // Longitudinal heatmap
+  'longitudinal.title': 'Weak keys over {days} days',
+  'longitudinal.subtitle':
+    '{runs} runs in the last {days} days, compared against the {days} days before them — so a key you have been drilling shows whether it is actually healing.',
+  'longitudinal.empty':
+    'No attempts in the last {days} days yet. This chart needs history to compare against, so it fills in as you practise.',
+  'longitudinal.keyErrors': '{count} errors in this window',
+  'longitudinal.noErrors': 'no errors',
+  'longitudinal.healing': 'Healing',
+  'longitudinal.healingHint': 'Fewer errors than the previous window.',
+  'longitudinal.worsening': 'Getting worse',
+  'longitudinal.worseningHint': 'More errors than the previous window — worth a targeted drill.',
+  'longitudinal.noneHealing': 'Nothing has improved measurably yet.',
+  'longitudinal.noneWorsening': 'Nothing is getting worse. Good.',
+
+  // Fatigue curve
+  'fatigue.title': 'Do you fade?',
+  'fatigue.empty':
+    'Needs a few runs of three minutes or more. Short drills have no late minute to compare against.',
+  'fatigue.verdictFading':
+    'You lose about {drop} WPM ({pct}%) between your first and last minute, across {runs} runs. That — not peak speed — is what fails a 10-minute test.',
+  'fatigue.verdictSteady':
+    'Your speed holds up to the end across {runs} runs. Stamina is not what is limiting you.',
+  'fatigue.firstMinute': 'First minute',
+  'fatigue.lastMinute': 'Last minute',
+  'fatigue.change': 'Change',
+  'fatigue.minute': 'min {minute}',
+  'fatigue.samples': '{count} runs',
+  'fatigue.advice':
+    'If you fade, practise longer than the exam rather than faster than it: one 15-minute run builds more stamina than three 5-minute ones.',
+
+  // Retroactive eligibility
+  'eligibility.title': 'Which post could you clear?',
+  'eligibility.subtitle':
+    'Every one of your {attempts} attempts, re-scored against all 13 exam profiles. You already clear {cleared}.',
+  'eligibility.empty':
+    'Take a test and this re-scores your whole history against every exam profile — including the ones you have never selected.',
+  'eligibility.cleared': 'You clear these',
+  'eligibility.clearedHint': 'Your best attempt in this exam’s language met both its cut-offs.',
+  'eligibility.close': 'Within reach',
+  'eligibility.closeHint': 'A few WPM away. These are the ones worth targeting next.',
+  'eligibility.far': 'Not yet',
+  'eligibility.farHint': 'Further off, or you have no attempt in this exam’s language yet.',
+  'eligibility.noneCleared': 'None yet — the list above shows what is closest.',
+  'eligibility.noneClose': 'Nothing is borderline right now.',
+  'eligibility.noneFar': 'Nothing is out of reach.',
+  'eligibility.met': 'Cleared',
+  'eligibility.wpmShort': '{value} WPM short',
+  'eligibility.kdphShort': '{value} KDPH short',
+  'eligibility.accuracyShort': '{value}% accuracy short',
+  'eligibility.repeatable': 'Cleared on {runs} separate attempts — repeatable, not luck.',
+  'eligibility.onceOnly': 'Cleared {runs} time(s). Do it twice more before you count on it.',
+  'eligibility.bestSoFar': 'Best so far: {wpm} WPM at {accuracy}%.',
+
+  // Monthly recap
+  'recap.title': 'Your {month}',
+  'recap.empty': 'No practice recorded that month.',
+  'recap.subtitleFirst': '{tests} tests and {hours} hours at the keyboard. This is your first full month.',
+  'recap.subtitleUp': '{tests} tests, {hours} hours, and {gained} WPM faster than last month.',
+  'recap.subtitleDown': '{tests} tests and {hours} hours. Your average was {gained} WPM below last month.',
+  'recap.hours': 'Hours',
+  'recap.hoursHint': 'at the keyboard',
+  'recap.tests': 'Tests',
+  'recap.passed': '{count} passed',
+  'recap.best': 'Best WPM',
+  'recap.average': 'avg {value}',
+  'recap.activeDays': 'Active days',
+  'recap.bestStreak': 'best streak {count}',
+  'recap.bestDay': 'Best day',
+  'recap.bestDayValue': '{date} — {tests} tests, best {wpm} WPM',
+  'recap.gained': 'Against last month',
+  'recap.gainedUp': '{value} WPM faster on average',
+  'recap.gainedDown': '{value} WPM slower on average',
+  'recap.keysFixed': 'Keys you fixed',
+
+  // Tools page
+  'nav.tools': 'Tools',
+  'toolbox.title': 'Tools',
+  'toolbox.subtitle':
+    'A Kruti Dev converter and a keyboard check — both offline, because both are needed on machines you do not own.',
+
+  // Kruti Dev converter
+  'krutidev.title': 'Kruti Dev ⇄ Unicode',
+  'krutidev.hint':
+    'Convert legacy Kruti Dev text to Unicode Devanagari and back. Runs entirely on this device — nothing is uploaded, which matters when the text is an official document.',
+  'krutidev.toUnicode': 'Kruti Dev → Unicode',
+  'krutidev.toKrutiDev': 'Unicode → Kruti Dev',
+  'krutidev.directionAria': 'Conversion direction',
+  'krutidev.detect': 'Detect',
+  'krutidev.detectHint': 'Pick the direction from what you pasted.',
+  'krutidev.clear': 'Clear',
+  'krutidev.input': 'Input',
+  'krutidev.output': 'Result',
+  'krutidev.outputEmpty': 'The converted text appears here.',
+  'krutidev.copy': 'Copy',
+  'krutidev.copied': 'Copied',
+  'krutidev.placeholderLegacy': 'Paste Kruti Dev text (it will look like Roman gibberish)…',
+  'krutidev.placeholderUnicode': 'यहाँ यूनिकोड हिंदी पाठ चिपकाएँ…',
+  'krutidev.coverage':
+    'Covers the standard layer — consonants, vowels, matras, the single-key conjuncts and punctuation — and corrects the visual-to-logical reordering of ि and reph. Decorative variants pass through unchanged rather than being guessed at.',
+
+  // Keyboard health check
+  'health.title': 'Keyboard health check',
+  'health.hint':
+    'Press every key once. Dead, sticky and ghosting keys are all detectable — and finding a half-dead key two minutes into a mock is a wasted session.',
+  'health.start': 'Start check',
+  'health.restart': 'Start again',
+  'health.regionAria': 'Keyboard test area — press keys here',
+  'health.tested': 'Keys tested',
+  'health.notStarted': 'Press Start, click the keyboard above, then work across every key.',
+  'health.pressKeys': 'Now press every key once. Escape ends the check.',
+  'health.remaining': '{count} keys still untested — press them to rule them out.',
+  'health.allGood': 'Every key responded once and only once. This keyboard is fine.',
+  'health.stickyFound':
+    'Sticky or chattering: {keys}. These fire more than once from a single press, which shows up as doubled letters.',
+  'health.ghostingFound':
+    'Ghosting: {keys}. These register while a different key is held — the classic membrane fault, and the one that silently corrupts a run.',
+  'health.untested': 'Not tested yet',
+  'health.ok': 'Responds correctly',
+  'health.sticky': 'Sticky — fires more than once',
+  'health.ghosting': 'Ghosting — fires when another key is held',
+
+  // Passage difficulty rating
+  'passageBand.veryEasy': 'Very easy',
+  'passageBand.easy': 'Easy',
+  'passageBand.moderate': 'Moderate',
+  'passageBand.hard': 'Hard',
+  'passageBand.veryHard': 'Very hard',
+  'difficultyRating.tooltip': 'Difficulty {score}/100 · suits a typist around {wpm} WPM',
+  'difficultyRating.matched': 'About right for your level (suits around {wpm} WPM).',
+  'difficultyRating.tooEasy':
+    'Easier than your level — you are {gap} WPM past what this passage asks. Fine for a warm-up, but it will not move your speed.',
+  'difficultyRating.tooHard':
+    'Harder than your level by about {gap} WPM. Worth returning to; practising above your level mostly builds frustration.',
+  'difficultyRating.factorWordLength': 'Long words',
+  'difficultyRating.factorPunctuation': 'Punctuation',
+  'difficultyRating.factorCapitals': 'Capitals',
+  'difficultyRating.factorDigits': 'Digits',
+  'difficultyRating.factorRareLetters': 'Rare letters',
+  'difficultyRating.factors': 'What makes it hard',
+  'difficultyRating.recommend': 'Better suited to you right now',
+
+  // Passage packs
+  'packs.title': 'Passage packs',
+  'packs.hint':
+    'Polity, economy, an editorial and a real office-memorandum format. You are preparing for a general-knowledge paper too, so an hour of typing may as well be an hour of reading what you need. Bundled with the app — no network required.',
+  'packs.import': 'Add to library',
+  'packs.importing': 'Adding…',
+  'packs.again': 'Add again',
+
+  // Institute branding
+  'institute.title': 'Institute branding',
+  'institute.hint':
+    'Put your centre’s name and logo on every certificate, then generate a whole batch from the History page. Stored on this device and included in backups.',
+  'institute.name': 'Institute name',
+  'institute.namePlaceholder': 'e.g. Sharma Computer Institute',
+  'institute.subtitle': 'Second line',
+  'institute.subtitlePlaceholder': 'City, affiliation or registration',
+  'institute.signatory': 'Signed by',
+  'institute.signatoryPlaceholder': 'Name of the signatory',
+  'institute.signatoryTitle': 'Designation',
+  'institute.signatoryTitlePlaceholder': 'e.g. Centre Director',
+  'institute.uploadLogo': 'Upload logo',
+  'institute.removeLogo': 'Remove logo',
+  'institute.logoTooBig': 'That logo is too large — keep it under {kb} KB.',
+  'institute.save': 'Save branding',
+  'institute.cancel': 'Discard changes',
+  'certificate.branded': 'Issued as {institute}',
+
+  // Batch certificates
+  'batch.title': 'Batch certificates',
+  'batch.hintBranded':
+    '{count} passing attempts, ready to issue as {institute}. Type each candidate’s name, then download the batch in one go.',
+  'batch.hintUnbranded':
+    '{count} passing attempts. Set your institute name in Settings first, or these print under Typly’s own name.',
+  'batch.empty': 'No passing attempts to certify yet.',
+  'batch.downloadAll': 'Download {count} certificates',
+  'batch.print': 'Print list',
+  'batch.candidate': 'Candidate',
+  'batch.exam': 'Exam',
+  'batch.wpm': 'Net WPM',
+  'batch.accuracy': 'Accuracy',
+  'batch.date': 'Date',
+  'batch.namePlaceholder': 'Candidate name',
+  'batch.nameAria': 'Candidate name for attempt {id}',
+
+  // Endless / adaptive run
+  'endless.cardTitle': 'Endless run',
+  'endless.cardHint':
+    'Passages keep coming. Difficulty climbs while you hold {wpm} WPM and eases when you drop, and the run ends once you have missed the cut-off three times in a row. The answer is one number: how long you can hold {exam} pace.',
+  'endless.start': 'Start endless run',
+  'endless.starting': 'Starting…',
+  'endless.needLibrary':
+    'Needs paragraphs at two or more difficulty levels in your library, or the difficulty has nothing to adapt to. Add a passage pack from the Library page.',
+  'endless.couldNotStart': 'No passage was available to start with. Add something to your library first.',
+  'endless.title': 'Endless run',
+  'endless.continuing':
+    '{minutes} minutes at pace across {laps} passages so far. The next one is loading — it will be harder if you held, easier if you did not.',
+  'endless.finished':
+    'Run over: you held exam pace for {minutes} minutes across {laps} passages. That is the number a fixed-length test cannot give you.',
+  'endless.stop': 'End the run',
+  'endless.atPace': 'At pace',
+  'endless.atPaceHint': 'held above the cut-off',
+  'endless.laps': 'Passages',
+  'endless.lapsHint': 'completed',
+  'endless.peak': 'Hardest held',
+  'endless.peakHint': 'difficulty band',
+  'endless.misses': 'Misses in a row',
+  'endless.missesHint': 'three ends the run',
+  'endless.held': 'held',
+  'endless.missed': 'missed',
+
+  // Quick drill (tray / global hotkey overlay)
+  'quick.title': 'Quick drill · 60 seconds',
+  'quick.close': 'Close',
+  'quick.placeholder': 'Start typing — the clock starts with your first key.',
+  'quick.inputLabel': 'Quick drill input',
+  'quick.netWpm': 'Net WPM',
+  'quick.accuracy': '{value}% accuracy',
+  'quick.counted': 'Saved — it counts towards your streak and daily goal.',
+  'quick.again': 'Again',
+  'quick.done': 'Done',
+
+  'trainer.taxonomy': 'The kind of mistake you make',
+  'trainer.taxonomyHint':
+    'Across every attempt, {share}% of your mistakes are {kind}. A pattern that survives your whole history is the one worth changing technique for.',
+
+  // Release notes — 0.4.0
+  'changelog.dictation':
+    'Stenographer mode: the passage is dictated at 80 or 100 WPM, then you transcribe it against the clock.',
+  'changelog.kdph':
+    'Key depressions per hour, the way DEST and DEO posts are really scored — with a tabular data-entry drill to match.',
+  'changelog.examSkin':
+    'An exam-software skin that imitates the real test client, so the mock feels like the exam.',
+  'changelog.pacer':
+    'A cut-off pacer: a marker moving at exactly the exam’s minimum speed. Fall behind it and you would have failed.',
+  'changelog.pressure':
+    'Pressure mode — a flashing clock, a live rank and hall noise, so exam-day nerves can be rehearsed.',
+  'changelog.strict': 'Strict mode blocks progress until the current word is correct.',
+  'changelog.endless':
+    'Endless run: passages keep coming and difficulty adapts, until you cannot hold exam pace any longer.',
+  'changelog.eligibility':
+    'Your whole history re-scored against every exam profile — which posts you already clear, and which are two WPM away.',
+  'changelog.taxonomy':
+    'Mistakes classified by kind — transposition, doubling, omission, substitution, shift — each with its own fix.',
+  'changelog.longitudinal':
+    'A 30-day weak-key heatmap and a fatigue curve, so you can see whether a key is healing and whether you fade.',
+  'changelog.backspaceCost': 'What corrections cost you, in seconds and in WPM.',
+  'changelog.fingerLoad': 'Finger load and travel — the mechanics behind a plateau.',
+  'changelog.difficulty':
+    'Every passage rated for difficulty, with a recommendation when one sits above or below your level.',
+  'changelog.packs':
+    'Bundled GK, economy, editorial and official-letter passage packs, so typing practice doubles as revision.',
+  'changelog.shareCard': 'A square shareable result card, sized for WhatsApp.',
+  'changelog.challenge':
+    'Challenge files: export a passage and your score as a .typly file for a head-to-head with no server.',
+  'changelog.recap': 'A monthly recap — hours practised, WPM gained, keys fixed, best day.',
+  'changelog.krutidev': 'An offline Kruti Dev ⇄ Unicode converter.',
+  'changelog.keyboardHealth': 'A keyboard health check that flags dead, sticky and ghosting keys.',
+  'changelog.preflight': 'Pre-flight checks before the clock starts — Caps Lock, input method, fonts.',
+  'changelog.multiSection': 'Multi-section mock papers for CPCT and state exams, with one combined report.',
+  'changelog.institute': 'Institute branding and batch certificates for coaching centres.',
+  'changelog.quickDrill':
+    'A 60-second drill from the tray or a global hotkey, in a small always-on-top window.',
+  'changelog.breaks': '20-20-20 eye breaks and a wrist prompt during long sessions.',
+  'changelog.portable': 'A portable build that keeps its data beside the executable — run it from a USB stick.',
+
+  // Recovering a table from an imported form
+  'tabulate.title': 'This looks like a form or register',
+  'tabulate.hint':
+    '{rows} rows of about {columns} columns. Convert the column gaps to Tabs and it runs as a data-entry test, scored in key depressions per hour.',
+  'tabulate.apply': 'Convert to fields',
 } as const;
 
 export type TKey = keyof typeof en;

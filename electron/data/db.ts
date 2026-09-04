@@ -1,6 +1,5 @@
-import { app } from 'electron';
-import path from 'node:path';
 import Database from 'better-sqlite3';
+import { databasePath } from '../shell/portable';
 
 // Plain row shapes (kept local so the main process doesn't depend on renderer src).
 interface Mistake {
@@ -110,7 +109,8 @@ export class SqliteRepository {
   private db: Database.Database;
 
   constructor() {
-    this.db = new Database(path.join(app.getPath('userData'), 'typly.db'));
+    // Beside the executable in a portable build, in the user profile otherwise.
+    this.db = new Database(databasePath());
     this.db.pragma('journal_mode = WAL');
     this.db.exec(SCHEMA);
     this.migrate();
@@ -254,6 +254,19 @@ export class SqliteRepository {
         return [];
       }
     });
+  }
+
+  /**
+   * The newest `limit` tests in full, kept per test rather than flattened —
+   * what a longitudinal heatmap or a fatigue curve reads.
+   */
+  recentResults(limit: number): FullResult[] {
+    const ids = this.db
+      .prepare(`SELECT id FROM tests ORDER BY createdAt DESC LIMIT ?`)
+      .all(limit) as { id: number }[];
+    return ids
+      .map((row) => this.getResult(row.id))
+      .filter((full): full is FullResult => full !== null);
   }
 
   exportBackup(): BackupBundle {

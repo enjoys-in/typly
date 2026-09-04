@@ -10,3 +10,13 @@ export function isMacOS(): boolean {
   return /mac/i.test(platform);
 }
 
+
+/**
+ * True when the renderer was opened as the quick-drill overlay rather than the
+ * full app. The desktop shell passes `?quick=1`; the flag is read once, at
+ * boot, because the window's role cannot change while it is open.
+ */
+export function isQuickDrill(): boolean {
+  if (typeof window === 'undefined') return false;
+  return new URLSearchParams(window.location.search).get('quick') === '1';
+}

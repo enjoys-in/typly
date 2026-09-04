@@ -4,15 +4,25 @@ import { usePlatform } from '@/platform/PlatformContext';
 import { useExamStore } from '@/store/examStore';
 import { examBase, useSettingsStore } from '@/store/settingsStore';
 import { useAuthStore } from '@/store/authStore';
+import { useIncomingStore } from '@/store/incomingStore';
 import { featuresFor } from '@/core/profile/profile';
-import { boardsByCategory, profileFor } from '@/core/scoring/examProfiles';
+import {
+  boardsByCategory,
+  dictationFor,
+  isKdph,
+  profileFor,
+} from '@/core/scoring/examProfiles';
 import { seriesFrom } from '@/core/library/parts';
+import { paperSeries, type PaperTemplate } from '@/core/exam/paper';
+import { pacerAvailable } from '@/core/exam/pacer';
+import type { PaperSection } from '@/core/types';
 import { useAsync } from '@/hooks/useAsync';
 import {
   DEFAULT_DURATIONS_MIN,
   Difficulty,
   ExamBoard,
   ExamMode,
+  ExamSkin,
   GUEST_MAX_DURATION_MIN,
   Lang,
   MAX_DURATION_MIN,
@@ -23,6 +33,7 @@ import { Button } from '@/ui/Button';
 import { Segmented, type SegmentedOption } from '@/ui/Segmented';
 import { Card } from '@/ui/Card';
 import { Toggle } from '@/ui/Toggle';
+import { PaperPicker } from '@/components/exam/PaperPicker';
 import { useT } from '@/i18n';
 import { useDateFormat } from '@/hooks/useDateFormat';
 
@@ -34,12 +45,15 @@ export function ExamSetup() {
   const startSeries = useExamStore((s) => s.startSeries);
   const settings = useSettingsStore();
   const account = useAuthStore((s) => s.account);
+  const challenge = useIncomingStore((s) => s.challenge);
   // An email lifts the guest session cap — the address is how someone tells the
   // app who they are, and long mock exams are the reward for doing so.
   const unlocked = featuresFor(account);
   const maxMin = !account?.guest || unlocked.longSessions ? MAX_DURATION_MIN : GUEST_MAX_DURATION_MIN;
   const durationMin = Math.round(settings.durationSec / 60);
   const [ghostTestId, setGhostTestId] = useState<number | null>(null);
+  // Dictation is on by default for a profile that has one — that *is* the test.
+  const [dictateOn, setDictateOn] = useState(true);
   const t = useT();
   const d = useDateFormat();
 
@@ -55,6 +69,18 @@ export function ExamSetup() {
     { value: TimingMode.Countdown, label: t('timing.countdown') },
     { value: TimingMode.Stopwatch, label: t('timing.stopwatch') },
   ];
+  const skinOptions: SegmentedOption<ExamSkin>[] = [
+    { value: ExamSkin.Modern, label: t('skin.modern') },
+    { value: ExamSkin.ExamClient, label: t('skin.examClient') },
+  ];
+
+  const profile = profileFor(settings.board);
+  const dictation = dictationFor(settings.board);
+  const kdph = isKdph(settings.board);
+
+  // Saved paragraphs, so a multi-section paper can fill its other sections
+  // from the library rather than asking for an import mid-setup.
+  const library = useAsync(() => platform.repo.listDocuments(), [platform]);
 
   // Past runs of this same paragraph — the only ones worth racing.
   const documentId = draft?.documentId ?? null;
@@ -70,6 +96,16 @@ export function ExamSetup() {
   useEffect(() => {
     if (!draft) navigate('/app/new', { replace: true });
   }, [draft, navigate]);
+
+  // A challenge names the exam and the clock it was set under. Adopting both is
+  // the whole point — a head-to-head on different rules is not a comparison.
+  useEffect(() => {
+    if (!challenge) return;
+    settings.setBoard(challenge.board);
+    if (challenge.durationSec > 0) settings.setDurationSec(challenge.durationSec);
+    // Only on arrival; the controls below stay free to override.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [challenge]);
 
   // A stored paragraph carries its own language; adopt it so the input method,
   // font and speech match the script on screen. The select still overrides.
@@ -98,12 +134,24 @@ export function ExamSetup() {
     settings.setDurationSec(clamped * 60);
   }
 
+  function baseConfig() {
+    // A Stenographer profile brings its own dictation; the switch above can turn
+    // it off, which turns the run back into a plain typing test.
+    const dictating = dictation && dictateOn ? dictation : null;
+    return {
+      ...examBase(settings),
+      // With dictation on, the clock is the exam's own transcription window —
+      // the briefing promises those minutes, so the timer has to give them.
+      durationSec: dictating
+        ? Math.min(dictating.transcriptionMinutes * 60, maxMin * 60)
+        : Math.min(settings.durationSec, maxMin * 60),
+      dictation: dictating,
+    };
+  }
+
   function start() {
     if (!draft) return;
-    const base = {
-      ...examBase(settings),
-      durationSec: Math.min(settings.durationSec, maxMin * 60),
-    };
+    const base = baseConfig();
     // A split document runs as a series: finishing one part starts the next,
     // and each finished part is recorded so the run can be picked up later.
     if (split) {
@@ -123,9 +171,33 @@ export function ExamSetup() {
     navigate('/app/exam');
   }
 
+  /** A multi-section paper: one series, each section with its own settings. */
+  function startPaper(template: PaperTemplate, sections: PaperSection[]) {
+    startSeries(paperSeries(sections), { ...baseConfig(), board: template.board });
+    navigate('/app/exam');
+  }
+
+  /** The first saved paragraph in a section's language, or null if there is none. */
+  function passageForSection(section: PaperTemplate['sections'][number]): string | null {
+    return library.data?.find((doc) => doc.lang === section.lang)?.content ?? null;
+  }
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{t('setup.title')}</h1>
+      {challenge && (
+        <Card className="border-accent-border bg-accent-soft">
+          <p className="text-sm font-semibold">{t('challenge.incomingTitle')}</p>
+          <p className="mt-1 text-sm text-fg-muted">
+            {t('challenge.incomingBody', {
+              name: challenge.score.name || t('challenge.challenger'),
+              wpm: challenge.score.netWpm,
+              accuracy: challenge.score.accuracy,
+            })}
+          </p>
+        </Card>
+      )}
+
       {draft.paper && (
         <Card className="border-accent-border bg-accent-soft">
           <p className="text-sm font-semibold">{t('setup.paperTitle')}</p>
@@ -168,12 +240,19 @@ export function ExamSetup() {
             ))}
           </select>
           <p className="mt-1 text-xs text-fg-muted">
-            {t('setup.source', { source: profileFor(settings.board).source })}
-            {profileFor(settings.board).rules.minWpm > 0 &&
-              t('setup.target', {
-                wpm: profileFor(settings.board).rules.minWpm,
-                accuracy: profileFor(settings.board).rules.minAccuracy,
-              })}
+            {t('setup.source', { source: profile.source })}
+            {/* A data-entry post's bar is depressions per hour; showing it as
+                WPM would show the wrong number. */}
+            {kdph
+              ? t('setup.targetKdph', {
+                  kdph: profile.rules.minKdph.toLocaleString(),
+                  accuracy: profile.rules.minAccuracy,
+                })
+              : profile.rules.minWpm > 0 &&
+                t('setup.target', {
+                  wpm: profile.rules.minWpm,
+                  accuracy: profile.rules.minAccuracy,
+                })}
           </p>
         </Field>
 
@@ -252,6 +331,60 @@ export function ExamSetup() {
               </p>
             </div>
           </Field>
+        )}
+
+        <Field label={t('skin.label')}>
+          <Segmented
+            options={skinOptions}
+            value={settings.examSkin}
+            onChange={settings.setExamSkin}
+            ariaLabel={t('skin.label')}
+          />
+          <p className="mt-1 text-xs text-fg-muted">{t('skin.hint')}</p>
+        </Field>
+
+        {dictation && (
+          <Field label={t('setup.dictationLabel')}>
+            <div className="space-y-3 rounded-panel border border-accent-border bg-accent-soft p-4">
+              <Toggle
+                label={t('setup.dictationToggle', { wpm: dictation.wpm })}
+                hint={t('setup.dictationHint', {
+                  wpm: dictation.wpm,
+                  minutes: dictation.transcriptionMinutes,
+                })}
+                checked={dictateOn}
+                onChange={setDictateOn}
+              />
+            </div>
+          </Field>
+        )}
+
+        <Field label={t('setup.pacing')}>
+          <div className="space-y-3 rounded-panel border border-line p-4">
+            <Toggle
+              label={t('pacer.toggle')}
+              hint={t('pacer.toggleHint')}
+              checked={settings.pacer}
+              onChange={settings.setPacer}
+              disabled={!pacerAvailable(profile.rules)}
+            />
+            <Toggle
+              label={t('pressure.toggle')}
+              hint={t('pressure.toggleHint')}
+              checked={settings.pressure}
+              onChange={settings.setPressure}
+              disabled={settings.timing !== TimingMode.Countdown}
+            />
+          </div>
+        </Field>
+
+        {/* Only offered where there is a paragraph to build the paper on. */}
+        {!draft.paper && (
+          <PaperPicker
+            passage={draft.passage}
+            passageFor={passageForSection}
+            onStart={startPaper}
+          />
         )}
 
         <Field label={t('setup.mockExam')}>

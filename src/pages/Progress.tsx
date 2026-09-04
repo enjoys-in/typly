@@ -14,6 +14,15 @@ import {
   totalPoints,
 } from '@/core/stats';
 import { computeBadges } from '@/core/achievements/badges';
+import { monthlyRecap } from '@/core/achievements/recap';
+import { eligibility } from '@/core/exam/eligibility';
+import { fatigueCurve, longitudinalKeys } from '@/core/analysis/longitudinal';
+import { KEYSTROKE_SCAN_TESTS } from '@/core/constants';
+import { useAsync } from '@/hooks/useAsync';
+import { LongitudinalHeatmap } from '@/components/analysis/LongitudinalHeatmap';
+import { FatigueCurveCard } from '@/components/analysis/FatigueCurveCard';
+import { EligibilityCard } from '@/components/eligibility/EligibilityCard';
+import { RecapCard } from '@/components/achievements/RecapCard';
 import { Card } from '@/ui/Card';
 import { ProgressBar } from '@/ui/ProgressBar';
 import { Skeleton, SkeletonCard } from '@/ui/Skeleton';
@@ -30,6 +39,22 @@ export function Progress() {
   useEffect(() => {
     platform.repo.listHistory().then(setRows);
   }, [platform]);
+
+  // Whole recent runs — keystroke logs included — for the two readings that
+  // need history rather than one attempt. Deliberately capped: parsing every
+  // stored log would mean reading the entire database to draw one heatmap.
+  const recent = useAsync(() => platform.repo.recentResults(KEYSTROKE_SCAN_TESTS * 3), [platform]);
+
+  const overTime = useMemo(() => {
+    const results = recent.data;
+    if (!results || results.length === 0) return null;
+    return { keys: longitudinalKeys(results), fatigue: fatigueCurve(results) };
+  }, [recent.data]);
+
+  // Two whole-history readings. Both are pure arithmetic over rows already
+  // loaded, so they cost nothing beyond the memo.
+  const posts = useMemo(() => (rows ? eligibility(rows) : null), [rows]);
+  const recap = useMemo(() => (rows ? monthlyRecap(rows) : null), [rows]);
 
   const stats = useMemo(() => {
     if (!rows) return null;
@@ -152,10 +177,25 @@ export function Progress() {
             />
           </Card>
 
+          {/* The reward ladder, extended: badges run out inside a fortnight,
+              a monthly recap has as many rungs as there are months. */}
+          {recap && <RecapCard recap={recap} />}
+
           <Card className="space-y-4">
             <h2 className="font-semibold">{t('progress.badgesTitle')}</h2>
             <BadgeGrid badges={stats.badges} />
           </Card>
+
+          {/* The whole history, re-scored against every profile — the question
+              aspirants actually agonise over. */}
+          {posts && <EligibilityCard report={posts} />}
+
+          {overTime && (
+            <>
+              <LongitudinalHeatmap data={overTime.keys} />
+              <FatigueCurveCard curve={overTime.fatigue} />
+            </>
+          )}
 
           <Card className="space-y-3">
             <h2 className="font-semibold">{t('progress.topRunsTitle')}</h2>

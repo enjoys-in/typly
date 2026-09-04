@@ -16,6 +16,7 @@ const METHODS = new Set([
   'aggregateMistakes',
   'getKeystrokes',
   'recentKeystrokes',
+  'recentResults',
   'exportBackup',
   'importBackup',
 ]);
