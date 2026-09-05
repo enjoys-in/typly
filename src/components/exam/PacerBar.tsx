@@ -31,9 +31,9 @@ export const PacerBar = memo(function PacerBar({
   const state = pacerState(rules, elapsedMs, typedChars, passageLength);
 
   return (
-    <div className="space-y-2 rounded-panel border border-line bg-surface px-4 py-3">
-      <div className="flex items-center justify-between text-xs">
-        <span className="font-semibold tracking-wide text-fg-muted uppercase">
+    <div className="panel-lit shrink-0 space-y-2 rounded-panel border border-line bg-surface px-4 py-3 shadow-e1">
+      <div className="flex items-center justify-between text-[11px]">
+        <span className="font-semibold tracking-[0.09em] text-fg-muted uppercase">
           {t('pacer.title', { wpm: state.targetWpm })}
         </span>
         <span
@@ -88,9 +88,9 @@ function Lane({
         <Icon size={12} className="shrink-0" />
         <span className="truncate">{label}</span>
       </span>
-      <span className="h-2 flex-1 overflow-hidden rounded-full bg-surface-3">
+      <span className="h-2 flex-1 overflow-hidden rounded-full bg-surface-3 ring-1 ring-line ring-inset">
         <span
-          className={`block h-full rounded-full transition-all ${tone}`}
+          className={`block h-full rounded-full transition-[width] duration-300 ease-out ${tone}`}
           style={{ width: `${pct}%` }}
         />
       </span>

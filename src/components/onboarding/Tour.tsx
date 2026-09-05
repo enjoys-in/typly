@@ -136,7 +136,7 @@ export function Tour({ steps, onDone }: Props) {
         aria-modal="true"
         aria-labelledby="tour-title"
         aria-describedby="tour-body"
-        className="absolute rounded-panel border border-edge bg-surface p-5 shadow-xl outline-none"
+        className="panel-lit absolute rounded-well border border-line bg-surface p-5 shadow-e3 outline-none"
         style={card}
       >
         <div className="flex items-start justify-between gap-3">

@@ -60,7 +60,16 @@ export function AppShell() {
       <div className="flex min-h-0 flex-1">
         {!bare && <Sidebar />}
         <main id="main" tabIndex={-1} className="min-w-0 flex-1 overflow-y-auto outline-none">
-          <div className={bare ? 'px-4 py-4' : 'px-6 py-8 sm:px-8'}>
+          {/* The vertical padding here is load-bearing: the exam screen sizes
+              itself as 100vh minus 4rem, which is exactly this py-8. Capped and
+              centred so a page does not stretch to 2000px on a wide display. */}
+          <div
+            className={
+              bare
+                ? 'px-4 py-4'
+                : 'mx-auto w-full max-w-[104rem] px-6 py-8 sm:px-8'
+            }
+          >
             {/* Suspense sits inside the shell so a route change only skeletons
                 the content area — the sidebar never flashes. Keyed on the path
                 so each navigation gets a fresh boundary. */}

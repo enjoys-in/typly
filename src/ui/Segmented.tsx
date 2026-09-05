@@ -22,6 +22,11 @@ interface Props<T extends string | number> {
 /**
  * The one segmented control. Previously this pattern existed three times with
  * three different looks — an accent fill, a slate fill, and a pair of Buttons.
+ *
+ * The selected segment is a raised white chip on a recessed track, the way a
+ * platform tab bar reads, rather than a saturated accent block: with three or
+ * four options a filled accent segment shouted louder than the primary action
+ * on the same screen.
  */
 export function Segmented<T extends string | number>({
   options,
@@ -34,7 +39,7 @@ export function Segmented<T extends string | number>({
     <div
       role="radiogroup"
       aria-label={ariaLabel}
-      className={`${full ? 'flex w-full' : 'inline-flex'} rounded-control border border-line bg-surface-2 p-0.5`}
+      className={`${full ? 'flex w-full' : 'inline-flex'} h-9 items-center gap-0.5 rounded-control border border-line bg-surface-3 p-1`}
     >
       {options.map(({ value: v, label, icon: Icon, title }) => {
         const active = v === value;
@@ -46,12 +51,12 @@ export function Segmented<T extends string | number>({
             aria-checked={active}
             title={title}
             onClick={() => onChange(v)}
-            className={`inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-inner px-3 py-1.5 text-xs font-semibold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent-ring ${
+            className={`inline-flex h-full cursor-pointer items-center justify-center gap-1.5 rounded-inner px-3 text-xs font-semibold outline-none transition-[background-color,color,box-shadow] duration-150 focus-visible:ring-2 focus-visible:ring-accent-ring ${
               full ? 'flex-1' : ''
             } ${
               active
-                ? 'bg-accent text-accent-fg'
-                : 'text-fg-muted hover:bg-surface-hover hover:text-fg'
+                ? 'bg-surface text-fg shadow-e1'
+                : 'text-fg-muted hover:text-fg'
             }`}
           >
             {Icon && <Icon size={14} className="shrink-0" />}

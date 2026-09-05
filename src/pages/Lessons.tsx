@@ -157,7 +157,7 @@ function LessonCard({
       className={`flex flex-col items-start gap-2 rounded-panel border p-4 text-left transition-all ${
         disabled
           ? 'cursor-not-allowed border-line bg-surface-2 opacity-70'
-          : 'cursor-pointer border-line bg-surface hover:-translate-y-0.5 hover:border-accent-border hover:shadow-lg'
+          : 'cursor-pointer border-line bg-surface shadow-e1 hover:-translate-y-0.5 hover:border-accent-border hover:shadow-e2'
       }`}
     >
       <span

@@ -11,6 +11,9 @@ import type { TKey } from './en';
 export const hi: Record<TKey, string> = {
   // Navigation and the app shell
   'nav.label': 'मुख्य',
+  'nav.groupPractice': 'अभ्यास',
+  'nav.groupReview': 'समीक्षा',
+  'nav.groupApp': 'ऐप',
   'nav.dashboard': 'डैशबोर्ड',
   'nav.new': 'नया टेस्ट',
   'nav.lessons': 'पाठ',
@@ -1073,6 +1076,7 @@ export const hi: Record<TKey, string> = {
   'skin.section': 'टाइपिंग कौशल परीक्षा',
   'skin.candidate': 'अभ्यर्थी',
   'skin.timeLeft': 'शेष समय',
+  'exam.elapsed': 'समय बीता',
   'skin.footer': 'इस विंडो को रीफ़्रेश या बंद न करें। आपका उत्तर स्वतः सहेजा जा रहा है।',
   'skin.label': 'परीक्षा स्क्रीन',
   'skin.modern': 'Typly',

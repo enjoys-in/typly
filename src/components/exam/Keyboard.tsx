@@ -15,7 +15,7 @@ export function Keyboard({
 }) {
   const target = nextChar ? (keymap ? keymap.keyForOutput(nextChar) : keyIdForChar(nextChar)) : '';
   return (
-    <div className="select-none rounded-panel border border-line bg-surface p-3">
+    <div className="panel-lit shrink-0 rounded-panel border border-line bg-surface-2 p-3 shadow-e1 select-none">
       <div className="mx-auto flex max-w-3xl flex-col gap-1.5">
         {KEY_ROWS.map((row, r) => (
           <div key={r} className="flex justify-center gap-1.5">
@@ -25,7 +25,7 @@ export function Keyboard({
                 <span
                   key={key.id}
                   style={{ flexGrow: key.width, flexBasis: 0, fontFamily }}
-                  className={`flex h-9 items-center justify-center rounded-control text-xs font-semibold transition-colors ${
+                  className={`flex h-9 items-center justify-center rounded-inner text-xs font-semibold shadow-e1 ring-1 ring-black/5 transition-[background-color,color,box-shadow] ring-inset ${
                     active
                       ? 'brand-gradient text-white ring-2 ring-accent-ring'
                       : FINGER_BG[key.finger]

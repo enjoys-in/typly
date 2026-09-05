@@ -69,14 +69,16 @@ export function Modal({
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/55 backdrop-blur-[3px]" onClick={onClose} />
       <div
         ref={dialogRef}
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}
-        className={`relative w-full ${WIDTH[size]} rounded-2xl border border-edge bg-surface p-6 shadow-xl outline-none`}
+        // `rounded-well` rather than a one-off 2xl: a dialog is the outermost
+        // container in the app, so it takes the outermost step of the scale.
+        className={`panel-lit relative w-full ${WIDTH[size]} rounded-well border border-line bg-surface p-6 shadow-e3 outline-none`}
       >
         {children}
       </div>

@@ -525,11 +525,11 @@ export function ExamRun({ config, resume }: Props) {
     <div
       className={
         isSplit
-          ? `grid min-h-0 flex-1 grid-cols-1 gap-5 ${statsVisible ? 'lg:grid-cols-[1fr_18rem]' : ''}`
-          : 'flex min-h-0 flex-1 flex-col gap-5'
+          ? `grid min-h-0 flex-1 grid-cols-1 gap-4 ${statsVisible ? 'lg:grid-cols-[1fr_19rem]' : ''}`
+          : 'flex min-h-0 flex-1 flex-col gap-4'
       }
     >
-      <div className="relative flex min-h-0 flex-1 flex-col gap-4">
+      <div className="relative flex min-h-0 flex-1 flex-col gap-3">
         {config.paper ? (
           <PaperPanel
             lang={config.lang}
@@ -606,8 +606,8 @@ export function ExamRun({ config, resume }: Props) {
           showKeys && typing && <PressedKey pressed={lastKey} />
         )}
         {paused && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-panel bg-canvas/85 backdrop-blur-sm">
-            <p className="text-xl font-bold">{t('exam.paused')}</p>
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 rounded-panel bg-canvas/70 backdrop-blur-md">
+            <p className="text-2xl font-bold tracking-tight">{t('exam.paused')}</p>
             <Button onClick={togglePause}>
               <Play size={16} /> {t('exam.resume')}
             </Button>
@@ -662,9 +662,11 @@ export function ExamRun({ config, resume }: Props) {
   return (
     <div
       ref={rootRef}
-      className={`flex flex-col gap-5 ${
+      // In full screen this element *is* the screen, so it takes the canvas
+      // and the dot lattice with it; embedded, it inherits the page's.
+      className={`flex flex-col gap-4 ${
         fullscreen.isFullscreen
-          ? 'h-screen overflow-auto bg-canvas p-6'
+          ? 'dot-grid h-screen overflow-auto bg-canvas p-5'
           : 'h-[calc(100vh-4rem-var(--titlebar-inset,0px))]'
       }`}
     >
@@ -723,9 +725,12 @@ export function ExamRun({ config, resume }: Props) {
         workingPane
       )}
 
-      <div className="flex shrink-0 items-center justify-between">
+      {/* The commit bar. Boxed off from the working panes, because ending a run
+          is the one irreversible thing on this screen and it should not sit
+          loose against the passage. */}
+      <div className="panel-lit flex shrink-0 items-center justify-between gap-4 rounded-panel border border-line bg-surface px-4 py-3 shadow-e1">
         {nonStop ? (
-          <span className="text-xs font-semibold text-danger-text">
+          <span className="inline-flex items-center gap-2 rounded-full bg-danger-soft px-3 py-1 text-xs font-semibold text-danger-soft-fg">
             {t('exam.nonStop')}
           </span>
         ) : (

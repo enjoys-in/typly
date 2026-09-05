@@ -8,10 +8,14 @@ interface Props {
 
 export function Stat({ label, value, hint, accent }: Props) {
   return (
-    <div className="flex flex-col">
-      <span className="text-xs tracking-wide text-fg-muted uppercase">{label}</span>
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[10.5px] font-semibold tracking-[0.09em] text-fg-muted uppercase">
+        {label}
+      </span>
+      {/* `tracking-tight` matters more at display sizes than anywhere else: at
+          1.75rem the default letter-spacing reads as gappy. */}
       <span
-        className={`text-2xl font-bold tabular-nums ${accent ? 'text-accent-text' : 'text-fg'}`}
+        className={`text-[1.75rem] leading-none font-bold tracking-tight tabular-nums ${accent ? 'text-accent-text' : 'text-fg'}`}
       >
         {value}
       </span>

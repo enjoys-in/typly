@@ -9,6 +9,9 @@
 export const en = {
   // Navigation and the app shell
   'nav.label': 'Main',
+  'nav.groupPractice': 'Practice',
+  'nav.groupReview': 'Review',
+  'nav.groupApp': 'App',
   'nav.dashboard': 'Dashboard',
   'nav.new': 'New Test',
   'nav.lessons': 'Lessons',
@@ -1070,6 +1073,7 @@ export const en = {
   'skin.section': 'Typing Skill Test',
   'skin.candidate': 'Candidate',
   'skin.timeLeft': 'Time left',
+  'exam.elapsed': 'Elapsed',
   'skin.footer': 'Do not refresh or close this window. Your response is saved automatically.',
   'skin.label': 'Exam screen',
   'skin.modern': 'Typly',

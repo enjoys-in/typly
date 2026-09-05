@@ -58,18 +58,22 @@ export function LiveStats({
   const kdphOnPace = targetKdph > 0 && elapsedMs > 3_000 ? rate >= targetKdph : null;
 
   return (
-    <div className="flex flex-col gap-4 rounded-panel border border-line bg-surface p-5">
-      <Metric
-        icon={Gauge}
-        label={t('stats.liveWpm')}
-        value={started ? String(wpm) : '—'}
-        target={targetWpm > 0 ? t('stats.target', { value: targetWpm }) : undefined}
-        onPace={wpmOnPace}
-        big
-      />
+    <div className="panel-lit flex flex-col rounded-panel border border-line bg-surface shadow-e1">
+      {/* The one figure the whole panel exists for, on its own tinted shelf so
+          it is never read as just the first of six numbers. */}
+      <div className="rounded-t-panel border-b border-line bg-surface-2 px-5 py-4">
+        <Metric
+          icon={Gauge}
+          label={t('stats.liveWpm')}
+          value={started ? String(wpm) : '—'}
+          target={targetWpm > 0 ? t('stats.target', { value: targetWpm }) : undefined}
+          onPace={wpmOnPace}
+          big
+        />
+      </div>
 
-      {targetKdph > 0 && (
-        <div className="border-t border-line pt-4">
+      <div className="flex flex-col gap-4 p-5">
+        {targetKdph > 0 && (
           <Metric
             icon={Keyboard}
             label={t('stats.kdph')}
@@ -77,45 +81,63 @@ export function LiveStats({
             target={t('stats.target', { value: targetKdph.toLocaleString() })}
             onPace={kdphOnPace}
           />
+        )}
+
+        {/* A hairline gutter between the pair rather than a divider under it:
+            two numbers side by side need separating from each other, not
+            boxing in. */}
+        <div className="grid grid-cols-2 gap-4 divide-x divide-line">
+          <Metric
+            icon={Target}
+            label={t('stats.accuracy')}
+            value={accuracy === null ? '—' : `${accuracy}%`}
+            target={
+              targetAccuracy > 0 ? t('stats.target', { value: `${targetAccuracy}%` }) : undefined
+            }
+            onPace={accOnPace}
+          />
+          <div className="pl-4">
+            <Metric
+              icon={TriangleAlert}
+              label={t('stats.errors')}
+              value={String(errors)}
+              danger={errors > 0}
+            />
+          </div>
         </div>
-      )}
 
-      <div className="grid grid-cols-2 gap-4 border-t border-line pt-4">
-        <Metric
-          icon={Target}
-          label={t('stats.accuracy')}
-          value={accuracy === null ? '—' : `${accuracy}%`}
-          target={targetAccuracy > 0 ? t('stats.target', { value: `${targetAccuracy}%` }) : undefined}
-          onPace={accOnPace}
-        />
-        <Metric icon={TriangleAlert} label={t('stats.errors')} value={String(errors)} danger={errors > 0} />
-      </div>
-
-      <div className="space-y-2 border-t border-line pt-4">
-        <div className="flex items-baseline justify-between text-xs">
-          <span className="font-medium tracking-wide text-fg-muted uppercase">{t('stats.progress')}</span>
-          <span className="tabular-nums text-fg-subtle">
-            {typed.length}/{passage.length}
-          </span>
+        <div className="space-y-2 border-t border-line pt-4">
+          <div className="flex items-baseline justify-between text-[11px]">
+            <span className="font-semibold tracking-[0.09em] text-fg-muted uppercase">
+              {t('stats.progress')}
+            </span>
+            <span className="font-semibold text-fg-muted tabular-nums">
+              {typed.length}/{passage.length}
+            </span>
+          </div>
+          <ProgressBar value={progress} />
         </div>
-        <ProgressBar value={progress} />
-      </div>
 
-      <div className="flex items-center justify-between border-t border-line pt-4 text-sm">
-        <span className="flex items-center gap-2 text-fg-muted">
-          <Type size={14} /> {t('stats.words')}
-        </span>
-        <span className="font-semibold tabular-nums">{countWords(typed)}</span>
-      </div>
+        {/* Secondary counts, as a definition list of quiet rows. They are
+            reference, not readings — nothing here needs a display size. */}
+        <dl className="flex flex-col gap-2.5 border-t border-line pt-4 text-[13px]">
+          <div className="flex items-center justify-between gap-3">
+            <dt className="flex items-center gap-2 text-fg-muted">
+              <Type size={14} className="shrink-0 text-fg-subtle" /> {t('stats.words')}
+            </dt>
+            <dd className="font-semibold tabular-nums">{countWords(typed)}</dd>
+          </div>
 
-      {blocked > 0 && (
-        <div className="flex items-center justify-between border-t border-line pt-4 text-sm">
-          <span className="flex items-center gap-2 text-fg-muted" title={t('exam.blockedHint')}>
-            <Ban size={14} /> {t('stats.blocked')}
-          </span>
-          <span className="font-semibold tabular-nums text-danger-text">{blocked}</span>
-        </div>
-      )}
+          {blocked > 0 && (
+            <div className="flex items-center justify-between gap-3">
+              <dt className="flex items-center gap-2 text-fg-muted" title={t('exam.blockedHint')}>
+                <Ban size={14} className="shrink-0 text-danger-text" /> {t('stats.blocked')}
+              </dt>
+              <dd className="font-semibold text-danger-text tabular-nums">{blocked}</dd>
+            </div>
+          )}
+        </dl>
+      </div>
     </div>
   );
 }

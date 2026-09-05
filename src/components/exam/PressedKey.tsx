@@ -20,10 +20,10 @@ export function PressedKey({ pressed }: { pressed: string }) {
   const finger = key?.finger ?? null;
 
   return (
-    <div className="flex shrink-0 items-center justify-center gap-3 rounded-panel border border-line bg-surface px-4 py-3">
+    <div className="panel-lit flex shrink-0 items-center justify-center gap-3 rounded-panel border border-line bg-surface px-4 py-3 shadow-e1">
       <span
         aria-hidden
-        className={`flex h-11 min-w-11 items-center justify-center rounded-control px-3 font-mono text-lg font-bold transition-colors ${
+        className={`flex h-11 min-w-11 items-center justify-center rounded-control px-3 font-mono text-lg font-bold shadow-e2 ring-1 ring-black/5 transition-colors ring-inset ${
           finger ? FINGER_BG[finger] : 'bg-surface-3 text-fg-subtle'
         }`}
       >

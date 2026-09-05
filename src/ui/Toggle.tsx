@@ -26,8 +26,10 @@ export function Toggle({ checked, onChange, label, hint, disabled = false }: Pro
           disabled={disabled}
           onChange={(e) => onChange(e.target.checked)}
         />
-        <span className="h-6 w-11 rounded-full bg-edge transition-colors peer-checked:brand-gradient peer-focus-visible:ring-4 peer-focus-visible:ring-accent-ring" />
-        <span className="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-surface shadow transition-transform peer-checked:translate-x-5" />
+        <span className="h-6 w-[2.625rem] rounded-full bg-edge ring-1 ring-black/5 transition-colors ring-inset peer-checked:brand-gradient peer-focus-visible:ring-4 peer-focus-visible:ring-accent-ring" />
+        {/* The knob eases rather than snaps: on a switch it is the one place a
+            spring curve reads as quality instead of decoration. */}
+        <span className="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow-e2 transition-transform duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] peer-checked:translate-x-[1.125rem]" />
       </span>
     </label>
   );

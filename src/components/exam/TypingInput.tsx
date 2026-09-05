@@ -125,10 +125,14 @@ export function TypingInput({
       spellCheck={false}
       aria-invalid={rejected || undefined}
       style={{ fontSize: `${fontScale * 1.125}rem`, fontFamily }}
-      className={`h-28 w-full resize-none rounded-control border bg-field p-4 font-mono outline-none transition-colors disabled:opacity-60 ${
+      // A recessed well rather than a raised box: the passage above is the
+      // panel you read, this is the slot you type into, and the two should not
+      // look like siblings. The rejection state is a ring and a tint, never a
+      // size change — the field must not resize under the hands mid-word.
+      className={`h-28 w-full resize-none rounded-panel border p-4 font-mono leading-[1.6] shadow-e1 outline-none transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-fg-subtle disabled:opacity-55 ${
         rejected
           ? 'border-danger bg-danger-soft ring-4 ring-danger-ring'
-          : 'border-edge focus:border-accent focus:ring-4 focus:ring-accent-ring'
+          : 'border-edge bg-inset focus:border-accent focus:bg-field focus:ring-4 focus:ring-accent-ring'
       }`}
       placeholder={
         phonetic

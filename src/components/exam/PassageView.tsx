@@ -4,10 +4,13 @@ import { useT } from '@/i18n';
 
 const STATE_CLASS: Record<CharState, string> = {
   // Upcoming text is what the eye is actually reading, so it stays high
-  // contrast; already-typed text recedes.
+  // contrast; already-typed text recedes hard, which is what makes the caret
+  // findable without hunting for it.
   untyped: 'text-fg',
   correct: 'text-fg-subtle',
-  incorrect: 'bg-danger text-danger-fg rounded-[2px]',
+  // A mistake is underlined as well as filled. Colour alone is not a signal
+  // everyone receives, and a red block on a red-blind screen is just a block.
+  incorrect: 'bg-danger/15 text-danger-text rounded-[3px] underline decoration-danger decoration-2 underline-offset-2',
 };
 
 // Memoized per-character span: only re-renders when its own state changes.
@@ -70,29 +73,47 @@ export function PassageView({
       onMouseDown={(e) => e.preventDefault()}
       role="region"
       aria-label={t('exam.passageRegion')}
-      className={`scroll-area relative rounded-panel border border-line bg-surface ${className}`}
+      // A flex column that clips, holding a scroller that shrinks. Callers size
+      // this panel two different ways — `flex-1` inside the exam's column, and a
+      // bare `max-h-72` in the replay — and only `min-h-0 flex-1` on the inner
+      // scroller makes both of them scroll instead of one of them overflowing.
+      className={`panel-lit relative flex flex-col overflow-hidden rounded-panel border border-line bg-surface shadow-e1 ${className}`}
     >
-      {toolbar && (
-        <div className="sticky top-0 z-10 flex justify-end border-b border-line bg-surface/95 px-3 py-2 backdrop-blur-sm">
-          {toolbar}
-        </div>
-      )}
-      <p
-        // The passage runs the full width of the panel. A capped measure left
-        // wide empty gutters either side of the text, and every wrap the cap
-        // forced was a wrap the panel itself did not need.
-        className="px-6 py-5 font-mono leading-relaxed whitespace-pre-wrap select-none"
-        style={{ fontSize: `${fontScale * 1.125}rem`, fontFamily }}
-      >
-        {chars.slice(0, cursor).map((ch, i) => (
-          <Char key={i} ch={ch} state={states[i] ?? 'untyped'} />
-        ))}
-        {caret && <span ref={caretRef} aria-hidden className="type-caret" />}
-        {chars.slice(cursor, spanEnd).map((ch, i) => (
-          <Char key={cursor + i} ch={ch} state={states[cursor + i] ?? 'untyped'} />
-        ))}
-        {tail && <span className={STATE_CLASS.untyped}>{tail}</span>}
-      </p>
+      {/* The scroller is an inner element now, not the panel. A panel that is
+          itself the scroll container puts its scrollbar over its own rounded
+          corners, and any header inside it has to be sticky to survive. */}
+      <div className="scroll-area flex min-h-0 flex-1 scroll-pb-16 flex-col">
+        {toolbar && (
+          <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between gap-3 border-b border-line bg-surface/80 px-4 py-2 backdrop-blur-md">
+            <span className="text-[10.5px] font-semibold tracking-[0.11em] text-fg-subtle uppercase">
+              {t('exam.passageRegion')}
+            </span>
+            {toolbar}
+          </div>
+        )}
+        <p
+          // The passage runs the full width of the panel. A capped measure left
+          // wide empty gutters either side of the text, and every wrap the cap
+          // forced was a wrap the panel itself did not need.
+          //
+          // `leading-[1.85]` is looser than prose would want. Copy-typing is
+          // read one line at a time and returned to, over and over, and the
+          // open rhythm is what stops the eye landing on the wrong line.
+          className="flex-1 px-6 py-6 font-mono leading-[1.85] whitespace-pre-wrap select-none"
+          style={{ fontSize: `${fontScale * 1.125}rem`, fontFamily }}
+        >
+          {chars.slice(0, cursor).map((ch, i) => (
+            <Char key={i} ch={ch} state={states[i] ?? 'untyped'} />
+          ))}
+          {caret && <span ref={caretRef} aria-hidden className="type-caret" />}
+          {chars.slice(cursor, spanEnd).map((ch, i) => (
+            <Char key={cursor + i} ch={ch} state={states[cursor + i] ?? 'untyped'} />
+          ))}
+          {tail && <span className={STATE_CLASS.untyped}>{tail}</span>}
+        </p>
+      </div>
+      {/* Sits over the scroller, inside the panel's border. */}
+      <div aria-hidden className="passage-fade" />
     </div>
   );
 }
