@@ -129,10 +129,16 @@ export function TypingInput({
       // panel you read, this is the slot you type into, and the two should not
       // look like siblings. The rejection state is a ring and a tint, never a
       // size change — the field must not resize under the hands mid-word.
+      //
+      // The focus ring is deliberately a single pixel. This field holds focus
+      // for the entire run, so its "focused" look is really its normal look,
+      // and a 4px accent glow around it outshouted the passage above — the one
+      // thing on the screen that has to be read. The loud ring is spent on
+      // rejection instead, where it fires for a moment and means something.
       className={`h-28 w-full resize-none rounded-panel border p-4 font-mono leading-[1.6] shadow-e1 outline-none transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-fg-subtle disabled:opacity-55 ${
         rejected
           ? 'border-danger bg-danger-soft ring-4 ring-danger-ring'
-          : 'border-edge bg-inset focus:border-accent focus:bg-field focus:ring-4 focus:ring-accent-ring'
+          : 'border-edge bg-inset focus:border-accent-border focus:bg-field focus:ring-1 focus:ring-accent-ring'
       }`}
       placeholder={
         phonetic

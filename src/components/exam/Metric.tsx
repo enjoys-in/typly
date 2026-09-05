@@ -29,13 +29,19 @@ export function Metric({
   big = false,
   danger = false,
 }: Props) {
-  const tone = danger
-    ? 'text-danger-text'
-    : onPace === true
-      ? 'text-accent-text'
-      : onPace === false
-        ? 'text-danger-text'
-        : 'text-fg';
+  // The app's "nothing yet" marker. At the hero size an em dash set in bold
+  // renders as a heavy filled slab that reads as a rendering fault rather than
+  // as an absent number, so the placeholder is drawn light and quiet instead.
+  const empty = value === '—';
+  const tone = empty
+    ? 'text-fg-subtle font-normal'
+    : danger
+      ? 'text-danger-text'
+      : onPace === true
+        ? 'text-accent-text'
+        : onPace === false
+          ? 'text-danger-text'
+          : 'text-fg';
 
   return (
     <div className="min-w-0">
@@ -45,6 +51,7 @@ export function Metric({
       </p>
       <p
         className={`mt-1.5 ${big ? 'text-[2.5rem]' : 'text-[1.5rem]'} leading-none font-bold tracking-tight tabular-nums ${tone}`}
+        aria-label={empty ? 'no data yet' : undefined}
       >
         {value}
       </p>
