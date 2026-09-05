@@ -52,18 +52,35 @@ export const WpmSparkline = memo(function WpmSparkline({ wpm, elapsedMs, targetW
     // One point is not a trend, and a single dot reads as a rendering fault.
     if (points.length < 2) return null;
 
-    // Headroom above whichever is higher, so the trace never touches the top
-    // edge and the cut-off stays on screen even while you are miles under it.
-    const ceiling = Math.max(...points, targetWpm, 1) * 1.15;
+    // Scaled to the *data*, not to the cut-off.
+    //
+    // Fitting the target into the same axis looks reasonable until you are a
+    // long way off it: at 9 WPM against a cut-off of 35, a shared axis flattens
+    // the whole trace onto the floor and the one thing the trace is for — the
+    // shape, whether you are climbing or sinking — disappears. The gap to the
+    // cut-off is already stated twice in words directly above, as the figure
+    // and its target. The shape is stated nowhere else, so the axis is its.
+    const lo = Math.min(...points);
+    const hi = Math.max(...points);
+    // A flat run would otherwise divide by zero; a floor on the span also stops
+    // a half-WPM wobble being drawn as a mountain range.
+    const span = Math.max(hi - lo, 4);
+    const pad = span * 0.18;
+    const top = hi + pad;
+    const bottom = Math.max(lo - pad, 0);
     const x = (i: number) => (i / (points.length - 1)) * VIEW;
-    const y = (v: number) => VIEW - (v / ceiling) * VIEW;
+    const y = (v: number) => VIEW - ((v - bottom) / (top - bottom)) * VIEW;
 
     const line = points.map((v, i) => `${i === 0 ? 'M' : 'L'}${x(i)},${y(v)}`).join(' ');
+    // The cut-off still shows even when it is off the axis: pinned to whichever
+    // edge it is beyond, so "the bar is above everything here" stays readable.
+    const targetY =
+      targetWpm > 0 ? Math.max(0, Math.min(VIEW, y(targetWpm))) : null;
     return {
       line,
       // The same path closed along the baseline, for the wash underneath.
       area: `${line} L${VIEW},${VIEW} L0,${VIEW} Z`,
-      targetY: targetWpm > 0 ? y(targetWpm) : null,
+      targetY,
       last: { x: x(points.length - 1), y: y(points[points.length - 1]!) },
       // Above the line or below it decides the colour of the whole trace.
       passing: targetWpm > 0 ? points[points.length - 1]! >= targetWpm : true,
