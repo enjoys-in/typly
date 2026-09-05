@@ -25,9 +25,13 @@ export function Keyboard({
                 <span
                   key={key.id}
                   style={{ flexGrow: key.width, flexBasis: 0, fontFamily }}
-                  className={`flex h-9 items-center justify-center rounded-inner text-xs font-semibold shadow-e1 ring-1 ring-black/5 transition-[background-color,color,box-shadow] ring-inset ${
+                  // `key-next` lifts and haloes the key you are meant to hit.
+                  // A static fill already said *which* key; the pulse is what
+                  // makes it findable in a 60-key grid without hunting, which
+                  // is the entire job of an on-screen keyboard.
+                  className={`flex h-9 items-center justify-center rounded-inner text-xs font-semibold shadow-e1 ring-1 ring-black/5 transition-[background-color,color,box-shadow,transform] ring-inset ${
                     active
-                      ? 'brand-gradient text-white ring-2 ring-accent-ring'
+                      ? 'key-next brand-gradient z-10 text-white ring-2 ring-accent-ring'
                       : FINGER_BG[key.finger]
                   }`}
                 >

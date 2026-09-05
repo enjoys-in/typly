@@ -7,6 +7,7 @@ import { CHARS_PER_WORD } from '@/core/constants';
 import { countWords } from '@/core/typing/diff';
 import { ProgressBar } from '@/ui/ProgressBar';
 import { Metric } from './Metric';
+import { WpmSparkline } from './WpmSparkline';
 import { useT } from '@/i18n';
 
 interface Props {
@@ -70,6 +71,10 @@ export function LiveStats({
           onPace={wpmOnPace}
           big
         />
+        {/* The figure's own recent history, directly under it. */}
+        <div className="mt-3">
+          <WpmSparkline wpm={wpm} elapsedMs={elapsedMs} targetWpm={targetWpm} />
+        </div>
       </div>
 
       <div className="flex flex-col gap-4 p-5">

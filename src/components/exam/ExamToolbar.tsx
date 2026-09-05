@@ -31,6 +31,12 @@ interface Props {
   onShowStats: (v: boolean) => void;
   fullscreen: { supported: boolean; isFullscreen: boolean; toggle: () => void };
   timer: React.ReactNode;
+  /**
+   * Fraction of the countdown still to run, 1 → 0. Null on a stopwatch, which
+   * has no end to drain towards. Decoration over the same number the clock
+   * already shows, never a source of truth for it.
+   */
+  remainingFraction?: number | null;
 }
 
 const chip =
@@ -62,6 +68,7 @@ export function ExamToolbar({
   onShowStats,
   fullscreen,
   timer,
+  remainingFraction = null,
 }: Props) {
   const t = useT();
   const isSplit = layout === 'split';
@@ -70,7 +77,21 @@ export function ExamToolbar({
   const isCountdown = config.timing === TimingMode.Countdown;
 
   return (
-    <header className="panel-lit flex shrink-0 flex-wrap items-center justify-between gap-x-5 gap-y-3 rounded-panel border border-line bg-surface px-4 py-3 shadow-e1">
+    <header className="panel-lit relative flex shrink-0 flex-wrap items-center justify-between gap-x-5 gap-y-3 overflow-hidden rounded-panel border border-line bg-surface px-4 py-3 shadow-e1">
+      {/* The clock, read a second way. Peripheral vision registers a shortening
+          line without a glance, which is the point: checking the digits costs a
+          candidate their place in the passage. */}
+      {remainingFraction !== null && (
+        <div
+          aria-hidden
+          className="time-drain"
+          data-tone={
+            remainingFraction <= 0.06 ? 'warn' : remainingFraction <= 0.15 ? 'caution' : undefined
+          }
+          style={{ width: `${Math.max(0, Math.min(1, remainingFraction)) * 100}%` }}
+        />
+      )}
+
       {/* ── What is being run ─────────────────────────────────────────────── */}
       <div className="flex min-w-0 items-center gap-3">
         {/* A board tab, not a bullet: the accent bar is the only colour in the

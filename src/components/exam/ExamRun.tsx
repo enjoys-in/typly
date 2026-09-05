@@ -689,6 +689,11 @@ export function ExamRun({ config, resume }: Props) {
         // The exam-client skin puts the clock in its own header, where the real
         // software puts it — two clocks would be worse than either.
         timer={examClient ? null : timer}
+        remainingFraction={
+          isCountdown && config.durationSec > 0
+            ? countdown.remainingSec / config.durationSec
+            : null
+        }
       />
 
       {phase === 'reading' && (
