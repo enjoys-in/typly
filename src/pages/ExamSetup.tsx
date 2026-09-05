@@ -15,6 +15,7 @@ import {
 import { seriesFrom } from '@/core/library/parts';
 import { paperSeries, type PaperTemplate } from '@/core/exam/paper';
 import { pacerAvailable } from '@/core/exam/pacer';
+import { applyDifficulty } from '@/core/scoring/scoring';
 import type { PaperSection } from '@/core/types';
 import { useAsync } from '@/hooks/useAsync';
 import {
@@ -34,6 +35,7 @@ import { Segmented, type SegmentedOption } from '@/ui/Segmented';
 import { Card } from '@/ui/Card';
 import { Toggle } from '@/ui/Toggle';
 import { PaperPicker } from '@/components/exam/PaperPicker';
+import { ModeInfo } from '@/components/exam/ModeInfo';
 import { useT } from '@/i18n';
 import { useDateFormat } from '@/hooks/useDateFormat';
 
@@ -286,9 +288,14 @@ export function ExamSetup() {
             onChange={settings.setExamMode}
             ariaLabel={t('setup.modeAria')}
           />
-          {settings.examMode === ExamMode.Strict && (
-            <p className="mt-1 text-xs text-fg-muted">{t('setup.strictHint')}</p>
-          )}
+          {/* Every mode explains itself, not just Strict. The rules handed in
+              are the board's with the chosen difficulty already applied, so the
+              panel reports what *this* mode does on top of *this* setup. */}
+          <ModeInfo
+            mode={settings.examMode}
+            rules={applyDifficulty(profile.rules, settings.difficulty)}
+            kdph={kdph}
+          />
         </Field>
 
         <Field label={t('setup.timing')}>
@@ -347,7 +354,7 @@ export function ExamSetup() {
         </Field>
 
         {dictation && (
-          <Field label={t('setup.dictationLabel')}>
+          <Field label={t('setup.dictationLabel')} group>
             <div className="space-y-3 rounded-panel border border-accent-border bg-accent-soft p-4">
               <Toggle
                 label={t('setup.dictationToggle', { wpm: dictation.wpm })}
@@ -362,18 +369,27 @@ export function ExamSetup() {
           </Field>
         )}
 
-        <Field label={t('setup.pacing')}>
+        <Field label={t('setup.pacing')} group>
           <div className="space-y-3 rounded-panel border border-line p-4">
+            {/* Both of these can be switched off by the rest of the setup, and
+                a greyed-out toggle with no explanation reads as broken. Each
+                says why, and each reason names the setting that undoes it. */}
             <Toggle
               label={t('pacer.toggle')}
-              hint={t('pacer.toggleHint')}
+              hint={
+                pacerAvailable(profile.rules) ? t('pacer.toggleHint') : t('setup.pacerNeedsCutoff')
+              }
               checked={settings.pacer}
               onChange={settings.setPacer}
               disabled={!pacerAvailable(profile.rules)}
             />
             <Toggle
               label={t('pressure.toggle')}
-              hint={t('pressure.toggleHint')}
+              hint={
+                settings.timing === TimingMode.Countdown
+                  ? t('pressure.toggleHint')
+                  : t('setup.pressureNeedsCountdown')
+              }
               checked={settings.pressure}
               onChange={settings.setPressure}
               disabled={settings.timing !== TimingMode.Countdown}
@@ -390,7 +406,7 @@ export function ExamSetup() {
           />
         )}
 
-        <Field label={t('setup.mockExam')}>
+        <Field label={t('setup.mockExam')} group>
           <div className="space-y-3 rounded-panel border border-line p-4">
             <Toggle
               label={t('setup.briefingToggle')}
@@ -440,7 +456,7 @@ export function ExamSetup() {
           </Field>
         )}
 
-        <Field label={t('setup.behaviour')}>
+        <Field label={t('setup.behaviour')} group>
           <div className="space-y-3 rounded-panel border border-line p-4">
             <Toggle
               label={t('setup.allowBackspace')}
@@ -483,7 +499,33 @@ export function ExamSetup() {
   );
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+/**
+ * One labelled row of the setup form.
+ *
+ * `group` is not cosmetic. A `<label>` may caption exactly one control, and
+ * wrapping a set of switches in one made the section heading a label for
+ * whichever checkbox came first inside it — clicking "Pacing & pressure"
+ * silently turned the pacer on — while nesting each Toggle's own `<label>`
+ * inside it as invalid HTML. A group gets a plain heading and a `role="group"`
+ * instead, and every switch inside keeps its own real label.
+ */
+function Field({
+  label,
+  group = false,
+  children,
+}: {
+  label: string;
+  group?: boolean;
+  children: ReactNode;
+}) {
+  if (group) {
+    return (
+      <div role="group" aria-label={label} className="flex flex-col gap-2">
+        <span className="text-sm font-medium text-fg-muted">{label}</span>
+        {children}
+      </div>
+    );
+  }
   return (
     <label className="flex flex-col gap-2">
       <span className="text-sm font-medium text-fg-muted">{label}</span>

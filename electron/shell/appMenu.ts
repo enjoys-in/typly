@@ -1,4 +1,5 @@
 import { app, Menu, shell, type MenuItemConstructorOptions } from 'electron';
+import { DEVTOOLS_ENABLED } from './devTools';
 import type { ShellRoute } from '../../src/core/ipc/shell';
 import { QUICK_HOTKEY } from './quickTest';
 import { PRIMARY_ACTIONS, SECONDARY_ACTIONS } from './quickActions';
@@ -111,7 +112,9 @@ export function createAppMenu(handlers: AppMenuHandlers): void {
         { type: 'separator' },
         { role: 'togglefullscreen' },
         { role: 'reload' },
-        { role: 'toggleDevTools' },
+        // No inspector entry unless this build is allowed one at all. A greyed
+        // menu item would still tell a candidate the door is there.
+        ...(DEVTOOLS_ENABLED ? [{ role: 'toggleDevTools' } as MenuItemConstructorOptions] : []),
       ],
     },
     {

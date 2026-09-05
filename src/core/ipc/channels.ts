@@ -32,15 +32,21 @@ export const enum IpcChannel {
   AiCoach = 'ai:coach',
   AiGrammar = 'ai:grammar',
   AiOcr = 'ai:ocrVision',
+  AiPassage = 'ai:passage',
 }
 
 // The AI channels are exposed both over IPC (desktop) and HTTP (web/dev).
-export type AiChannel = IpcChannel.AiCoach | IpcChannel.AiGrammar | IpcChannel.AiOcr;
+export type AiChannel =
+  | IpcChannel.AiCoach
+  | IpcChannel.AiGrammar
+  | IpcChannel.AiOcr
+  | IpcChannel.AiPassage;
 
 export const AI_CHANNELS: readonly AiChannel[] = [
   IpcChannel.AiCoach,
   IpcChannel.AiGrammar,
   IpcChannel.AiOcr,
+  IpcChannel.AiPassage,
 ];
 
 // Web/dev HTTP route for each AI channel (Vite exposes these same channels).
@@ -48,4 +54,5 @@ export const AI_HTTP_ROUTE: Record<AiChannel, string> = {
   [IpcChannel.AiCoach]: '/api/coach/analyze',
   [IpcChannel.AiGrammar]: '/api/grammar/check',
   [IpcChannel.AiOcr]: '/api/ocr/vision',
+  [IpcChannel.AiPassage]: '/api/passage/generate',
 };

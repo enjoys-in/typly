@@ -115,7 +115,7 @@ export function KeyboardHealthCheck() {
                   key={key.id}
                   title={t(`health.${health}` as never)}
                   style={{ flexGrow: key.width, flexBasis: 0 }}
-                  className={`flex h-9 items-center justify-center rounded-lg text-xs font-semibold transition-colors ${TONE[health]}`}
+                  className={`flex h-9 items-center justify-center rounded-inner text-xs font-semibold shadow-e1 ring-1 ring-black/5 transition-colors ring-inset ${TONE[health]}`}
                 >
                   {key.label}
                 </span>

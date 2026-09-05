@@ -41,7 +41,7 @@ export function KeyHeatmap({ values, max, tone, describe, emptyLabel = 'no data'
                   flexBasis: 0,
                   backgroundColor: value ? `rgba(${rgb},${0.12 + 0.78 * intensity})` : undefined,
                 }}
-                className={`flex h-9 items-center justify-center rounded-lg text-xs font-semibold ${
+                className={`flex h-9 items-center justify-center rounded-inner text-xs font-semibold shadow-e1 ring-1 ring-black/5 ring-inset ${
                   value ? 'text-white' : 'bg-surface-2 text-fg-subtle'
                 }`}
               >

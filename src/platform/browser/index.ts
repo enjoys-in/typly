@@ -8,6 +8,7 @@ import { BrowserSpellChecker } from './spell';
 import { BrowserGrammarChecker } from './grammar';
 import { BrowserAuth } from './auth';
 import { BrowserAiCoach } from './coach';
+import { BrowserPassageWriter } from './passage';
 import { BrowserNotifications } from './notifications';
 import { BrowserSound } from './sound';
 import { BrowserTts } from './tts';
@@ -25,6 +26,7 @@ export function createBrowserPlatform(): Platform {
     grammar: new BrowserGrammarChecker(),
     auth: new BrowserAuth(),
     coach: new BrowserAiCoach(),
+    passageWriter: new BrowserPassageWriter(),
     notifications: new BrowserNotifications(),
     sound: new BrowserSound(),
     tts: new BrowserTts(),

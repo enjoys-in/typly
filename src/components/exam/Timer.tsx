@@ -19,10 +19,25 @@ function spoken(totalSec: number): string {
   return `${minutes}${s} second${s === 1 ? '' : 's'}`;
 }
 
+/**
+ * One clock face for both readings.
+ *
+ * `slashed-zero` and `tabular-nums` are not decoration here: at a glance under
+ * pressure an unslashed 0 reads as an O, and proportional digits make the whole
+ * row jog sideways on every tick. It stays a bare span with no chrome of its
+ * own, because the exam-client skin boxes it in its own deliberately plain
+ * frame and the modern header boxes it in another.
+ */
+const CLOCK =
+  'font-mono text-[1.375rem] leading-none font-bold tracking-tight slashed-zero tabular-nums';
+
 // Shows countdown (remainingSec) or stopwatch (elapsedMs).
 export function Timer({ remainingSec, elapsedMs }: Props) {
   if (remainingSec !== undefined) {
     const warn = remainingSec <= WARNING_SECONDS;
+    // A caution step before the alarm. Everything urgent used to go straight to
+    // the error red, which left nothing louder for the last thirty seconds.
+    const caution = !warn && remainingSec <= WARNING_SECONDS * 2;
     return (
       <span
         // Announced on the minute rather than every tick: `aria-live` would
@@ -31,7 +46,7 @@ export function Timer({ remainingSec, elapsedMs }: Props) {
         role="timer"
         aria-live={warn ? 'polite' : 'off'}
         aria-label={`${spoken(remainingSec)} remaining`}
-        className={`font-mono text-xl font-bold tabular-nums ${warn ? 'text-danger-text' : ''}`}
+        className={`${CLOCK} ${warn ? 'text-danger-text' : caution ? 'text-warn-text' : ''}`}
       >
         {fmt(remainingSec)}
       </span>
@@ -39,11 +54,7 @@ export function Timer({ remainingSec, elapsedMs }: Props) {
   }
   const elapsedSec = Math.floor((elapsedMs ?? 0) / 1000);
   return (
-    <span
-      role="timer"
-      aria-label={`${spoken(elapsedSec)} elapsed`}
-      className="font-mono text-xl font-bold tabular-nums"
-    >
+    <span role="timer" aria-label={`${spoken(elapsedSec)} elapsed`} className={CLOCK}>
       {fmt(elapsedSec)}
     </span>
   );

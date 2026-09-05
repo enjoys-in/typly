@@ -55,15 +55,20 @@ export function LanguageMenu({ collapsed }: Props) {
         aria-label={t('nav.language')}
         aria-haspopup="menu"
         aria-expanded={open}
-        className={`flex w-full cursor-pointer items-center rounded-control text-sm font-medium outline-none transition-colors duration-150 hover:bg-surface-hover hover:text-fg focus-visible:ring-2 focus-visible:ring-accent-ring ${
+        className={`group flex w-full cursor-pointer items-center rounded-control text-[13.5px] font-medium outline-none transition-colors duration-150 hover:bg-surface-hover hover:text-fg focus-visible:ring-2 focus-visible:ring-accent-ring ${
           open ? 'bg-surface-hover text-fg' : 'text-fg-muted'
-        } ${collapsed ? 'h-10 justify-center' : 'gap-3 px-3 py-2.5'}`}
+        } ${collapsed ? 'h-10 justify-center' : 'gap-2.5 px-3 py-2'}`}
       >
-        <Languages size={18} className="shrink-0" />
+        <Languages
+          size={17}
+          className="shrink-0 text-fg-subtle transition-colors group-hover:text-fg-muted"
+        />
         {!collapsed && (
           <>
             <span className="truncate">{t('nav.language')}</span>
-            <span className="ml-auto shrink-0 text-xs text-fg-subtle">
+            {/* The current choice, as a chip. It is the answer to the question
+                the row asks, so it should not read as more body text. */}
+            <span className="ml-auto shrink-0 rounded-full bg-surface-3 px-2 py-0.5 text-[10.5px] font-semibold text-fg-muted">
               {UI_LANG_LABEL[uiLang]}
             </span>
           </>
@@ -76,7 +81,7 @@ export function LanguageMenu({ collapsed }: Props) {
           aria-label={t('nav.language')}
           // The offset clears the sidebar's own padding as well as the
           // trigger, so the menu never sits half over the rail it came from.
-          className="absolute bottom-0 left-full z-30 ml-5 min-w-44 rounded-control border border-edge bg-surface p-1 shadow-xl"
+          className="absolute bottom-0 left-full z-30 ml-5 min-w-44 rounded-panel border border-line bg-surface p-1 shadow-e3"
         >
           {UI_LANGS.map((code) => (
             <button

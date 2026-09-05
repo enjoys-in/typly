@@ -18,6 +18,7 @@ import { SourceType } from '@/core/constants';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { PaperModeCard } from '@/components/uploader/PaperModeCard';
+import { PassageGenerator } from '@/components/uploader/PassageGenerator';
 import { ChallengeOpener } from '@/components/share/ChallengeOpener';
 import { useAcceptChallenge } from '@/hooks/useAcceptChallenge';
 import { SpeakButton } from '@/ui/SpeakButton';
@@ -133,6 +134,9 @@ export function NewTest() {
               onChallenge={acceptChallenge}
             />
           </Card>
+          {/* Nothing to bring: written to order at a chosen difficulty. Hides
+              itself when no AI provider is configured. */}
+          <PassageGenerator lang={lang} onText={handleText} />
           {/* No passage needed: the text is on paper in front of the typist. */}
           <PaperModeCard onStart={startPaperRun} />
           {/* The only route to a challenge on the web, where a .typly file has

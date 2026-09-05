@@ -15,6 +15,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useExamStore } from '@/store/examStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useAsync } from '@/hooks/useAsync';
+import { useReviewDeck } from '@/hooks/useReviewDeck';
 import { usePaperRun } from '@/hooks/usePaperRun';
 import { clearExamSnapshot, readExamSnapshot } from '@/hooks/useExamSnapshot';
 import { readSampleDocument, seedSampleLibrary } from '@/hooks/useSampleLibrary';
@@ -31,6 +32,7 @@ import { useDateFormat } from '@/hooks/useDateFormat';
 import { ExamCountdownCard } from '@/components/dashboard/ExamCountdownCard';
 import { GoalCard } from '@/components/dashboard/GoalCard';
 import { ResumeCard } from '@/components/dashboard/ResumeCard';
+import { ReviewCard } from '@/components/dashboard/ReviewCard';
 import { SampleCard } from '@/components/dashboard/SampleCard';
 import { WpmAveragesCard } from '@/components/dashboard/WpmAveragesCard';
 import { Card } from '@/ui/Card';
@@ -52,6 +54,7 @@ export function Dashboard() {
   const t = useT();
   const d = useDateFormat();
   const startPaperRun = usePaperRun();
+  const review = useReviewDeck();
   const Logo = appConfig.logo;
 
   const overview = useAsync(async () => {
@@ -148,7 +151,7 @@ export function Dashboard() {
   return (
     <div className="space-y-7">
       {/* Home hero — same brand mesh as the landing screen, contained as a card. */}
-      <section className="brand-mesh-band brand-grid relative overflow-hidden rounded-panel p-7 text-white shadow-sm sm:p-8">
+      <section className="brand-mesh-band brand-grid relative overflow-hidden rounded-well p-7 text-white shadow-e3 sm:p-8">
         <div className="relative flex items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-control bg-white/15 ring-1 ring-white/25 backdrop-blur-sm">
             <Logo size={18} />
@@ -197,6 +200,12 @@ export function Dashboard() {
         />
       )}
 
+      {/* Under the countdown, which says how much time is left, because this is
+          the answer to "so what do I do today". */}
+      {!review.loading && (
+        <ReviewCard stats={review.stats} onOpen={() => navigate('/app/trainer')} />
+      )}
+
       {overview.loading ? (
         <SkeletonCard lines={3} />
       ) : summary ? (
@@ -215,7 +224,7 @@ export function Dashboard() {
 
           <div className="grid gap-5 lg:grid-cols-2">
             <Card className="space-y-3">
-              <h2 className="text-base font-semibold">{t('dashboard.lastTest')}</h2>
+              <h2 className="text-[0.9375rem] font-bold tracking-tight">{t('dashboard.lastTest')}</h2>
               <div className="flex items-baseline justify-between gap-3">
                 <div>
                   <p className="text-sm font-medium">{profileFor(summary.last.examBoard).name}</p>
@@ -244,7 +253,7 @@ export function Dashboard() {
             </Card>
 
             <Card className="space-y-3">
-              <h2 className="text-base font-semibold">{t('dashboard.weakestKeys')}</h2>
+              <h2 className="text-[0.9375rem] font-bold tracking-tight">{t('dashboard.weakestKeys')}</h2>
               {summary.weakest.length === 0 ? (
                 <p className="text-sm text-fg-muted">
                   {t('dashboard.noMistakes')}
@@ -255,7 +264,7 @@ export function Dashboard() {
                     {summary.weakest.map((k) => (
                       <span
                         key={k.key}
-                        className="rounded-full bg-surface-2 px-3 py-1 font-mono text-sm font-semibold tabular-nums"
+                        className="rounded-control bg-surface-2 px-2.5 py-1 font-mono text-sm font-semibold shadow-e1 ring-1 ring-line tabular-nums ring-inset"
                       >
                         {k.key}
                         <span className="ml-2 font-sans text-xs text-fg-muted">×{k.count}</span>
@@ -318,7 +327,7 @@ function FlowStrip() {
   const t = useT();
 
   return (
-    <section className="rounded-panel border border-line bg-surface p-6">
+    <section className="panel-lit rounded-panel border border-line bg-surface p-6 shadow-e1">
       <p className="text-[11px] font-semibold tracking-[0.14em] text-fg-subtle uppercase">
         {t('dashboard.howItWorks')}
       </p>
@@ -361,7 +370,7 @@ function ActionCard({
   return (
     <button
       onClick={onClick}
-      className={`group relative flex cursor-pointer flex-col items-start overflow-hidden rounded-panel border border-line bg-surface p-6 text-left transition-colors duration-150 hover:bg-surface-2 ${t.border}`}
+      className={`group panel-lit relative flex cursor-pointer flex-col items-start overflow-hidden rounded-panel border border-line bg-surface p-6 text-left shadow-e1 transition-[background-color,border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:bg-surface-2 hover:shadow-e2 ${t.border}`}
     >
       <span
         aria-hidden
@@ -369,17 +378,17 @@ function ActionCard({
       />
       <div className="relative flex w-full items-start justify-between">
         <span
-          className={`flex h-12 w-12 items-center justify-center rounded-control text-white ${t.icon}`}
+          className={`flex h-11 w-11 items-center justify-center rounded-control text-white shadow-e2 ${t.icon}`}
         >
-          <Icon size={22} />
+          <Icon size={21} />
         </span>
         <ArrowRight
           size={18}
           className="mt-1 shrink-0 text-fg-subtle transition-colors duration-150 group-hover:text-fg-muted"
         />
       </div>
-      <h2 className="relative mt-4 text-base font-semibold">{title}</h2>
-      <p className="relative mt-1 text-sm leading-relaxed text-fg-muted">{desc}</p>
+      <h2 className="relative mt-4 text-[0.9375rem] font-bold tracking-tight">{title}</h2>
+      <p className="relative mt-1 text-[13px] leading-relaxed text-fg-muted">{desc}</p>
     </button>
   );
 }

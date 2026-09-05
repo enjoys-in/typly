@@ -96,7 +96,7 @@ export function DataTable<T>({
 
   return (
     <div
-      className="overflow-hidden rounded-panel border border-line"
+      className="panel-lit overflow-hidden rounded-panel border border-line bg-surface shadow-e1"
       aria-busy={loading || undefined}
       {...(loading ? { role: 'status', 'aria-label': loadingText } : {})}
     >
@@ -113,11 +113,18 @@ export function DataTable<T>({
             ))}
           </colgroup>
           <thead className="sticky top-0 z-10">
-            <tr className="brand-gradient text-white shadow-sm">
+            {/* A recessed header row, not a brand gradient. The gradient made
+                the column names the brightest element in a table whose point
+                is the numbers underneath them. */}
+            <tr className="bg-surface-2 text-fg-muted">
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={`truncate px-4 py-3 text-xs font-semibold uppercase tracking-wide ${
+                  // The rule under a *sticky* header has to be an inset shadow
+                  // on the cell: a border-collapse table drops a border on the
+                  // sticky row itself, so the header floats over the first data
+                  // row with nothing between them.
+                  className={`truncate px-4 py-2.5 text-[10.5px] font-semibold tracking-[0.09em] uppercase shadow-[inset_0_-1px_0_var(--line)] ${
                     ALIGN[col.align ?? 'left']
                   } ${col.headerClassName ?? ''}`}
                 >

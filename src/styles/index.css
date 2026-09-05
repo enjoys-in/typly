@@ -6,13 +6,22 @@
 @custom-variant dark ([data-theme='dark'] &);
 
 @theme {
+  /* Interface type. A system stack, not a web font: the app has to look the
+     same with no network, so nothing here may be fetched. On macOS this
+     resolves to SF Pro, on Windows to Segoe UI Variable. */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI Variable Text', 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
 
-  /* Radius scale by role, not by size. Three steps and a pill — the app used to
-     mix rounded-md/lg/xl/2xl per component with no rule behind it. */
-  --radius-inner: 0.375rem;
-  --radius-control: 0.5rem;
-  --radius-panel: 0.75rem;
+  /* Radius scale by role, not by size. Four steps and a pill — the app used to
+     mix rounded-md/lg/xl/2xl per component with no rule behind it. `well` is
+     the outermost step, for a container that holds other panels: a dialog, the
+     tour card, the dashboard hero. */
+  --radius-inner: 0.5rem;
+  --radius-control: 0.625rem;
+  --radius-panel: 0.875rem;
+  --radius-well: 1.25rem;
 }
 
 :root {
@@ -26,10 +35,10 @@
 
   /* ── Semantic colour roles ──────────────────────
      `accent` derives from the active theme preset, so switching the preset
-     recolours every primary action. `danger` is deliberately NOT theme-derived:
-     errors must stay legible and must not read as a brand colour. Surfaces are
-     flat — depth comes from background steps, not shadows. Components use the
-     role, never a raw palette step. */
+     recolours every primary action. `danger` and `warn` are deliberately NOT
+     theme-derived: a mistake and a deadline must stay legible whatever the
+     brand is, and must never read as a brand colour. Components use the role,
+     never a raw palette step. */
 
   /* Accent — primary actions, positive values, focus, active nav. */
   --accent: color-mix(in oklab, var(--brand-from) 86%, black);
@@ -45,7 +54,7 @@
   --accent2-soft: color-mix(in oklab, var(--brand-accent-from) 14%, white);
   --accent2-soft-fg: color-mix(in oklab, var(--brand-accent-from) 72%, black);
 
-  /* Danger — mistakes, failures, warnings, destructive actions. */
+  /* Danger — mistakes, failures, destructive actions. */
   --danger: #c2410c;
   --danger-hover: #ea580c;
   --danger-fg: #ffffff;
@@ -55,22 +64,48 @@
   --danger-ring: color-mix(in oklab, #ea580c 35%, transparent);
   --danger-border: #fdba74;
 
-  /* Surfaces — ascending elevation. */
-  --canvas: #f1f5f9;
+  /* Warn — the clock running down, a caution worth reading but not a failure.
+     An exam needs a step between "fine" and "wrong", which the palette had no
+     colour for: everything urgent had to borrow the error red. */
+  --warn: #b45309;
+  --warn-text: #b45309;
+  --warn-soft: #fffbeb;
+  --warn-soft-fg: #92400e;
+  --warn-border: #fcd34d;
+
+  /* Surfaces — ascending elevation. A near-neutral ramp: the old one was blue
+     slate, which tinted every grey in the app. */
+  --canvas: #f4f5f7;
   --surface: #ffffff;
-  --surface-2: #f8fafc;
-  --surface-3: #f1f5f9;
+  --surface-2: #fafbfc;
+  --surface-3: #f1f2f5;
   --field: #ffffff;
-  --surface-hover: color-mix(in oklab, #0f172a 5%, transparent);
+  /* A recessed well — the typing field and code-ish insets read as cut *into*
+     the panel rather than sitting on it. */
+  --inset: #f7f8fa;
+  --surface-hover: color-mix(in oklab, #14181f 5%, transparent);
 
   /* Borders — `line` is a quiet divider, `edge` is a visible control outline. */
-  --line: #e2e8f0;
-  --edge: #cbd5e1;
+  --line: #e7e9ed;
+  --edge: #d2d6dd;
 
   /* Foreground. */
-  --fg: #0f172a;
-  --fg-muted: #64748b;
-  --fg-subtle: #94a3b8;
+  --fg: #14181f;
+  --fg-muted: #5b6472;
+  --fg-subtle: #8b95a4;
+
+  /* ── Elevation ────────────────────────────────
+     Registered below as `shadow-e1/e2/e3`, so a component asks for a level
+     rather than writing its own shadow. Light mode leans on a soft cast
+     shadow; the dark overrides swap most of that for a hairline top highlight,
+     because a black shadow on a near-black canvas is invisible and a panel
+     with no edge at all is what makes a dark UI look unfinished. */
+  --elev-1:
+    0 1px 2px rgb(16 20 28 / 0.04), 0 1px 3px -1px rgb(16 20 28 / 0.06);
+  --elev-2:
+    0 1px 2px rgb(16 20 28 / 0.04), 0 4px 12px -2px rgb(16 20 28 / 0.08);
+  --elev-3:
+    0 2px 4px rgb(16 20 28 / 0.05), 0 12px 32px -8px rgb(16 20 28 / 0.16);
 }
 
 [data-theme='dark'] {
@@ -90,19 +125,34 @@
   --danger-soft-fg: #fdba74;
   --danger-border: color-mix(in oklab, #ea580c 45%, transparent);
 
-  --canvas: #020617;
-  --surface: #0f172a;
-  --surface-2: #16202f;
-  --surface-3: #1e293b;
-  --field: #020617;
+  --warn: #f59e0b;
+  --warn-text: #fcd34d;
+  --warn-soft: color-mix(in oklab, #f59e0b 18%, transparent);
+  --warn-soft-fg: #fcd34d;
+  --warn-border: color-mix(in oklab, #f59e0b 42%, transparent);
+
+  /* Closer steps than before. The old canvas/surface pair jumped from #020617
+     to #0f172a — a gap wide enough that panels looked pasted on. */
+  --canvas: #0a0c11;
+  --surface: #12151c;
+  --surface-2: #171b23;
+  --surface-3: #1f242e;
+  --field: #0d1014;
+  --inset: #0d1014;
   --surface-hover: color-mix(in oklab, #ffffff 6%, transparent);
 
-  --line: #1e293b;
-  --edge: #334155;
+  --line: #232833;
+  --edge: #343b47;
 
-  --fg: #f1f5f9;
-  --fg-muted: #94a3b8;
-  --fg-subtle: #64748b;
+  --fg: #eceef2;
+  --fg-muted: #99a2b0;
+  --fg-subtle: #6c7583;
+
+  --elev-1: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 1px 2px rgb(0 0 0 / 0.4);
+  --elev-2:
+    0 1px 0 rgb(255 255 255 / 0.04) inset, 0 4px 16px -4px rgb(0 0 0 / 0.5);
+  --elev-3:
+    0 1px 0 rgb(255 255 255 / 0.05) inset, 0 16px 40px -12px rgb(0 0 0 / 0.7);
 }
 
 /* Register the roles as Tailwind colours. `inline` keeps each utility pointing
@@ -128,11 +178,18 @@
   --color-danger-ring: var(--danger-ring);
   --color-danger-border: var(--danger-border);
 
+  --color-warn: var(--warn);
+  --color-warn-text: var(--warn-text);
+  --color-warn-soft: var(--warn-soft);
+  --color-warn-soft-fg: var(--warn-soft-fg);
+  --color-warn-border: var(--warn-border);
+
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-surface-3: var(--surface-3);
   --color-field: var(--field);
+  --color-inset: var(--inset);
   --color-surface-hover: var(--surface-hover);
 
   --color-line: var(--line);
@@ -141,6 +198,10 @@
   --color-fg: var(--fg);
   --color-fg-muted: var(--fg-muted);
   --color-fg-subtle: var(--fg-subtle);
+
+  --shadow-e1: var(--elev-1);
+  --shadow-e2: var(--elev-2);
+  --shadow-e3: var(--elev-3);
 }
 
 /* Config-driven gradients. Declared as @utility (not plain classes) so Tailwind
@@ -170,6 +231,24 @@ body {
   background: var(--canvas);
   color: var(--fg);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* `cv11` gives the single-storey a/g in the grotesques that support it, and
+     `ss01` the straight-sided digits — both read better at small sizes than the
+     defaults. Harmless on fonts that don't ship them. */
+  font-feature-settings: 'cv11', 'ss01';
+  text-rendering: optimizeLegibility;
+}
+
+/* Numbers that update in place — a clock, a WPM readout, a score — must not
+   change width as they change value, or the whole row twitches every tick. */
+:where(.tabular-nums, [class*='tabular-nums']) {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Headings sit tighter than body copy at every size. Applied at the element so
+   a page cannot forget it. */
+:where(h1, h2, h3) {
+  letter-spacing: -0.011em;
 }
 
 /* Skeleton placeholder: a slow sheen across a surface-step block. Respects
@@ -229,6 +308,7 @@ body {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
@@ -293,55 +373,121 @@ button,
   background: var(--fg-subtle);
 }
 
-/* Scrollable region with a slim accent scrollbar. */
+/* Scrollable region. The thumb is quiet until you reach for it: a permanent
+   accent-coloured stripe down the edge of the passage was the loudest thing on
+   an exam screen, and it is furniture, not content. */
 .scroll-area {
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: var(--accent) transparent;
+  scrollbar-color: var(--edge) transparent;
 }
 .scroll-area::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 .scroll-area::-webkit-scrollbar-thumb {
-  background: var(--accent);
+  background: var(--edge);
+  border: 3px solid transparent;
   border-radius: 9999px;
+  background-clip: content-box;
+}
+.scroll-area:hover::-webkit-scrollbar-thumb {
+  background: var(--fg-subtle);
+  background-clip: content-box;
+}
+.scroll-area::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+  background-clip: content-box;
 }
 .scroll-area::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* Typing caret in the passage: a blinking bar between two characters.
-   The element itself stays `display: inline` and paints nothing. An atomic
-   inline here (inline-block, however narrow) is a line-break opportunity, so
-   the word under the caret could split and the paragraph re-wrapped on every
-   keystroke — lines visibly twitching as you type. */
-.type-caret {
-  position: relative;
+/* ── The typing caret ─────────────────────────────────────────────────────────
+   Two elements, because one cannot do both jobs.
+
+   `.caret-anchor` stays in the text flow and is invisible. It exists to be
+   measured — it reports exactly where the cursor sits between two glyphs, at
+   any zoom, in any font, after any re-wrap — and to be the target of
+   scrollIntoView. It is `display: inline` and carries a word joiner: an atomic
+   inline (inline-block, however narrow) would be a line-break opportunity, so
+   the word under the cursor could split and the paragraph re-wrapped on every
+   keystroke. The word joiner also gives the otherwise empty inline a real text
+   fragment, so it has a box to measure and to scroll to.
+
+   `.type-caret` is the bar you see, positioned out of flow from the anchor's
+   measured coordinates. Being out of flow is what makes it animatable at all:
+   an in-flow caret can only jump, because moving it is a reflow. */
+.caret-anchor {
   display: inline;
 }
-/* The bar is painted out of flow, so it costs the line no advance width. */
-.type-caret::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: -1px;
-  width: 2px;
-  background: var(--accent);
-  animation: type-caret-blink 1s step-end infinite;
-}
-/* A word joiner gives the otherwise empty inline a real text fragment, so the
-   caret has a box to scroll into view, and forbids a break at the caret. */
-.type-caret::after {
+.caret-anchor::after {
   content: '\2060';
 }
+
+.type-caret {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 1.1em;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--accent);
+  /* The glow is what stops a 2px bar disappearing into a wall of monospace.
+     Tinted from the accent, so it follows the theme preset. */
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 22%, transparent),
+    0 0 12px color-mix(in oklab, var(--accent) 55%, transparent);
+  /* Only `transform` is eased. The component sets transition-duration to 0s for
+     the frame in which the caret changes line, so a wrap lands instantly
+     instead of sliding diagonally back across the passage. */
+  transition: transform 90ms cubic-bezier(0.22, 1, 0.36, 1);
+  animation: type-caret-blink 1.1s ease-in-out infinite;
+  will-change: transform;
+  pointer-events: none;
+}
+
+/* Set by the component for ~640ms after each keystroke. A caret that blinks
+   through a burst of typing is the detail that reads as cheap; solid while the
+   hands are moving, blinking once they stop. */
+.type-caret[data-moving] {
+  animation: none;
+  opacity: 1;
+}
+
+/* Eased rather than `step-end`: a hard on/off flash draws the eye away from
+   the word being read, a soft pulse sits behind it. */
 @keyframes type-caret-blink {
-  50% {
-    opacity: 0;
+  0%,
+  40% {
+    opacity: 1;
+  }
+  60%,
+  100% {
+    opacity: 0.15;
   }
 }
+
+/* The character the caret has just left, acknowledged once. A text shadow
+   costs no layout — see the note on Char in PassageView for why that matters
+   more here than it looks like it should. */
+@keyframes char-settle {
+  from {
+    text-shadow: 0 0 7px color-mix(in oklab, var(--accent) 85%, transparent);
+  }
+  to {
+    text-shadow: 0 0 7px transparent;
+  }
+}
+.char-settle {
+  animation: char-settle 260ms ease-out 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .type-caret::before {
+  .type-caret {
+    transition: none;
+    animation: none;
+  }
+  .char-settle {
     animation: none;
   }
 }
@@ -376,16 +522,21 @@ button,
   border: 1px solid var(--edge);
   background: var(--field);
   color: var(--fg);
-  padding: 0.5rem 0.75rem;
+  padding: 0.5625rem 0.75rem;
   font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
   outline: none;
   transition:
     border-color 150ms,
     box-shadow 150ms;
 }
+.select:hover {
+  border-color: var(--fg-subtle);
+}
 .select:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 4px var(--accent-ring);
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 select.select {
   cursor: pointer;
@@ -429,6 +580,22 @@ select.select {
 }
 .caret {
   animation: caret-blink 1.1s steps(1, end) infinite;
+}
+
+/* The result verdict. Overshoots and settles — the one spring in the app, on
+   the one element that is a conclusion rather than a reading. */
+@keyframes verdict-in {
+  from {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.verdict-in {
+  animation: verdict-in 460ms cubic-bezier(0.34, 1.56, 0.64, 1) 380ms both;
 }
 
 /* Entry animation for the auth column. */
@@ -489,4 +656,126 @@ select.select {
     radial-gradient(65% 170% at 6% 0%, color-mix(in oklab, var(--brand-from) 82%, white) 0%, transparent 62%),
     radial-gradient(45% 130% at 100% 110%, color-mix(in oklab, var(--brand-accent-from) 14%, transparent) 0%, transparent 72%),
     linear-gradient(100deg, var(--brand-from), var(--brand-to) 85%);
+}
+
+/* ── Exam chrome ──────────────────────────────────────────────────────────── */
+
+/* Faint dot lattice behind the exam shell. Real exam software is a grey slab;
+   this keeps the seriousness but gives the surface something to sit on, so the
+   panels read as panels rather than as the whole screen. */
+@utility dot-grid {
+  background-image: radial-gradient(
+    color-mix(in oklab, var(--fg) 9%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+  background-position: -1px -1px;
+}
+
+/* Top-lit panel. A one-pixel highlight along the upper edge is what separates a
+   raised surface from a painted rectangle, and it is the only depth cue that
+   survives on a near-black canvas. */
+@utility panel-lit {
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--fg) 3%, transparent) 0,
+    transparent 2px
+  );
+}
+
+/* The passage does not stop mid-glyph at the foot of its panel: the last line
+   dissolves, which also reads as "there is more below". Pointer-transparent, so
+   it never intercepts the click that focuses the input. */
+.passage-fade {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  left: 1px;
+  height: 2.5rem;
+  border-radius: 0 0 var(--radius-panel) var(--radius-panel);
+  background-image: linear-gradient(to top, var(--surface) 15%, transparent);
+  pointer-events: none;
+}
+
+/* A run in progress. Slow, small and green — enough to say the clock is live
+   without competing with the passage for attention. */
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.82);
+  }
+}
+.live-dot {
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
+/* The next key to press. Scale and halo only — no colour cycling, which at
+   this size reads as a fault rather than a hint. The transform is safe here
+   because a keycap is a flex item, not an inline in a paragraph. */
+@keyframes key-next {
+  0%,
+  100% {
+    transform: translateY(-1px) scale(1);
+    box-shadow:
+      var(--elev-2),
+      0 0 0 0 color-mix(in oklab, var(--accent) 45%, transparent);
+  }
+  50% {
+    transform: translateY(-1px) scale(1.04);
+    box-shadow:
+      var(--elev-2),
+      0 0 0 5px color-mix(in oklab, var(--accent) 0%, transparent);
+  }
+}
+.key-next {
+  animation: key-next 1.4s ease-in-out infinite;
+}
+
+/* The countdown, as a line that drains across the head of the exam header.
+   Width is set inline from the clock, so it is the same number the digits
+   show — a second reading of it, not a second source of truth. */
+.time-drain {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 2px;
+  border-radius: 0 2px 2px 0;
+  background-image: linear-gradient(
+    to right,
+    color-mix(in oklab, var(--accent) 45%, transparent),
+    var(--accent)
+  );
+  transition: width 1s linear;
+}
+.time-drain[data-tone='caution'] {
+  background-image: linear-gradient(
+    to right,
+    color-mix(in oklab, var(--warn) 45%, transparent),
+    var(--warn)
+  );
+}
+.time-drain[data-tone='warn'] {
+  background-image: linear-gradient(
+    to right,
+    color-mix(in oklab, var(--danger) 45%, transparent),
+    var(--danger)
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .key-next {
+    animation: none;
+  }
+}
+
+/* Ruled paper for the exam-client skin: the horizontal rhythm of a real answer
+   sheet, drawn from the divider token so it follows the theme. */
+@utility ruled {
+  background-image: linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+  background-size: 100% 2rem;
 }

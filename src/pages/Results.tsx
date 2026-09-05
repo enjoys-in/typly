@@ -34,6 +34,7 @@ import { EndlessReport } from '@/components/result/EndlessReport';
 import { PaperSectionsReport } from '@/components/result/PaperSectionsReport';
 import { useEndlessRun } from '@/hooks/useEndlessRun';
 import { useAsync } from '@/hooks/useAsync';
+import { gradeRunAgainstDeck } from '@/hooks/useReviewDeck';
 import { useDateFormat } from '@/hooks/useDateFormat';
 import { HindiFont } from '@/core/constants';
 import { FONT_FAMILY } from '@/ui/fonts';
@@ -82,6 +83,7 @@ export function Results() {
   const [goalHit, setGoalHit] = useState(false);
   const [shareNote, setShareNote] = useState<string | null>(null);
   const rewardsDone = useRef(false);
+  const reviewDone = useRef(false);
 
   const board = finished?.payload.examBoard;
   const savedId = finished?.savedId ?? null;
@@ -161,6 +163,30 @@ export function Results() {
         setEndlessGoing(continued);
       });
   }, [finished, rules, adaptive, endless]);
+
+  /**
+   * Fold this run into the review deck.
+   *
+   * Any finished run grades whatever cards it happened to cover — there is no
+   * separate review session to start or remember, so practice done anywhere
+   * counts. The passage comes from the run's config because the saved payload
+   * keeps only its length, and the deck needs the text to know which cards the
+   * run actually put in front of the typist.
+   *
+   * Skipped when the run was never saved: without an id there is nothing to
+   * guard against grading the same run twice.
+   */
+  useEffect(() => {
+    if (!finished || savedId === null || !config || reviewDone.current) return;
+    reviewDone.current = true;
+    void gradeRunAgainstDeck(platform.repo, savedId, {
+      passage: config.passage,
+      mistakes: finished.mistakes,
+    }).catch(() => {
+      // A schedule is derived data. Losing one grading is not worth surfacing
+      // an error over the top of the user's result.
+    });
+  }, [finished, savedId, config, platform]);
 
   // Detect newly earned badges and a reached daily goal, then celebrate + notify once.
   useEffect(() => {

@@ -314,6 +314,10 @@ export const SETTING_KEY = {
   RecapSeen: 'recap:seen',
   /** Last keyboard health check, as JSON. */
   KeyboardHealth: 'keyboard:health',
+  /** The review deck — every weakness card and its schedule, as one JSON map. */
+  ReviewDeck: 'review:deck',
+  /** Newest test id already graded against the deck, so no run counts twice. */
+  ReviewGraded: 'review:gradedTestId',
 } as const;
 
 export const LANG_LABEL: Record<Lang, string> = {

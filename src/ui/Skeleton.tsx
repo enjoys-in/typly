@@ -22,8 +22,8 @@ export function SkeletonText({ lines = 3, className = '' }: { lines?: number; cl
 /** Rows sized to a DataTable row, under a header strip. */
 export function SkeletonTable({ rows = 6, cols = 5 }: { rows?: number; cols?: number }) {
   return (
-    <div className="overflow-hidden rounded-panel border border-line">
-      <div className="brand-gradient h-11" />
+    <div className="overflow-hidden rounded-panel border border-line bg-surface shadow-e1">
+      <div className="h-10 border-b border-line bg-surface-2" />
       <div className="divide-y divide-line">
         {Array.from({ length: rows }, (_, r) => (
           <div key={r} className="flex items-center gap-3 px-3 py-3.5">
@@ -43,7 +43,7 @@ export function SkeletonTable({ rows = 6, cols = 5 }: { rows?: number; cols?: nu
 /** A card-shaped block: title, body lines, and an optional action row. */
 export function SkeletonCard({ lines = 3, action = false }: { lines?: number; action?: boolean }) {
   return (
-    <div className="rounded-panel border border-line bg-surface p-6">
+    <div className="rounded-panel border border-line bg-surface p-6 shadow-e1">
       <Skeleton className="h-4 w-40" />
       <div className="mt-5">
         <SkeletonText lines={lines} />

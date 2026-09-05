@@ -5,7 +5,13 @@
 
 import type { Connect, Plugin } from 'vite';
 import type { ServerResponse } from 'node:http';
-import { handleCoachAnalyze, handleGrammarCheck, handleOcrVision, type HandlerResult } from './http/handler';
+import {
+  handleCoachAnalyze,
+  handleGrammarCheck,
+  handleOcrVision,
+  handlePassageGenerate,
+  type HandlerResult,
+} from './http/handler';
 import { AI_HTTP_ROUTE, IpcChannel, type AiChannel } from '../src/core/ipc/channels';
 
 const MAX_BODY_BYTES = 256 * 1024;
@@ -19,6 +25,7 @@ const AI_HANDLERS: Record<AiChannel, { handler: Handler; maxBytes: number }> = {
   [IpcChannel.AiCoach]: { handler: handleCoachAnalyze, maxBytes: MAX_BODY_BYTES },
   [IpcChannel.AiGrammar]: { handler: handleGrammarCheck, maxBytes: MAX_BODY_BYTES },
   [IpcChannel.AiOcr]: { handler: handleOcrVision, maxBytes: OCR_MAX_BODY_BYTES },
+  [IpcChannel.AiPassage]: { handler: handlePassageGenerate, maxBytes: MAX_BODY_BYTES },
 };
 
 export function aiBackendPlugin(fallbackKey: string): Plugin {
