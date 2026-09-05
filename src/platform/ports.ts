@@ -15,6 +15,8 @@ import type {
 export type { BackupBundle };
 import type { AiSettings, CoachFeedback, CoachInput } from '@/core/coach/types';
 import type { Profile } from '@/core/profile/profile';
+import type { PassageRequest } from '@/core/passage/prompt';
+import type { GeneratedPassage } from '@/core/passage/types';
 import type { Lang, SourceType } from '@/core/constants';
 import type { ShellRoute, ShellStatus } from '@/core/ipc/shell';
 import type { SyncState } from '@/core/sync/lan';
@@ -132,6 +134,16 @@ export interface AiCoach {
   analyze(input: CoachInput, settings: AiSettings, signal?: AbortSignal): Promise<CoachFeedback>;
 }
 
+/** Generates practice prose at a requested typing difficulty. */
+export interface PassageWriter {
+  available(): boolean;
+  generate(
+    request: PassageRequest,
+    settings: AiSettings,
+    signal?: AbortSignal,
+  ): Promise<GeneratedPassage>;
+}
+
 /** Where a permission request stands, so the UI can explain itself. */
 export type NotificationPermission = 'unsupported' | 'default' | 'granted' | 'denied';
 
@@ -237,6 +249,7 @@ export interface Platform {
   spell: SpellChecker;
   grammar: GrammarChecker;
   coach: AiCoach;
+  passageWriter: PassageWriter;
   notifications: Notifications;
   sound: Sound;
   tts: Tts;

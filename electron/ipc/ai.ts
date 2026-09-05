@@ -3,6 +3,7 @@ import {
   handleCoachAnalyze,
   handleGrammarCheck,
   handleOcrVision,
+  handlePassageGenerate,
 } from '../../server/http/handler';
 import { IpcChannel } from '../../src/core/ipc/channels';
 
@@ -13,5 +14,8 @@ export function registerAiIpc(): void {
   ipcMain.handle(IpcChannel.AiCoach, (_e, body: unknown) => handleCoachAnalyze(body, fallbackKey));
   ipcMain.handle(IpcChannel.AiGrammar, (_e, body: unknown) => handleGrammarCheck(body, fallbackKey));
   ipcMain.handle(IpcChannel.AiOcr, (_e, body: unknown) => handleOcrVision(body, fallbackKey));
+  ipcMain.handle(IpcChannel.AiPassage, (_e, body: unknown) =>
+    handlePassageGenerate(body, fallbackKey),
+  );
 }
 

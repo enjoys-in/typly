@@ -1555,6 +1555,12 @@ export const en = {
   'changelog.noDevTools':
     'The desktop app ships without developer tools — the passage a Blind run is hiding stays hidden.',
 
+  // Release notes — 0.6.0
+  'changelog.reviewQueue':
+    'A review queue over your own mistakes: each weak key and word is scheduled, so the ones you fix stop coming back and the ones you have not keep returning.',
+  'changelog.passageGen':
+    'Generate a practice passage at a chosen typing difficulty — and every result is measured, so the difficulty it claims is the difficulty it has.',
+
   // Recovering a table from an imported form
   'tabulate.title': 'This looks like a form or register',
   'tabulate.hint':
@@ -1575,6 +1581,47 @@ export const en = {
     'Strict mode needs Backspace: with corrections off there would be no way out of a mistyped word. Turn Backspace on, or the run will behave as Standard.',
 
   'stats.kdph': 'Depressions/hour',
+
+  // The review queue over your own mistakes (core/review).
+  'review.title': 'Review queue',
+  'review.dueHint': '{count} to review today. Clear them in one short drill.',
+  'review.clearHint': 'Nothing due. Come back when the next batch is ready.',
+  'review.start': 'Start review',
+  'review.due': 'Due',
+  'review.learning': 'Learning',
+  'review.mastered': 'Mastered',
+  'review.today': 'Due today',
+  'review.rung': 'Rung {box} of {of}',
+  'review.allMastered': 'Every card is mastered. New mistakes will start a new one.',
+  'review.nothingToday': 'Nothing due today — the rest are resting.',
+  'review.explainer':
+    'Each weakness is a card. Type it correctly in a real run and it comes back later; miss it and it drops to the bottom and returns tomorrow.',
+  'review.dashTitle': 'Review queue',
+  'review.dashDue': '{count} to review',
+  'review.dashDueOne': '1 to review',
+  'review.dashNone': 'Nothing due today',
+  'review.dashHint': 'Weak keys and words, scheduled so the fixed ones stop coming back.',
+  'review.open': 'Open the queue',
+  'review.drillTitle': 'Review drill',
+
+  // Generating practice prose to a requested typing difficulty (core/passage).
+  'generate.title': 'Generate a passage',
+  'generate.hint':
+    'Prose written to a chosen typing difficulty. Every result is measured with the same scorer the library uses, so what it says is what you get.',
+  'generate.difficulty': 'Difficulty',
+  'generate.length': 'Length',
+  'generate.words': '{count} words',
+  'generate.topic': 'Subject (optional)',
+  'generate.topicPlaceholder': 'e.g. the Indian Constitution, banking, railways',
+  'generate.action': 'Generate',
+  'generate.working': 'Writing…',
+  'generate.again': 'Try again',
+  'generate.use': 'Use this passage',
+  'generate.measured': 'Measured',
+  'generate.offTarget': 'Closest it got — not quite {band}',
+  'generate.failed': 'The passage could not be generated.',
+  'generate.privacy':
+    'Your difficulty and subject are sent to the AI provider you configured. The passage is not stored anywhere but on this device.',
 } as const;
 
 export type TKey = keyof typeof en;

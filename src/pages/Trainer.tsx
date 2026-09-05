@@ -9,6 +9,9 @@ import { KEYSTROKE_SCAN_TESTS, SourceType } from '@/core/constants';
 import { confusedPairs, weakKeys, weakWords } from '@/core/analysis/analysis';
 import { mistakeTaxonomy } from '@/core/analysis/taxonomy';
 import { generateSpeedDrill, generateWeaknessDrill } from '@/core/practice/generators';
+import { drillSeed } from '@/core/review/review';
+import { useReviewDeck } from '@/hooks/useReviewDeck';
+import { ReviewPanel } from '@/components/trainer/ReviewPanel';
 import { Card } from '@/ui/Card';
 import { Button } from '@/ui/Button';
 import { Segmented, type SegmentedOption } from '@/ui/Segmented';
@@ -30,6 +33,7 @@ export function Trainer() {
   const settings = useSettingsStore();
   const [focus, setFocus] = useState<Focus>('errors');
   const t = useT();
+  const review = useReviewDeck();
 
   const focusOptions: SegmentedOption<Focus>[] = [
     { value: 'errors', label: t('trainer.accuracy'), title: t('trainer.accuracyHint') },
@@ -61,6 +65,23 @@ export function Trainer() {
 
   const hasErrors = !!errors && errors.keys.length > 0;
   const hasSpeed = (data.data?.keystrokes.length ?? 0) > 0;
+
+  /**
+   * A drill built from the cards that are due, rather than from whatever is
+   * currently worst. That is the whole difference between the queue and the
+   * heatmap: the queue decides what today is for.
+   */
+  function startReview() {
+    const seed = drillSeed(review.due);
+    setConfig({
+      ...drillBase(settings),
+      passage: generateWeaknessDrill(seed.keys, seed.words),
+      title: t('review.drillTitle'),
+      documentId: null,
+      sourceType: SourceType.Text,
+    });
+    navigate('/app/exam');
+  }
 
   function startDrill() {
     const passage =
@@ -102,6 +123,12 @@ export function Trainer() {
           </Button>
         )}
       </div>
+
+      {/* Above the diagnosis on purpose. "What should I do today" is a more
+          useful first answer than "here is everything wrong with you". */}
+      {!review.loading && (
+        <ReviewPanel due={review.due} stats={review.stats} onStart={startReview} />
+      )}
 
       <Segmented options={focusOptions} value={focus} onChange={setFocus} ariaLabel={t('trainer.focus')} />
 

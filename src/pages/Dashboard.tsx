@@ -15,6 +15,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useExamStore } from '@/store/examStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useAsync } from '@/hooks/useAsync';
+import { useReviewDeck } from '@/hooks/useReviewDeck';
 import { usePaperRun } from '@/hooks/usePaperRun';
 import { clearExamSnapshot, readExamSnapshot } from '@/hooks/useExamSnapshot';
 import { readSampleDocument, seedSampleLibrary } from '@/hooks/useSampleLibrary';
@@ -31,6 +32,7 @@ import { useDateFormat } from '@/hooks/useDateFormat';
 import { ExamCountdownCard } from '@/components/dashboard/ExamCountdownCard';
 import { GoalCard } from '@/components/dashboard/GoalCard';
 import { ResumeCard } from '@/components/dashboard/ResumeCard';
+import { ReviewCard } from '@/components/dashboard/ReviewCard';
 import { SampleCard } from '@/components/dashboard/SampleCard';
 import { WpmAveragesCard } from '@/components/dashboard/WpmAveragesCard';
 import { Card } from '@/ui/Card';
@@ -52,6 +54,7 @@ export function Dashboard() {
   const t = useT();
   const d = useDateFormat();
   const startPaperRun = usePaperRun();
+  const review = useReviewDeck();
   const Logo = appConfig.logo;
 
   const overview = useAsync(async () => {
@@ -195,6 +198,12 @@ export function Dashboard() {
           onSave={(next) => void saveTarget(next)}
           onClear={() => void clearTarget()}
         />
+      )}
+
+      {/* Under the countdown, which says how much time is left, because this is
+          the answer to "so what do I do today". */}
+      {!review.loading && (
+        <ReviewCard stats={review.stats} onOpen={() => navigate('/app/trainer')} />
       )}
 
       {overview.loading ? (
