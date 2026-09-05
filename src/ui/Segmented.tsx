@@ -23,10 +23,10 @@ interface Props<T extends string | number> {
  * The one segmented control. Previously this pattern existed three times with
  * three different looks — an accent fill, a slate fill, and a pair of Buttons.
  *
- * The selected segment is a raised white chip on a recessed track, the way a
- * platform tab bar reads, rather than a saturated accent block: with three or
- * four options a filled accent segment shouted louder than the primary action
- * on the same screen.
+ * The selected segment takes the accent fill. A raised neutral chip is the
+ * quieter choice and reads well on a tab bar, but on a setup form the whole
+ * question is *which one is picked* — and across six options at a glance the
+ * green answers that instantly where a white chip has to be looked for.
  */
 export function Segmented<T extends string | number>({
   options,
@@ -55,8 +55,8 @@ export function Segmented<T extends string | number>({
               full ? 'flex-1' : ''
             } ${
               active
-                ? 'bg-surface text-fg shadow-e1'
-                : 'text-fg-muted hover:text-fg'
+                ? 'bg-accent text-accent-fg shadow-e1 ring-1 ring-inset ring-white/15'
+                : 'text-fg-muted hover:bg-surface-hover hover:text-fg'
             }`}
           >
             {Icon && <Icon size={14} className="shrink-0" />}

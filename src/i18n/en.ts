@@ -1021,6 +1021,33 @@ export const en = {
 
   // Exam mode / drill additions
   'examMode.strict': 'Strict',
+
+  // What each exam mode actually does. The numbers are not written here — they
+  // are computed from the scoring functions themselves (see ModeInfo), so this
+  // copy stays true when a threshold changes.
+  'modeInfo.standard':
+    'The board’s own rules, exactly as published. Mistakes are marked as you type and cost you whatever the real exam deducts. Start here — the other modes are training wheels, not harder exams.',
+  'modeInfo.blind':
+    'The passage stops marking you: no green, no red, no cursor to follow. You find out how it went at the end. This is the drill for stopping the habit of checking every word, which is what caps most people well below their real speed.',
+  'modeInfo.error_free':
+    'A wrong key is refused — nothing appears unless it is the character the passage expects. The pass mark goes to 100% because a mistake cannot be typed at all. Needs an on-screen passage; a paper run behaves as Standard.',
+  'modeInfo.accuracy':
+    'Tilted toward getting it right: the accuracy needed to pass goes up and every mistake costs more. Speed alone will not carry a run. Use it when your errors, not your pace, are what fail you.',
+  'modeInfo.speed':
+    'Tilted toward pace: the speed needed to pass goes up, the accuracy bar comes down and mistakes cost less. For deliberately running above the speed you are comfortable at, where the errors do not end the attempt.',
+  'modeInfo.strict':
+    'You cannot move past a word until it is exactly right. A mistake inside a word is fine — carrying one into the next word is not. Needs Backspace and an on-screen passage. The standard cure for typing fast and fixing later, a habit that passes a practice app and fails an accuracy-gated exam.',
+
+  'modeInfo.changes': 'What this changes',
+  'modeInfo.wpmToPass': 'Speed to pass',
+  'modeInfo.kdphToPass': 'Depressions to pass',
+  'modeInfo.accuracyToPass': 'Accuracy to pass',
+  'modeInfo.penalty': 'Cost per mistake',
+
+  'setup.pressureNeedsCountdown':
+    'Pressure mode needs a countdown — a clock that flashes near the end has nothing to flash about on a stopwatch. Switch Timing to Countdown to use it.',
+  'setup.pacerNeedsCutoff':
+    'This board publishes no minimum speed, so there is no cut-off for a marker to move at.',
   'practice.data_entry': 'Data entry (tables)',
   'practiceDesc.data_entry':
     'A register of roll numbers, names, dates and amounts, Tab-separated — the work a DEST or DEO post is actually for.',
@@ -1511,6 +1538,21 @@ export const en = {
   'changelog.steadyLines':
     'Lines stay put as you type: the passage no longer re-wraps around the caret.',
 
+  // Release notes — 0.5.0
+  'changelog.redesign':
+    'A rebuilt interface: a proper exam header with the clock boxed top-right, panels that read as panels, and a grouped sidebar.',
+  'changelog.modeInfo':
+    'Every exam mode now explains itself, and shows exactly which pass thresholds it moves.',
+  'changelog.caret':
+    'The typing caret glides between characters and holds steady while you type, instead of blinking through a burst.',
+  'changelog.wpmTrace': 'A live speed trace under your WPM, with the cut-off drawn across it.',
+  'changelog.resultReveal': 'Results count up, with accuracy as a ring and the verdict last.',
+  'changelog.nextKey': 'The next key to press pulses on the on-screen keyboard.',
+  'changelog.timeDrain':
+    'The countdown also drains as a line across the top of the exam header — readable without looking away from the passage.',
+  'changelog.whyDisabled':
+    'A setting that cannot be switched on now says why, and names the setting that frees it.',
+
   // Recovering a table from an imported form
   'tabulate.title': 'This looks like a form or register',
   'tabulate.hint':
@@ -1527,8 +1569,6 @@ export const en = {
 
   'practice.forYourExam': 'Your exam',
 
-  'setup.strictHint':
-    'You cannot move past a word until it is exactly right. Mistakes inside a word are fine — carrying one into the next word is not.',
   'setup.strictNeedsBackspace':
     'Strict mode needs Backspace: with corrections off there would be no way out of a mistyped word. Turn Backspace on, or the run will behave as Standard.',
 
