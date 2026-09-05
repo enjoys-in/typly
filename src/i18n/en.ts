@@ -1501,6 +1501,12 @@ export const en = {
   'changelog.breaks': '20-20-20 eye breaks and a wrist prompt during long sessions.',
   'changelog.portable': 'A portable build that keeps its data beside the executable — run it from a USB stick.',
 
+  // Release notes — 0.4.1
+  'changelog.passageWidth':
+    'The passage fills the whole width of its panel, instead of leaving empty margins either side.',
+  'changelog.steadyLines':
+    'Lines stay put as you type: the passage no longer re-wraps around the caret.',
+
   // Recovering a table from an imported form
   'tabulate.title': 'This looks like a form or register',
   'tabulate.hint':

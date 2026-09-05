@@ -1503,6 +1503,12 @@ export const hi: Record<TKey, string> = {
   'changelog.breaks': 'लंबे सत्रों में 20-20-20 आँखों का विराम और कलाई की याद।',
   'changelog.portable': 'पोर्टेबल बिल्ड जो अपना डेटा एक्ज़ीक्यूटेबल के पास रखता है — USB स्टिक से चलाएँ।',
 
+  // Release notes — 0.4.1
+  'changelog.passageWidth':
+    'गद्यांश अब अपने पैनल की पूरी चौड़ाई में फैलता है, दोनों किनारों पर खाली जगह नहीं छोड़ता।',
+  'changelog.steadyLines':
+    'टाइप करते समय पंक्तियाँ अपनी जगह रहती हैं: गद्यांश अब कर्सर के आसपास दोबारा नहीं लपेटा जाता।',
+
   // Recovering a table from an imported form
   'tabulate.title': 'यह कोई फ़ॉर्म या रजिस्टर लगता है',
   'tabulate.hint':

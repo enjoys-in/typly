@@ -310,15 +310,30 @@ button,
   background: transparent;
 }
 
-/* Typing caret in the passage: a blinking bar between two characters. */
+/* Typing caret in the passage: a blinking bar between two characters.
+   The element itself stays `display: inline` and paints nothing. An atomic
+   inline here (inline-block, however narrow) is a line-break opportunity, so
+   the word under the caret could split and the paragraph re-wrapped on every
+   keystroke — lines visibly twitching as you type. */
 .type-caret {
-  display: inline-block;
+  position: relative;
+  display: inline;
+}
+/* The bar is painted out of flow, so it costs the line no advance width. */
+.type-caret::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -1px;
   width: 2px;
-  height: 1.1em;
-  margin: 0 -1px;
-  vertical-align: text-bottom;
   background: var(--accent);
   animation: type-caret-blink 1s step-end infinite;
+}
+/* A word joiner gives the otherwise empty inline a real text fragment, so the
+   caret has a box to scroll into view, and forbids a break at the caret. */
+.type-caret::after {
+  content: '\2060';
 }
 @keyframes type-caret-blink {
   50% {
@@ -326,7 +341,7 @@ button,
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .type-caret {
+  .type-caret::before {
     animation: none;
   }
 }

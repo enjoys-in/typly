@@ -1,7 +1,7 @@
 {
   "name": "typly",
   "private": true,
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Offline-first typing-exam practice for Indian competitive exams.",
   "desktopName": "typly.desktop",
   "author": {
