@@ -1,4 +1,5 @@
 import { BrowserWindow } from 'electron';
+import { devToolsPref } from './devTools';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -121,7 +122,7 @@ export function createSplash(version: string): Splash {
     // Taking focus would put the splash in the way of the window behind it.
     focusable: false,
     hasShadow: true,
-    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
+    webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, ...devToolsPref },
   });
 
   window.once('ready-to-show', () => {

@@ -31,6 +31,7 @@ export const RELEASES: readonly Release[] = [
       'changelog.nextKey',
       'changelog.timeDrain',
       'changelog.whyDisabled',
+      'changelog.noDevTools',
     ],
   },
   {

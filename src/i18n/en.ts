@@ -1552,6 +1552,8 @@ export const en = {
     'The countdown also drains as a line across the top of the exam header — readable without looking away from the passage.',
   'changelog.whyDisabled':
     'A setting that cannot be switched on now says why, and names the setting that frees it.',
+  'changelog.noDevTools':
+    'The desktop app ships without developer tools — the passage a Blind run is hiding stays hidden.',
 
   // Recovering a table from an imported form
   'tabulate.title': 'This looks like a form or register',

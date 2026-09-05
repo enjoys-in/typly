@@ -1,4 +1,5 @@
 import { BrowserWindow, globalShortcut, screen } from 'electron';
+import { devToolsPref } from './devTools';
 
 /**
  * The 60-second drill, in a window of its own.
@@ -79,6 +80,7 @@ export function openQuickTest(): void {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      ...devToolsPref,
     },
   });
 

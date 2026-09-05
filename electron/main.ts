@@ -20,6 +20,7 @@ import { registerFontIpc } from './ipc/fonts';
 import { createReminderScheduler } from './ipc/reminders';
 import { registerAiIpc } from './ipc/ai';
 import { registerAppSchemePrivileges, registerAppProtocol, appUrl } from './shell/protocol';
+import { devToolsPref, registerDevToolsPolicy } from './shell/devTools';
 import { applyPortablePaths, portableRoot } from './shell/portable';
 import { openQuickTest, registerQuickTest, unregisterQuickTest } from './shell/quickTest';
 import { IpcChannel } from '../src/core/ipc/channels';
@@ -42,6 +43,9 @@ applyPortablePaths();
 
 // Privileged scheme must be declared before the app is ready.
 registerAppSchemePrivileges();
+// Before any window exists, so every renderer the app ever creates is covered
+// — including ones added later that forget the webPreferences flag.
+registerDevToolsPolicy();
 // macOS delivers "Open with Typly" through an event that can fire during launch,
 // so the listener has to exist before the app is ready.
 registerOpenFileEvent();
@@ -139,6 +143,7 @@ function createMainWindow(): BrowserWindow {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      ...devToolsPref,
     },
   });
 
