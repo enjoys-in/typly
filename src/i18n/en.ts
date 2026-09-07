@@ -1643,6 +1643,49 @@ export const en = {
   'paper.scoredHintNoDict':
     'Words, speed and corrections come from what you type. Spelling is not checked for {lang}, so no mistakes are counted.',
 
+  // Dictation practice over your own missed words (core/dictation/wordDrill).
+  'nav.dictation': 'Dictation',
+  'dictate.title': 'Dictation practice',
+  'dictate.subtitle':
+    'The words you keep getting wrong, read aloud one at a time. Nothing is shown — you spell it.',
+  'dictate.newBatch': 'New batch',
+  'dictate.unsupportedBody':
+    'This device has no speech voice, so nothing can be dictated. The review queue in the Trainer drills the same words on screen instead.',
+  'dictate.empty':
+    'No mistakes recorded yet, so there is nothing to dictate. Sit a test and whatever you miss turns up here on its own.',
+  'dictate.emptyAction': 'Start a test',
+  'dictate.wordOf': 'Word {current} of {total}',
+  'dictate.correctSoFar': '{correct} right of {answered}',
+  'dictate.listenBody': 'Listen, then type what you heard.',
+  'dictate.holdBody': 'The correct spelling is being read out. Continue when you are ready.',
+  'dictate.replay': 'Play again ({left} left)',
+  'dictate.replayHint': 'Hear the word again',
+  'dictate.noReplays': 'No replays left for this word',
+  'dictate.inputLabel': 'Spell it',
+  'dictate.inputPlaceholder': 'Type the word you heard…',
+  'dictate.check': 'Check',
+  'dictate.skip': 'Skip',
+  'dictate.continue': 'Continue',
+  'dictate.right': 'Right.',
+  'dictate.wrong': 'It was',
+  'dictate.willReturn': 'it comes back once more',
+  'dictate.doneTitle': 'Batch complete',
+  'dictate.words': 'Words',
+  'dictate.spelled': 'Spelled right',
+  'dictate.missedHeading': 'Missed',
+  'dictate.missedHint':
+    'These dropped to the bottom of the review ladder, so they come back tomorrow.',
+  'dictate.skipped': 'skipped',
+  'dictate.allCorrect': 'Every word spelled right — those cards each climb a rung.',
+  'dictate.again': 'Another batch',
+  'dictate.toTrainer': 'Back to Trainer',
+  'dictate.explainer':
+    'Every word here came from a mistake in one of your runs. Spell it right and its review card climbs a rung; miss it and the card drops to the bottom and returns tomorrow.',
+  'dictate.cardTitle': 'Dictation practice',
+  'dictate.cardHint':
+    'The same weak words, spoken instead of shown — the test that copying from a screen never gives you.',
+  'dictate.cardAction': 'Start dictation',
+
   'changelog.resumeFocus': 'Resuming a paused test puts the cursor back in the typing field.',
   'changelog.resizeSplit':
     'Drag the divider between the passage and the field to make the typing area any size you want.',
@@ -1652,6 +1695,8 @@ export const en = {
     'Characters typed and characters left, under the field on every layout.',
   'changelog.hideInput':
     'Hide the typing box altogether and type into the passage, where the caret already is.',
+  'changelog.dictateMistakes':
+    'Dictation practice: the words you miss are read aloud, one at a time, for you to spell from memory.',
 } as const;
 
 export type TKey = keyof typeof en;

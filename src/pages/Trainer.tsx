@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Crosshair, Play } from 'lucide-react';
+import { Crosshair, Ear, Play } from 'lucide-react';
 import { usePlatform } from '@/platform/PlatformContext';
 import { useExamStore } from '@/store/examStore';
 import { drillBase, useSettingsStore } from '@/store/settingsStore';
@@ -128,6 +128,24 @@ export function Trainer() {
           useful first answer than "here is everything wrong with you". */}
       {!review.loading && (
         <ReviewPanel due={review.due} stats={review.stats} onStart={startReview} />
+      )}
+
+      {/* The same weakness list, tested the other way round. It sits next to
+          the review queue because that is the choice a user is making at this
+          point in the screen: copy the words, or spell them from memory. */}
+      {hasErrors && (
+        <Card className="flex flex-wrap items-center justify-between gap-4">
+          <div className="min-w-0">
+            <h2 className="flex items-center gap-2 font-semibold">
+              <Ear size={17} className="shrink-0 text-accent-text" />
+              {t('dictate.cardTitle')}
+            </h2>
+            <p className="mt-1 max-w-xl text-sm text-fg-muted">{t('dictate.cardHint')}</p>
+          </div>
+          <Button variant="secondary" onClick={() => navigate('/app/dictation')}>
+            <Play size={16} /> {t('dictate.cardAction')}
+          </Button>
+        </Card>
       )}
 
       <Segmented options={focusOptions} value={focus} onChange={setFocus} ariaLabel={t('trainer.focus')} />

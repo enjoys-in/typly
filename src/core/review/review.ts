@@ -260,6 +260,42 @@ export function gradeRun(
   return next;
 }
 
+/**
+ * Grade named cards directly — a drill that tested them on purpose.
+ *
+ * This is the counterpart to `gradeRun`, and the difference is what the
+ * evidence is worth. `gradeRun` reads an ordinary typing attempt, where a card
+ * merely *appearing* in the passage proves nothing about whether the user could
+ * have produced it unaided, so it only promotes cards that were already due.
+ * Here the word was dictated and spelled from memory with nothing on screen:
+ * that is a deliberate test of exactly that card, and it counts whether the
+ * schedule asked for it or not.
+ *
+ * Ids that are not in the deck are ignored rather than enrolled. A dictation
+ * can be built from raw mistake history that has no card yet, and creating one
+ * mid-grade would enrol a card and immediately schedule it from the same
+ * keystroke — enrolment stays with `syncFromWeaknesses`, which sees the whole
+ * picture.
+ */
+export function gradeCards(
+  deck: ReviewDeck,
+  verdicts: { passed: readonly string[]; failed: readonly string[] },
+  now: Date,
+): ReviewDeck {
+  const next = { ...deck };
+  // Failures are applied after passes, so a card in both lists (a word drilled
+  // twice in one session) ends on the harsher of the two.
+  for (const id of verdicts.passed) {
+    const item = next[id];
+    if (item) next[id] = promote(item, now);
+  }
+  for (const id of verdicts.failed) {
+    const item = next[id];
+    if (item) next[id] = demote(item, now);
+  }
+  return next;
+}
+
 /** What a drill has to contain to review these cards. */
 export function drillSeed(items: ReviewItem[]): { keys: string[]; words: string[] } {
   return {

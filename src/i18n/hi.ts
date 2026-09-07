@@ -1643,6 +1643,48 @@ export const hi: Record<TKey, string> = {
   'paper.scoredHintNoDict':
     'शब्द, गति और सुधार आपके टाइप किए से आते हैं। {lang} के लिए वर्तनी जाँच नहीं है, इसलिए ग़लतियाँ नहीं गिनी जातीं।',
 
+  // अपनी चूकी हुई शब्दों पर श्रुतलेख अभ्यास (core/dictation/wordDrill)
+  'nav.dictation': 'श्रुतलेख',
+  'dictate.title': 'श्रुतलेख अभ्यास',
+  'dictate.subtitle':
+    'जो शब्द आप बार-बार ग़लत करते हैं, वही एक-एक कर सुनाए जाते हैं। कुछ दिखाया नहीं जाता — वर्तनी आपको लिखनी है।',
+  'dictate.newBatch': 'नया बैच',
+  'dictate.unsupportedBody':
+    'इस डिवाइस पर कोई वाणी उपलब्ध नहीं है, इसलिए कुछ बोला नहीं जा सकता। ट्रेनर की समीक्षा कतार वही शब्द स्क्रीन पर दिखाकर अभ्यास कराती है।',
+  'dictate.empty':
+    'अभी कोई ग़लती दर्ज नहीं है, इसलिए बोलने के लिए कुछ नहीं। एक टेस्ट दें — जो चूकेंगे, वह अपने आप यहाँ आ जाएगा।',
+  'dictate.emptyAction': 'टेस्ट शुरू करें',
+  'dictate.wordOf': '{total} में से {current}वाँ शब्द',
+  'dictate.correctSoFar': '{answered} में से {correct} सही',
+  'dictate.listenBody': 'सुनें, फिर जो सुना वही टाइप करें।',
+  'dictate.holdBody': 'सही वर्तनी पढ़ी जा रही है। तैयार हों तो आगे बढ़ें।',
+  'dictate.replay': 'दोबारा सुनें ({left} शेष)',
+  'dictate.replayHint': 'शब्द दोबारा सुनें',
+  'dictate.noReplays': 'इस शब्द के लिए और मौक़े नहीं बचे',
+  'dictate.inputLabel': 'वर्तनी लिखें',
+  'dictate.inputPlaceholder': 'जो शब्द सुना, वह टाइप करें…',
+  'dictate.check': 'जाँचें',
+  'dictate.skip': 'छोड़ें',
+  'dictate.continue': 'आगे बढ़ें',
+  'dictate.right': 'सही।',
+  'dictate.wrong': 'सही शब्द था',
+  'dictate.willReturn': 'यह एक बार और आएगा',
+  'dictate.doneTitle': 'बैच पूरा',
+  'dictate.words': 'शब्द',
+  'dictate.spelled': 'सही लिखे',
+  'dictate.missedHeading': 'चूके',
+  'dictate.missedHint': 'ये समीक्षा सीढ़ी में सबसे नीचे गिर गए, इसलिए कल लौटेंगे।',
+  'dictate.skipped': 'छोड़ा',
+  'dictate.allCorrect': 'हर शब्द सही लिखा — वे सब कार्ड एक-एक पायदान चढ़ गए।',
+  'dictate.again': 'और एक बैच',
+  'dictate.toTrainer': 'ट्रेनर पर लौटें',
+  'dictate.explainer':
+    'यहाँ का हर शब्द आपके किसी रन की ग़लती से आया है। सही लिखें तो उसका समीक्षा कार्ड एक पायदान चढ़ता है; चूकें तो कार्ड सबसे नीचे गिरकर कल लौट आता है।',
+  'dictate.cardTitle': 'श्रुतलेख अभ्यास',
+  'dictate.cardHint':
+    'वही कमज़ोर शब्द, दिखाए नहीं बल्कि सुनाए गए — स्क्रीन से नक़ल करने पर यह परीक्षा कभी नहीं होती।',
+  'dictate.cardAction': 'श्रुतलेख शुरू करें',
+
   'changelog.resumeFocus': 'रुका हुआ टेस्ट फिर शुरू करने पर कर्सर टाइपिंग फ़ील्ड में लौट आता है।',
   'changelog.resizeSplit':
     'अनुच्छेद और फ़ील्ड के बीच का विभाजक खींचकर टाइपिंग क्षेत्र जितना बड़ा चाहें उतना करें।',
@@ -1651,4 +1693,6 @@ export const hi: Record<TKey, string> = {
   'changelog.charsLeft': 'टाइप हुए और शेष वर्ण, हर लेआउट में फ़ील्ड के नीचे।',
   'changelog.hideInput':
     'टाइपिंग बॉक्स पूरी तरह छिपाएँ और सीधे अनुच्छेद में टाइप करें, जहाँ कर्सर पहले से है।',
+  'changelog.dictateMistakes':
+    'श्रुतलेख अभ्यास: जो शब्द आप चूकते हैं, वे एक-एक कर सुनाए जाते हैं और वर्तनी आपको याद से लिखनी होती है।',
 };
