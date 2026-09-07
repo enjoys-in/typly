@@ -1632,8 +1632,6 @@ export const en = {
   'exam.inputLockedHint':
     'The typing field cannot be hidden here: there is no passage carrying the caret to type into instead.',
   'exam.inputHiddenResume': 'Click to keep typing',
-  'exam.statsLockedHint':
-    'With no passage on screen these readings are the only feedback a paper run has, so they stay on.',
   'stats.typed': 'Typed',
   'stats.left': 'Left',
   'stats.ofChars': 'of',

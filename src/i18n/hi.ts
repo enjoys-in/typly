@@ -1632,8 +1632,6 @@ export const hi: Record<TKey, string> = {
   'exam.inputLockedHint':
     'यहाँ टाइपिंग फ़ील्ड छिपाई नहीं जा सकती: टाइप करने के लिए कर्सर वाला कोई अनुच्छेद मौजूद नहीं है।',
   'exam.inputHiddenResume': 'टाइप करते रहने के लिए क्लिक करें',
-  'exam.statsLockedHint':
-    'स्क्रीन पर अनुच्छेद न होने से ये आँकड़े ही काग़ज़ वाले रन की एकमात्र प्रतिक्रिया हैं, इसलिए ये चालू रहते हैं।',
   'stats.typed': 'टाइप हुए',
   'stats.left': 'शेष',
   'stats.ofChars': 'में से',

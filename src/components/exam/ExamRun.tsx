@@ -30,7 +30,12 @@ import { evaluate, buildTimeline, countBackspaces, countDeletes } from '@/core/t
 import { buildGhostTrack } from '@/core/typing/replay';
 import { attemptedSlice, findMistakes, countWords } from '@/core/typing/diff';
 import { score, applyDifficulty, applyMode } from '@/core/scoring/scoring';
-import { findMisspellings, liveWordCount, scoreFreeform } from '@/core/scoring/freeform';
+import {
+  findMisspellings,
+  liveWordCount,
+  misspellingMistakes,
+  scoreFreeform,
+} from '@/core/scoring/freeform';
 import { profileFor } from '@/core/scoring/examProfiles';
 import { resolveLessonTargets } from '@/core/lessons/customLessons';
 import { markPartDone } from '@/core/library/progress';
@@ -256,6 +261,16 @@ export function ExamRun({ config, resume }: Props) {
           grammar,
           spellChecked: findings.spellChecked,
         };
+        // A paper run's misspellings are stored as mistakes like any other
+        // run's, so the trainer, the review ladder and the dictation drill all
+        // learn from it. They used to end on this screen and go no further —
+        // and typing from a printed passage is precisely where spelling from
+        // memory is being tested, so it was the best evidence being thrown
+        // away. The results screen still shows the paper report, not a mistake
+        // list, so nothing is duplicated there.
+        mistakes = misspellingMistakes(finalTyped, findings.misspelled, (word) =>
+          platform.spell.suggest(word),
+        );
       } else {
         const { correctChars, incorrectChars } = evaluate(config.passage, finalTyped);
         // Only the part of the passage that was reached is compared, so an
@@ -526,8 +541,13 @@ export function ExamRun({ config, resume }: Props) {
   const fontFamily = fontActive ? FONT_FAMILY[hindiFont] : undefined;
   const keyFontFamily = fontActive && isLegacyFont(hindiFont) ? fontFamily : undefined;
   // Stacked puts passage, input, keyboard and stats in one column, so the full
-  // keyboard is dropped there to keep the passage readable.
-  const keyboardVisible = showKeyboard && isSplit && !blind && typing;
+  // keyboard is dropped there to keep the passage readable. Paper mode never
+  // draws one either: the keyboard exists to show the *next* character, and
+  // there is no passage to take one from. Folded in here rather than at the
+  // render site so the toolbar is told the same thing the screen does — it was
+  // disabling the pressed-key chip on a paper run where no keyboard was, or
+  // ever could be, on screen.
+  const keyboardVisible = showKeyboard && isSplit && !blind && typing && !notepad;
   const statsVisible = showStats && !blind;
   const timer = isCountdown ? (
     <Timer remainingSec={countdown.remainingSec} />
@@ -610,7 +630,7 @@ export function ExamRun({ config, resume }: Props) {
                 paper run has — speed, words, characters and corrections — and
                 hiding them would leave a candidate typing into a blank box
                 with no way to tell whether anything was being counted. The
-                toolbar disables the toggle here and says why. */}
+                toolbar drops the toggle here rather than showing a dead one. */}
             <PaperStats
               typed={typed}
               elapsedMs={elapsedMs}
@@ -674,7 +694,7 @@ export function ExamRun({ config, resume }: Props) {
             </div>
           </div>
         )}
-        {keyboardVisible && !notepad ? (
+        {keyboardVisible ? (
           <Keyboard
             nextChar={config.passage[typed.length]}
             fontFamily={keymap ? undefined : keyFontFamily}
@@ -758,10 +778,10 @@ export function ExamRun({ config, resume }: Props) {
         onShowKeys={setShowKeys}
         showStats={showStats}
         onShowStats={setShowStats}
-        statsLocked={notepad}
+        paper={notepad}
         showInput={showInput}
         onShowInput={setShowInput}
-        inputLocked={!canHideInput}
+        inputLocked={blind}
         fullscreen={fullscreen}
         // The exam-client skin puts the clock in its own header, where the real
         // software puts it — two clocks would be worse than either.

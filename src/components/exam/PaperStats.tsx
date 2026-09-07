@@ -38,24 +38,32 @@ export function PaperStats({ typed, elapsedMs, backspaces, targetWpm = 0 }: Prop
   return (
     <div
       title={t('paper.checkedLater')}
-      className="panel-lit flex shrink-0 flex-wrap items-center gap-x-5 gap-y-1.5 rounded-panel border border-line bg-surface px-4 py-2 shadow-e1"
+      // A fixed four-column grid, and emphatically not a wrapping flex row.
+      //
+      // As a flex row it re-wrapped as the figures gained digits: crossing 100
+      // characters pushed a reading onto a second line, the rail grew, and the
+      // field above it lost that height — so the page a candidate was typing
+      // into changed size under their hands, twice a minute, for the entire
+      // run. Columns that do not depend on their contents cannot do that. The
+      // cells are equal fractions of the width and each one clips rather than
+      // reflows, so the rail is exactly one line tall from the first keystroke
+      // to submission.
+      className="panel-lit grid shrink-0 grid-cols-4 items-baseline gap-x-4 rounded-panel border border-line bg-surface px-4 py-2 shadow-e1"
     >
       <Reading
         icon={Gauge}
         label={t('stats.liveWpm')}
         value={started ? String(wpm) : '—'}
+        // The one figure the run is marked on, so it carries the target with
+        // it. As a separate right-aligned chip it was one more thing that
+        // moved when the numbers beside it grew.
+        note={targetWpm > 0 ? t('stats.target', { value: targetWpm }) : undefined}
         tone={onPace === null ? undefined : onPace ? 'good' : 'bad'}
         lead
       />
-      <span aria-hidden className="h-5 w-px bg-line" />
       <Reading icon={Type} label={t('stats.words')} value={String(liveWordCount(typed))} />
       <Reading icon={SpellCheck} label={t('stats.characters')} value={String(typed.length)} />
       <Reading icon={Undo2} label={t('stats.corrections')} value={String(backspaces)} />
-      {targetWpm > 0 && (
-        <span className="ml-auto text-[11px] font-medium text-fg-subtle tabular-nums">
-          {t('stats.target', { value: targetWpm })}
-        </span>
-      )}
     </div>
   );
 }
@@ -64,12 +72,15 @@ function Reading({
   icon: Icon,
   label,
   value,
+  note,
   tone,
   lead = false,
 }: {
   icon: LucideIcon;
   label: string;
   value: string;
+  /** Small trailing detail, e.g. the board's target. */
+  note?: string;
   tone?: 'good' | 'bad';
   lead?: boolean;
 }) {
@@ -83,19 +94,26 @@ function Reading({
         : 'text-fg';
 
   return (
-    <span className="inline-flex items-baseline gap-2">
-      <span className="inline-flex items-center gap-1.5 text-[10.5px] font-semibold tracking-[0.09em] text-fg-muted uppercase">
+    // `min-w-0` is what lets a cramped cell clip its label instead of forcing
+    // the grid wider than the rail.
+    <span className="flex min-w-0 items-baseline gap-2">
+      <span className="inline-flex min-w-0 items-center gap-1.5 text-[10.5px] font-semibold tracking-[0.09em] text-fg-muted uppercase">
         <Icon size={12} className="shrink-0" />
-        {label}
+        <span className="truncate">{label}</span>
       </span>
       {/* The speed reading is set larger than the counts beside it: on a rail
           with no vertical hierarchy left to spend, size is the only thing that
           can still say which of the four figures is the one being marked. */}
       <span
-        className={`font-bold tracking-tight tabular-nums ${lead ? 'text-[1.375rem] leading-none' : 'text-sm'} ${colour}`}
+        className={`shrink-0 font-bold tracking-tight tabular-nums ${lead ? 'text-[1.375rem] leading-none' : 'text-sm'} ${colour}`}
       >
         {value}
       </span>
+      {note && (
+        <span className="hidden shrink-0 text-[11px] font-medium text-fg-subtle tabular-nums xl:inline">
+          {note}
+        </span>
+      )}
     </span>
   );
 }
