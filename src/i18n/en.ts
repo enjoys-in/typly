@@ -1693,6 +1693,8 @@ export const en = {
     'Characters typed and characters left, under the field on every layout.',
   'changelog.hideInput':
     'Hide the typing box altogether and type into the passage, where the caret already is.',
+  'changelog.paperMistakes':
+    'Misspellings from a paper run now feed the trainer, the review queue and dictation practice.',
   'changelog.dictateMistakes':
     'Dictation practice: the words you miss are read aloud, one at a time, for you to spell from memory.',
 } as const;

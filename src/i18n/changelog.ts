@@ -24,6 +24,7 @@ export const RELEASES: readonly Release[] = [
     date: '2026-09-07',
     items: [
       'changelog.dictateMistakes',
+      'changelog.paperMistakes',
       'changelog.resizeSplit',
       'changelog.paperNotepad',
       'changelog.charsLeft',
