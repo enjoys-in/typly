@@ -1,4 +1,5 @@
-import type { GrammarIssue, Keystroke, ScoringRules, TestResult } from '../types';
+import type { GrammarIssue, Keystroke, Mistake, ScoringRules, TestResult } from '../types';
+import { ErrorCategory } from '../constants';
 import { countBackspaces, countDeletes } from '../typing/typingEngine';
 import { countWords } from '../typing/diff';
 import { score } from './scoring';
@@ -71,6 +72,47 @@ export async function findMisspellings(
     if (wrong) misspelledCount++;
   }
   return { misspelled, misspelledCount, checked: true };
+}
+
+/**
+ * Paper-mode misspellings, written as mistake records.
+ *
+ * Without this a paper run is a dead end for everything downstream. The
+ * misspellings were kept only on the run's own report, so the trainer's weak
+ * words, the review ladder and the dictation drill never learnt anything from a
+ * run typed off a printed passage — which is the one kind of run where spelling
+ * from memory is the whole task, and therefore where the evidence is best.
+ *
+ * The dictionary supplies the `expected` half. A misspelling with no suggestion
+ * is dropped rather than stored with an empty expectation: every consumer keys
+ * on the correct spelling (the drill has to dictate it, the ladder has to name
+ * a card after it), and a mistake that cannot say what the right answer was is
+ * a mistake none of them can use. Multi-word suggestions go for the same
+ * reason — "some thing" is not a word to drill.
+ *
+ * `index` is the offset in the typed text. There is no passage to point into,
+ * and where the typist wrote it is the only position that exists.
+ */
+export function misspellingMistakes(
+  typed: string,
+  misspelled: readonly string[],
+  suggest: (word: string) => string[],
+): Mistake[] {
+  const out: Mistake[] = [];
+  for (const word of misspelled) {
+    const expected = suggest(word).find((s) => s !== '' && !/\s/.test(s));
+    // A suggestion equal to the word itself says the dictionary disagrees with
+    // itself; there is nothing to learn from it either way.
+    if (!expected || expected.toLowerCase() === word.toLowerCase()) continue;
+    const index = typed.indexOf(word);
+    out.push({
+      category: ErrorCategory.WrongWord,
+      expected,
+      typed: word,
+      index: index < 0 ? 0 : index,
+    });
+  }
+  return out;
 }
 
 export interface FreeformInput {
