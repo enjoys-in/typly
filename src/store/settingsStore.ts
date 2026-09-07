@@ -145,7 +145,11 @@ const DEFAULTS: Persisted = {
   examMode: ExamMode.Standard,
   inputMethod: InputMethod.Qwerty,
   hindiFont: HindiFont.System,
-  briefing: false,
+  // On by default: a real skill test opens with its rules and cut-off, and a
+  // candidate who has never read them is practising the typing but not the
+  // exam. It is one keypress to move past, and `drillBase` strips it anyway —
+  // a practice drill is not a rehearsal.
+  briefing: true,
   readingSec: 0,
   examDay: false,
   uiLang: 'en',

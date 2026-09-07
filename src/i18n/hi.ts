@@ -1634,8 +1634,7 @@ export const hi: Record<TKey, string> = {
   'exam.inputHiddenResume': 'टाइप करते रहने के लिए क्लिक करें',
   'stats.typed': 'टाइप हुए',
   'stats.left': 'शेष',
-  'stats.ofChars': 'में से',
-  'stats.leftChars': '{count} वर्ण शेष',
+  'stats.totalChars': 'कुल',
   'paper.scoredHint':
     'शब्द और गति आपके टाइप किए से, सुधार आपके बैकस्पेस से, और ग़लतियाँ शब्दकोश तथा व्याकरण जाँच से आती हैं।',
   'paper.scoredHintNoDict':
@@ -1688,7 +1687,7 @@ export const hi: Record<TKey, string> = {
     'अनुच्छेद और फ़ील्ड के बीच का विभाजक खींचकर टाइपिंग क्षेत्र जितना बड़ा चाहें उतना करें।',
   'changelog.paperNotepad':
     'काग़ज़ मोड अब पूरे पन्ने का नोटपैड है, और उसके सजीव आँकड़े एक ही पंक्ति में।',
-  'changelog.charsLeft': 'टाइप हुए और शेष वर्ण, हर लेआउट में फ़ील्ड के नीचे।',
+  'changelog.charsLeft': 'टाइप हुए वर्ण, शेष वर्ण और अनुच्छेद का कुल, सजीव आँकड़ों के पैनल में।',
   'changelog.hideInput':
     'टाइपिंग बॉक्स पूरी तरह छिपाएँ और सीधे अनुच्छेद में टाइप करें, जहाँ कर्सर पहले से है।',
   'changelog.paperMistakes':

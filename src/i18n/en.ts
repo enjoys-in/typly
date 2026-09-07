@@ -1634,8 +1634,7 @@ export const en = {
   'exam.inputHiddenResume': 'Click to keep typing',
   'stats.typed': 'Typed',
   'stats.left': 'Left',
-  'stats.ofChars': 'of',
-  'stats.leftChars': '{count} characters left',
+  'stats.totalChars': 'Total',
   'paper.scoredHint':
     'Words and speed come from what you type, corrections from your backspaces, and mistakes from the dictionary and grammar check.',
   'paper.scoredHintNoDict':
@@ -1690,7 +1689,7 @@ export const en = {
   'changelog.paperNotepad':
     'Paper mode is a full-page notepad now, with its live readings on a single line.',
   'changelog.charsLeft':
-    'Characters typed and characters left, under the field on every layout.',
+    'Characters typed, characters left and the passage total, in the live stats panel.',
   'changelog.hideInput':
     'Hide the typing box altogether and type into the passage, where the caret already is.',
   'changelog.paperMistakes':

@@ -66,7 +66,6 @@ import { ZoomControl } from './ZoomControl';
 import { LiveStats } from './LiveStats';
 import { PaperStats } from './PaperStats';
 import { PaneResizer } from './PaneResizer';
-import { TypedProgress } from './TypedProgress';
 import { Timer } from './Timer';
 import { ExamToolbar } from './ExamToolbar';
 import { ExamBriefing } from './ExamBriefing';
@@ -677,20 +676,17 @@ export function ExamRun({ config, resume }: Props) {
                 so the splitter goes too rather than sitting there inert. */}
             {!fieldHidden && <PaneResizer share={examInputShare} onChange={setExamInputShare} />}
 
+            {/* Characters typed, left and total are readings, so they live in
+                the metrics panel with the other readings rather than on a
+                strip of their own under the field. */}
             <div
-              className={fieldHidden ? 'flex shrink-0 flex-col gap-2 pt-3' : 'flex min-h-0 flex-col gap-2'}
+              className={
+                fieldHidden ? 'flex shrink-0 flex-col gap-2 pt-3' : 'flex min-h-0 flex-col gap-2'
+              }
               style={fieldHidden ? undefined : { flexGrow: examInputShare, flexBasis: 0 }}
             >
               {fieldRail}
               {field}
-              {/* Always on, whatever the stats panel is doing: how far there is
-                  still to go is not an optional statistic — and with the field
-                  hidden it is the only count left on the screen. */}
-              <TypedProgress
-                typed={typed.length}
-                total={config.passage.length}
-                words={countWords(typed)}
-              />
             </div>
           </div>
         )}
