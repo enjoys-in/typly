@@ -1,6 +1,7 @@
 import {
   Activity,
   Keyboard as KeyboardIcon,
+  TextCursorInput,
   Maximize,
   Minimize,
   RotateCcw,
@@ -29,6 +30,15 @@ interface Props {
   onShowKeys: (v: boolean) => void;
   showStats: boolean;
   onShowStats: (v: boolean) => void;
+  /**
+   * Paper mode: the readings are the run's only feedback, so they cannot be
+   * switched off and the toggle says so rather than silently doing nothing.
+   */
+  statsLocked?: boolean;
+  showInput: boolean;
+  onShowInput: (v: boolean) => void;
+  /** Paper and blind mode: the field cannot be hidden, and the chip says why. */
+  inputLocked?: boolean;
   fullscreen: { supported: boolean; isFullscreen: boolean; toggle: () => void };
   timer: React.ReactNode;
   /**
@@ -66,6 +76,10 @@ export function ExamToolbar({
   onShowKeys,
   showStats,
   onShowStats,
+  statsLocked = false,
+  showInput,
+  onShowInput,
+  inputLocked = false,
   fullscreen,
   timer,
   remainingFraction = null,
@@ -186,14 +200,43 @@ export function ExamToolbar({
               <span className="hidden lg:inline">{t('exam.showKeys')}</span>
             </ToggleChip>
 
+            {/* Hiding the field gives its whole share of the column to the
+                passage. The passage already carries the caret and the
+                correct/incorrect colouring, so for a touch typist the field
+                below was a second copy of what they were already reading. */}
             <ToggleChip
-              active={showStats}
+              active={inputLocked || showInput}
+              disabled={inputLocked}
+              onClick={() => onShowInput(!showInput)}
+              title={
+                inputLocked
+                  ? t('exam.inputLockedHint')
+                  : showInput
+                    ? t('exam.hideInputHint')
+                    : t('exam.showInputHint')
+              }
+            >
+              <TextCursorInput size={14} />
+              <span className="hidden lg:inline">
+                {t(inputLocked || showInput ? 'exam.hideInput' : 'exam.showInput')}
+              </span>
+            </ToggleChip>
+
+            <ToggleChip
+              active={statsLocked || showStats}
+              disabled={statsLocked}
               onClick={() => onShowStats(!showStats)}
-              title={showStats ? 'Hide the live metrics panel' : 'Show the live metrics panel'}
+              title={
+                statsLocked
+                  ? t('exam.statsLockedHint')
+                  : showStats
+                    ? 'Hide the live metrics panel'
+                    : 'Show the live metrics panel'
+              }
             >
               <Activity size={14} />
               <span className="hidden lg:inline">
-                {t(showStats ? 'exam.hideStats' : 'exam.showStats')}
+                {t(statsLocked || showStats ? 'exam.hideStats' : 'exam.showStats')}
               </span>
             </ToggleChip>
           </div>

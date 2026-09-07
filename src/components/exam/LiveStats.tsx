@@ -121,6 +121,15 @@ export function LiveStats({
             </span>
           </div>
           <ProgressBar value={progress} />
+          {/* The two ends of the same bar, spelled out. A fraction answers
+              "where am I"; only the remainder answers "how much is left",
+              which is the question that decides whether to push. */}
+          <div className="flex items-baseline justify-between text-[11px] tabular-nums">
+            <span className="text-fg-subtle">
+              {t('stats.leftChars', { count: Math.max(0, passage.length - typed.length) })}
+            </span>
+            <span className="font-semibold text-fg-muted">{Math.round(progress)}%</span>
+          </div>
         </div>
 
         {/* Secondary counts, as a definition list of quiet rows. They are

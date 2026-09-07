@@ -60,6 +60,8 @@ import { PressedKey } from './PressedKey';
 import { ZoomControl } from './ZoomControl';
 import { LiveStats } from './LiveStats';
 import { PaperStats } from './PaperStats';
+import { PaneResizer } from './PaneResizer';
+import { TypedProgress } from './TypedProgress';
 import { Timer } from './Timer';
 import { ExamToolbar } from './ExamToolbar';
 import { ExamBriefing } from './ExamBriefing';
@@ -118,6 +120,10 @@ export function ExamRun({ config, resume }: Props) {
   const setExamZoom = useSettingsStore((s) => s.setExamZoom);
   const showStats = useSettingsStore((s) => s.showStats);
   const setShowStats = useSettingsStore((s) => s.setShowStats);
+  const examInputShare = useSettingsStore((s) => s.examInputShare);
+  const setExamInputShare = useSettingsStore((s) => s.setExamInputShare);
+  const showInput = useSettingsStore((s) => s.showInput);
+  const setShowInput = useSettingsStore((s) => s.setShowInput);
   const account = useAuthStore((s) => s.account);
 
   const setBare = useChromeStore((s) => s.setBare);
@@ -496,6 +502,17 @@ export function ExamRun({ config, resume }: Props) {
   const kdphMode = rules.scoringMode === ScoringMode.Kdph && !config.paper;
   const tabular = kdphMode && config.passage.includes('\t');
   const examClient = config.skin === ExamSkin.ExamClient;
+  // Paper mode has no passage on screen, so nothing competes with the typing
+  // field for the column: it becomes a full-height page, with the counts on one
+  // line beneath it. A candidate copying from a printed passage is looking at
+  // the paper, not at us.
+  const notepad = config.paper;
+  // Hiding the field only makes sense where the passage can stand in for it.
+  // Paper mode has no passage at all, and blind mode has one that shows no
+  // progress — in either the field is the only thing telling a candidate their
+  // keystrokes are landing, so it stays.
+  const canHideInput = !notepad && !blind;
+  const fieldHidden = canHideInput && !showInput;
   // The pacer needs a cut-off to pace against and a passage to measure into.
   const pacerOn = config.pacer && pacerAvailable(rules) && !config.paper && typing;
   // Pressure furniture only makes sense against a countdown — there is nothing
@@ -521,82 +538,143 @@ export function ExamRun({ config, resume }: Props) {
   // pressure furniture read this; the graded score is computed at submission.
   const liveWpm = grossWpm(typed.length, Math.max(elapsedMs / 60_000, 1 / 60_000), CHARS_PER_WORD);
 
+  // The typing field itself, identical in every mode — only the pane it is
+  // handed differs, which is what keeps the exam rules from drifting between a
+  // notepad run and a passage one.
+  const field = (
+    <TypingInput
+      typed={typed}
+      disabled={!active && phase !== 'reading'}
+      pasteAllowed={rules.pasteAllowed}
+      backspaceEnabled={config.backspaceEnabled}
+      spaceEnabled={config.spaceEnabled}
+      enterEnabled={config.enterEnabled}
+      enforceCorrect={enforceCorrect}
+      strict={strict}
+      passage={config.passage}
+      expectedChar={config.passage[typed.length]}
+      phonetic={phonetic}
+      keymap={keymap}
+      fontFamily={fontFamily}
+      fontScale={examZoom}
+      hidden={fieldHidden}
+      onChange={onChange}
+      onKeyDown={onKeyDown}
+      onBlocked={onBlocked}
+    />
+  );
+
+  // The thin strips that belong to the field rather than to the passage: the
+  // pace against the cut-off, the ghost of a past attempt, and how much of the
+  // passage is left. They travel with it when the splitter is dragged.
+  const fieldRail = (
+    <>
+      {pacerOn && (
+        <PacerBar
+          rules={rules}
+          elapsedMs={elapsedMs}
+          typedChars={typed.length}
+          passageLength={config.passage.length}
+        />
+      )}
+      {ghost.data && typing && (
+        <GhostBar
+          track={ghost.data.track}
+          ghostWpm={ghost.data.wpm}
+          elapsedMs={elapsedMs}
+          typedChars={typed.length}
+          passageLength={config.passage.length}
+        />
+      )}
+    </>
+  );
+
   const workingPane = (
     <div
       className={
-        isSplit
+        isSplit && !notepad
           ? `grid min-h-0 flex-1 grid-cols-1 gap-4 ${statsVisible ? 'lg:grid-cols-[1fr_19rem]' : ''}`
           : 'flex min-h-0 flex-1 flex-col gap-4'
       }
     >
       <div className="relative flex min-h-0 flex-1 flex-col gap-3">
-        {config.paper ? (
-          <PaperPanel
-            lang={config.lang}
-            words={liveWordCount(typed)}
-            chars={typed.length}
-            backspaces={countBackspaces(keystrokes.current)}
-          />
-        ) : tabular ? (
-          /* A data-entry source is a register, not prose: drawn as a table so
-             it looks like the form a real candidate is copying from. */
-          <DataEntryPanel
-            source={config.passage}
-            typed={typed}
-            elapsedMs={elapsedMs}
-            targetKdph={rules.minKdph}
-            backspaces={countBackspaces(keystrokes.current)}
-            deletes={countDeletes(keystrokes.current)}
-          />
+        {notepad ? (
+          /* Nothing to read on screen, so nothing shares the height: a strip
+             saying what this is, and the rest of the column is the page. */
+          <>
+            <PaperPanel lang={config.lang} />
+            {fieldRail}
+            {field}
+            {/* Not behind the stats toggle, unlike every other mode. With no
+                passage on screen these four figures are the *only* feedback a
+                paper run has — speed, words, characters and corrections — and
+                hiding them would leave a candidate typing into a blank box
+                with no way to tell whether anything was being counted. The
+                toolbar disables the toggle here and says why. */}
+            <PaperStats
+              typed={typed}
+              elapsedMs={elapsedMs}
+              backspaces={countBackspaces(keystrokes.current)}
+              targetWpm={rules.minWpm}
+            />
+          </>
         ) : (
-          <PassageView
-            passage={config.passage}
-            typed={typed}
-            className="min-h-0 flex-1"
-            fontScale={examZoom}
-            blind={blind}
-            fontFamily={fontFamily}
-            caret={typing && !blind}
-            toolbar={<ZoomControl zoom={examZoom} onChange={setExamZoom} />}
-          />
+          /* Source above, field below, and a splitter between them that moves
+             the height from one to the other. `flexBasis: 0` on both is what
+             makes the two `flexGrow` values read as the ratio they are. */
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div
+              className="flex min-h-24 flex-col"
+              style={{ flexGrow: 1 - examInputShare, flexBasis: 0 }}
+            >
+              {tabular ? (
+                /* A data-entry source is a register, not prose: drawn as a
+                   table so it looks like the form a real candidate is copying
+                   from. */
+                <DataEntryPanel
+                  source={config.passage}
+                  typed={typed}
+                  elapsedMs={elapsedMs}
+                  targetKdph={rules.minKdph}
+                  backspaces={countBackspaces(keystrokes.current)}
+                  deletes={countDeletes(keystrokes.current)}
+                />
+              ) : (
+                <PassageView
+                  passage={config.passage}
+                  typed={typed}
+                  className="min-h-0 flex-1"
+                  fontScale={examZoom}
+                  blind={blind}
+                  fontFamily={fontFamily}
+                  caret={typing && !blind}
+                  toolbar={<ZoomControl zoom={examZoom} onChange={setExamZoom} />}
+                />
+              )}
+            </div>
+
+            {/* With the field hidden there is nothing to trade height with,
+                so the splitter goes too rather than sitting there inert. */}
+            {!fieldHidden && <PaneResizer share={examInputShare} onChange={setExamInputShare} />}
+
+            <div
+              className={fieldHidden ? 'flex shrink-0 flex-col gap-2 pt-3' : 'flex min-h-0 flex-col gap-2'}
+              style={fieldHidden ? undefined : { flexGrow: examInputShare, flexBasis: 0 }}
+            >
+              {fieldRail}
+              {field}
+              {/* Always on, whatever the stats panel is doing: how far there is
+                  still to go is not an optional statistic — and with the field
+                  hidden it is the only count left on the screen. */}
+              <TypedProgress
+                typed={typed.length}
+                total={config.passage.length}
+                words={countWords(typed)}
+              />
+            </div>
+          </div>
         )}
-        {pacerOn && (
-          <PacerBar
-            rules={rules}
-            elapsedMs={elapsedMs}
-            typedChars={typed.length}
-            passageLength={config.passage.length}
-          />
-        )}
-        {ghost.data && typing && (
-          <GhostBar
-            track={ghost.data.track}
-            ghostWpm={ghost.data.wpm}
-            elapsedMs={elapsedMs}
-            typedChars={typed.length}
-            passageLength={config.passage.length}
-          />
-        )}
-        <TypingInput
-          typed={typed}
-          disabled={!active && phase !== 'reading'}
-          pasteAllowed={rules.pasteAllowed}
-          backspaceEnabled={config.backspaceEnabled}
-          spaceEnabled={config.spaceEnabled}
-          enterEnabled={config.enterEnabled}
-          enforceCorrect={enforceCorrect}
-          strict={strict}
-          passage={config.passage}
-          expectedChar={config.passage[typed.length]}
-          phonetic={phonetic}
-          keymap={keymap}
-          fontFamily={fontFamily}
-          fontScale={examZoom}
-          onChange={onChange}
-          onKeyDown={onKeyDown}
-          onBlocked={onBlocked}
-        />
-        {keyboardVisible && !config.paper ? (
+        {keyboardVisible && !notepad ? (
           <Keyboard
             nextChar={config.passage[typed.length]}
             fontFamily={keymap ? undefined : keyFontFamily}
@@ -614,15 +692,10 @@ export function ExamRun({ config, resume }: Props) {
           </div>
         )}
       </div>
-      <div className={`${statsVisible ? '' : 'hidden'} ${isSplit ? '' : 'shrink-0'}`}>
-        {config.paper ? (
-          <PaperStats
-            typed={typed}
-            elapsedMs={elapsedMs}
-            backspaces={countBackspaces(keystrokes.current)}
-            targetWpm={rules.minWpm}
-          />
-        ) : (
+      {/* Paper mode keeps its readings on a rail under the field instead, so
+          there is no side column to render. */}
+      {!notepad && (
+        <div className={`${statsVisible ? '' : 'hidden'} ${isSplit ? '' : 'shrink-0'}`}>
           <LiveStats
             passage={config.passage}
             typed={typed}
@@ -637,8 +710,8 @@ export function ExamRun({ config, resume }: Props) {
             })}
             targetKdph={rules.minKdph}
           />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 
@@ -685,6 +758,10 @@ export function ExamRun({ config, resume }: Props) {
         onShowKeys={setShowKeys}
         showStats={showStats}
         onShowStats={setShowStats}
+        statsLocked={notepad}
+        showInput={showInput}
+        onShowInput={setShowInput}
+        inputLocked={!canHideInput}
         fullscreen={fullscreen}
         // The exam-client skin puts the clock in its own header, where the real
         // software puts it — two clocks would be worse than either.

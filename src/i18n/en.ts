@@ -118,9 +118,7 @@ export const en = {
 
   // Paper mode
   'paper.heading': 'Type from your paper',
-  'paper.body':
-    'There is no passage on screen — read from the sheet in front of you and type it below. The clock started with your first keystroke.',
-  'paper.scoredOn': 'Scored on',
+  'paper.body': 'The passage is on paper in front of you — type what you read, below.',
   'paper.checkedLater':
     'Spelling and grammar are checked when you submit — there is no passage to compare against as you type.',
 
@@ -1622,6 +1620,38 @@ export const en = {
   'generate.failed': 'The passage could not be generated.',
   'generate.privacy':
     'Your difficulty and subject are sent to the AI provider you configured. The passage is not stored anywhere but on this device.',
+
+  // Resizing the working panes, and the progress strip under the field.
+  'exam.resizeLabel': 'Passage and typing area split',
+  'exam.resizeHint': 'Drag to resize the typing area · double-click to reset',
+  'exam.showInput': 'Typing box',
+  'exam.hideInput': 'Typing box',
+  'exam.showInputHint': 'Show the typing field',
+  'exam.hideInputHint':
+    'Hide the typing field and type into the passage — its caret and colouring show the same thing',
+  'exam.inputLockedHint':
+    'The typing field cannot be hidden here: there is no passage carrying the caret to type into instead.',
+  'exam.inputHiddenResume': 'Click to keep typing',
+  'exam.statsLockedHint':
+    'With no passage on screen these readings are the only feedback a paper run has, so they stay on.',
+  'stats.typed': 'Typed',
+  'stats.left': 'Left',
+  'stats.ofChars': 'of',
+  'stats.leftChars': '{count} characters left',
+  'paper.scoredHint':
+    'Words and speed come from what you type, corrections from your backspaces, and mistakes from the dictionary and grammar check.',
+  'paper.scoredHintNoDict':
+    'Words, speed and corrections come from what you type. Spelling is not checked for {lang}, so no mistakes are counted.',
+
+  'changelog.resumeFocus': 'Resuming a paused test puts the cursor back in the typing field.',
+  'changelog.resizeSplit':
+    'Drag the divider between the passage and the field to make the typing area any size you want.',
+  'changelog.paperNotepad':
+    'Paper mode is a full-page notepad now, with its live readings on a single line.',
+  'changelog.charsLeft':
+    'Characters typed and characters left, under the field on every layout.',
+  'changelog.hideInput':
+    'Hide the typing box altogether and type into the passage, where the caret already is.',
 } as const;
 
 export type TKey = keyof typeof en;
