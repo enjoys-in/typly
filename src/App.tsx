@@ -14,6 +14,9 @@ const NewTest = lazy(() => import('@/pages/NewTest').then((m) => ({ default: m.N
 const Practice = lazy(() => import('@/pages/Practice').then((m) => ({ default: m.Practice })));
 const Lessons = lazy(() => import('@/pages/Lessons').then((m) => ({ default: m.Lessons })));
 const Trainer = lazy(() => import('@/pages/Trainer').then((m) => ({ default: m.Trainer })));
+const DictationPractice = lazy(() =>
+  import('@/pages/DictationPractice').then((m) => ({ default: m.DictationPractice })),
+);
 const Documents = lazy(() => import('@/pages/Documents').then((m) => ({ default: m.Documents })));
 const ExamSetup = lazy(() => import('@/pages/ExamSetup').then((m) => ({ default: m.ExamSetup })));
 const TypingExam = lazy(() => import('@/pages/TypingExam').then((m) => ({ default: m.TypingExam })));
@@ -66,6 +69,7 @@ export function App() {
           <Route path="practice" element={<Practice />} />
           <Route path="lessons" element={<Lessons />} />
           <Route path="trainer" element={<Trainer />} />
+          <Route path="dictation" element={<DictationPractice />} />
           <Route path="library" element={<Documents />} />
           <Route path="setup" element={<ExamSetup />} />
           <Route path="exam" element={<TypingExam />} />

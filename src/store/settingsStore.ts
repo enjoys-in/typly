@@ -4,6 +4,9 @@ import type { SeriesBase } from '@/core/types';
 import { applyHtmlLang, isUiLang, type UiLang } from '@/i18n';
 import {
   Difficulty,
+  EXAM_INPUT_SHARE_DEFAULT,
+  EXAM_INPUT_SHARE_MAX,
+  EXAM_INPUT_SHARE_MIN,
   EXAM_ZOOM_DEFAULT,
   EXAM_ZOOM_MAX,
   EXAM_ZOOM_MIN,
@@ -36,6 +39,16 @@ interface SettingsState {
   showKeys: boolean;
   /** Text scale for the passage and typing input. */
   examZoom: number;
+  /**
+   * Height the typing field takes, as a share of what it splits with the
+   * passage. Dragged from the divider between the two.
+   */
+  examInputShare: number;
+  /**
+   * Show the typing field at all. Off means typing straight into the passage:
+   * the caret and the colouring there are the only feedback.
+   */
+  showInput: boolean;
   /** Live metrics panel beside/below the passage. */
   showStats: boolean;
   /** Icon-only sidebar, to give the content area the width. */
@@ -83,6 +96,8 @@ interface SettingsState {
   setShowKeyboard: (v: boolean) => void;
   setShowKeys: (v: boolean) => void;
   setExamZoom: (v: number) => void;
+  setExamInputShare: (v: number) => void;
+  setShowInput: (v: boolean) => void;
   setShowStats: (v: boolean) => void;
   setDailyGoal: (v: number) => void;
   setReminderEnabled: (v: boolean) => void;
@@ -120,6 +135,8 @@ const DEFAULTS: Persisted = {
   showKeyboard: true,
   showKeys: true,
   examZoom: EXAM_ZOOM_DEFAULT,
+  examInputShare: EXAM_INPUT_SHARE_DEFAULT,
+  showInput: true,
   showStats: true,
   sidebarCollapsed: false,
   dailyGoal: 3,
@@ -128,7 +145,11 @@ const DEFAULTS: Persisted = {
   examMode: ExamMode.Standard,
   inputMethod: InputMethod.Qwerty,
   hindiFont: HindiFont.System,
-  briefing: false,
+  // On by default: a real skill test opens with its rules and cut-off, and a
+  // candidate who has never read them is practising the typing but not the
+  // exam. It is one keypress to move past, and `drillBase` strips it anyway —
+  // a practice drill is not a rehearsal.
+  briefing: true,
   readingSec: 0,
   examDay: false,
   uiLang: 'en',
@@ -161,6 +182,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setSound: (sound) => set({ sound }),
   setShowKeyboard: (showKeyboard) => set({ showKeyboard }),
   setShowKeys: (showKeys) => set({ showKeys }),
+  setShowInput: (showInput) => set({ showInput }),
   setShowStats: (showStats) => set({ showStats }),
   setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
   setDailyGoal: (dailyGoal) => set({ dailyGoal }),
@@ -185,7 +207,14 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     set({ readingSec: Math.min(MAX_READING_SEC, Math.max(0, Math.round(readingSec) || 0)) }),
   setExamZoom: (examZoom) =>
     set({ examZoom: Math.min(EXAM_ZOOM_MAX, Math.max(EXAM_ZOOM_MIN, examZoom)) }),
+  setExamInputShare: (examInputShare) => set({ examInputShare: clampShare(examInputShare) }),
 }));
+
+/** The splitter is dragged, so raw values arrive continuously and out of range. */
+function clampShare(value: number): number {
+  if (!Number.isFinite(value)) return EXAM_INPUT_SHARE_DEFAULT;
+  return Math.min(EXAM_INPUT_SHARE_MAX, Math.max(EXAM_INPUT_SHARE_MIN, value));
+}
 
 /**
  * The exam-settings half of an ExamConfig. Every entry point (setup, series,
@@ -248,6 +277,7 @@ function sanitize(raw: unknown): Partial<Persisted> {
   if (typeof zoom === 'number') {
     out.examZoom = Math.min(EXAM_ZOOM_MAX, Math.max(EXAM_ZOOM_MIN, zoom));
   }
+  if (typeof out.examInputShare === 'number') out.examInputShare = clampShare(out.examInputShare);
   return out as Partial<Persisted>;
 }
 

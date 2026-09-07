@@ -247,6 +247,18 @@ export const TTS_RATE_MIN = 0.4;
 export const TTS_RATE_MAX = 2.5;
 /** Words per chunk the dictation reads before pausing to re-sync its pace. */
 export const DICTATION_CHUNK_WORDS = 12;
+/**
+ * Words offered in one dictation practice session.
+ *
+ * The same reasoning as the review batch: a queue nobody can finish is a queue
+ * nobody starts, and a word drill you can clear in three minutes is one that
+ * gets done on a day nobody wants to sit a full mock.
+ */
+export const DICTATION_DRILL_WORDS = 12;
+/** Speed a practice word is spoken at, slower than a real dictation. */
+export const DICTATION_DRILL_WPM = 70;
+/** Times one word may be replayed before the answer is graded anyway. */
+export const DICTATION_DRILL_REPLAYS = 3;
 
 // --- Breaks (RSI) ----------------------------------------------------------
 /** 20-20-20: every 20 minutes, look 20 feet away for 20 seconds. */
@@ -268,6 +280,23 @@ export const CHALLENGE_VERSION = 1;
 export const EXAM_ZOOM_MIN = 0.75;
 export const EXAM_ZOOM_MAX = 2;
 export const EXAM_ZOOM_DEFAULT = 1;
+
+/**
+ * How much of the working column the typing field gets, as a fraction of the
+ * height it shares with the passage above it.
+ *
+ * A *share* rather than a pixel height on purpose. The column also holds the
+ * on-screen keyboard, the pacer and the progress strip, all of which come and
+ * go, and a stored pixel height would either overflow the column or leave a gap
+ * every time one of them appeared. A ratio cannot: whatever is left over after
+ * the fixed furniture is split between the passage and the field in this
+ * proportion, on any window size.
+ */
+export const EXAM_INPUT_SHARE_MIN = 0.12;
+export const EXAM_INPUT_SHARE_MAX = 0.8;
+export const EXAM_INPUT_SHARE_DEFAULT = 0.24;
+/** One nudge of the splitter from the keyboard. */
+export const EXAM_INPUT_SHARE_STEP = 0.04;
 
 // Mock exam: cap on the reading window offered before the clock starts. The
 // default is 0 — a plain test must never gain a wait the user did not ask for.

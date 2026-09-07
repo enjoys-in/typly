@@ -1,4 +1,5 @@
-import { useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { TextCursorInput } from 'lucide-react';
 import { toDevanagari } from '@/core/text/hindiPhonetic';
 import { isWordBoundary, wordComplete } from '@/core/typing/strict';
 import type { Keymap } from '@/core/text/keymap';
@@ -31,6 +32,14 @@ interface Props {
   fontFamily?: string;
   /** Text scale, kept in step with the passage. */
   fontScale?: number;
+  /**
+   * Take the field off the screen and type straight into the passage.
+   *
+   * It is hidden, never unmounted: it is still the element every keystroke
+   * arrives at, so it has to stay in the document and keep the focus. The
+   * passage's own caret and colouring are what the typist reads instead.
+   */
+  hidden?: boolean;
   onChange: (next: string) => void;
   onKeyDown: (e: KeyboardEvent<HTMLTextAreaElement>) => void;
   /** A keystroke the exam rules refused, so the run can report it. */
@@ -52,16 +61,46 @@ export function TypingInput({
   keymap = null,
   fontFamily,
   fontScale = 1,
+  hidden = false,
   onChange,
   onKeyDown,
   onBlocked,
 }: Props) {
   const t = useT();
+  const ref = useRef<HTMLTextAreaElement>(null);
   // In phonetic mode the textarea holds Roman text; `typed` (Devanagari) is derived.
   const [roman, setRoman] = useState('');
+  // Only consulted while hidden: a field nobody can see is also a field nobody
+  // can click, so losing the focus has to be recoverable.
+  const [focused, setFocused] = useState(false);
   // A refused key is invisible without this: the field flashes so a blocked
   // keystroke reads as "not allowed" instead of "the app is broken".
   const [rejected, flashRejected] = useFlash();
+
+  /**
+   * Take the focus back whenever the field is live again.
+   *
+   * A disabled textarea loses focus to the document, and nothing gives it back:
+   * pausing disables the field, and the Resume button that re-enables it is
+   * itself the focused element afterwards. So the run would restart with the
+   * clock ticking and every keystroke going nowhere — the field looked ready
+   * and was not. The same effect covers the first mount, which is what
+   * `autoFocus` used to do on its own.
+   *
+   * The caret goes to the end of the text rather than wherever it was, because
+   * the only place typing can sensibly continue is where it stopped.
+   */
+  useEffect(() => {
+    if (disabled) return;
+    const el = ref.current;
+    if (!el) return;
+    el.focus({ preventScroll: true });
+    const end = el.value.length;
+    el.setSelectionRange(end, end);
+    // `hidden` is a dependency because hiding the field re-parents it into a
+    // clipped wrapper, and `preventScroll` matters most there: without it the
+    // browser scrolls a 1px box into view and takes the passage with it.
+  }, [disabled, hidden]);
 
   function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     if (phonetic) {
@@ -112,9 +151,9 @@ export function TypingInput({
 
   const label = keymap ? t('exam.typeHereLayout', { layout: keymap.label }) : t('exam.inputLabel');
 
-  return (
+  const field = (
     <textarea
-      autoFocus
+      ref={ref}
       aria-label={label}
       disabled={disabled}
       value={phonetic ? roman : typed}
@@ -135,7 +174,11 @@ export function TypingInput({
       // and a 4px accent glow around it outshouted the passage above — the one
       // thing on the screen that has to be read. The loud ring is spent on
       // rejection instead, where it fires for a moment and means something.
-      className={`h-28 w-full resize-none rounded-panel border p-4 font-mono leading-[1.6] shadow-e1 outline-none transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-fg-subtle disabled:opacity-55 ${
+      // Fills the pane it is given rather than standing at a fixed height: the
+      // splitter above it owns that now (and in paper mode the pane is the
+      // whole page). The floor is what stops a hard drag squeezing the field
+      // down to a line and a half.
+      className={`min-h-16 w-full flex-1 resize-none rounded-panel border p-4 font-mono leading-[1.6] shadow-e1 outline-none transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-fg-subtle disabled:opacity-55 ${
         rejected
           ? 'border-danger bg-danger-soft ring-4 ring-danger-ring'
           : 'border-edge bg-inset focus:border-accent-border focus:bg-field focus:ring-1 focus:ring-accent-ring'
@@ -147,6 +190,41 @@ export function TypingInput({
             ? t('exam.typeHereLayout', { layout: keymap.label })
             : t('exam.typeHere')
       }
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
     />
+  );
+
+  if (!hidden) return field;
+
+  /*
+   * Hidden, but present and focused.
+   *
+   * `sr-only` rather than `display: none` or unmounting: this element is where
+   * every keystroke in the run arrives, and a field that is not in the layout
+   * cannot hold the focus. Clipped to a pixel it still does, and the passage's
+   * caret and colouring — which are a better read of the same information —
+   * take over the whole column.
+   *
+   * The catch is the one thing a hidden control cannot do: be clicked. If the
+   * focus does go elsewhere (a toolbar chip, a stray click on the canvas) the
+   * run would look live and swallow every key, which is exactly the failure
+   * pausing used to cause. So the wrapper shows a way back the moment focus is
+   * lost, and nothing at all while it is held.
+   */
+  return (
+    <div className="shrink-0">
+      <span className="sr-only">{field}</span>
+      {!focused && !disabled && (
+        <button
+          type="button"
+          onClick={() => ref.current?.focus({ preventScroll: true })}
+          className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-control border border-dashed border-edge bg-surface-2 px-3 py-2 text-xs font-semibold text-fg-muted outline-none transition-colors duration-150 hover:border-accent-border hover:text-fg focus-visible:ring-2 focus-visible:ring-accent-ring"
+        >
+          <TextCursorInput size={14} className="shrink-0" />
+          {t('exam.inputHiddenResume')}
+        </button>
+      )}
+    </div>
   );
 }

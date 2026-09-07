@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Crosshair,
   Dumbbell,
+  Ear,
   GraduationCap,
   History as HistoryIcon,
   Info,
@@ -57,6 +58,7 @@ const GROUPS: { heading: TKey | null; links: Link[] }[] = [
       { to: '/app/lessons', label: 'nav.lessons', icon: GraduationCap },
       { to: '/app/practice', label: 'nav.practice', icon: Dumbbell },
       { to: '/app/trainer', label: 'nav.trainer', icon: Crosshair },
+      { to: '/app/dictation', label: 'nav.dictation', icon: Ear },
       { to: '/app/library', label: 'nav.library', icon: Library },
     ],
   },

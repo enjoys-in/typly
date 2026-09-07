@@ -30,6 +30,40 @@ interface Props {
   targetKdph?: number;
 }
 
+/**
+ * One character count under the progress bar.
+ *
+ * Small and quiet: these are three readings of the same fact, and only the
+ * remainder is worth a colour. Labelled above the figure rather than beside it,
+ * so the three columns line up whatever their digit counts do.
+ */
+function Count({
+  label,
+  value,
+  lead = false,
+  muted = false,
+}: {
+  label: string;
+  value: number;
+  lead?: boolean;
+  muted?: boolean;
+}) {
+  return (
+    <div className="min-w-0">
+      <p className="truncate text-[10px] font-semibold tracking-[0.07em] text-fg-subtle uppercase">
+        {label}
+      </p>
+      <p
+        className={`mt-0.5 text-[13px] leading-none font-bold tabular-nums ${
+          lead ? 'text-accent-text' : muted ? 'text-fg-subtle' : 'text-fg'
+        }`}
+      >
+        {value.toLocaleString()}
+      </p>
+    </div>
+  );
+}
+
 // Live metrics panel shown beside the passage during the test.
 export function LiveStats({
   passage,
@@ -111,16 +145,25 @@ export function LiveStats({
           </div>
         </div>
 
-        <div className="space-y-2 border-t border-line pt-4">
+        <div className="space-y-2.5 border-t border-line pt-4">
           <div className="flex items-baseline justify-between text-[11px]">
             <span className="font-semibold tracking-[0.09em] text-fg-muted uppercase">
               {t('stats.progress')}
             </span>
             <span className="font-semibold text-fg-muted tabular-nums">
-              {typed.length}/{passage.length}
+              {Math.round(progress)}%
             </span>
           </div>
           <ProgressBar value={progress} />
+          {/* The bar's two ends and its length, spelled out. A bar and a
+              percentage answer "roughly where am I"; only the remainder
+              answers "how much is left", which is the question that decides
+              whether to push — and a candidate cannot read it off a bar. */}
+          <div className="grid grid-cols-3 gap-2">
+            <Count label={t('stats.typed')} value={typed.length} />
+            <Count label={t('stats.left')} value={Math.max(0, passage.length - typed.length)} lead />
+            <Count label={t('stats.totalChars')} value={passage.length} muted />
+          </div>
         </div>
 
         {/* Secondary counts, as a definition list of quiet rows. They are

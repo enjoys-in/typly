@@ -773,6 +773,75 @@ select.select {
   }
 }
 
+/* The splitter between the passage and the typing field.
+
+   Almost invisible at rest, on purpose: it sits in the middle of the screen a
+   candidate is reading, and a permanent rule there would be a line through the
+   passage. It earns its contrast on hover, on focus and while dragging — the
+   three moments it is actually the thing being used. */
+.pane-resizer {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding-block: 0.375rem;
+  cursor: row-resize;
+  outline: none;
+  /* A drag must not be turned into a scroll gesture by the touch layer. */
+  touch-action: none;
+}
+
+.pane-resizer-rule {
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  background: transparent;
+  transition: background-color 150ms ease;
+}
+
+.pane-resizer:hover .pane-resizer-rule {
+  background: var(--edge);
+}
+
+.pane-resizer:focus-visible .pane-resizer-rule,
+.pane-resizer[data-dragging] .pane-resizer-rule {
+  background: var(--accent);
+}
+
+/* Three dots, shown only while the handle is live. */
+.pane-resizer-grip {
+  position: absolute;
+  display: flex;
+  gap: 3px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.pane-resizer-grip::before,
+.pane-resizer-grip::after {
+  content: '';
+}
+
+.pane-resizer-grip::before,
+.pane-resizer-grip::after,
+.pane-resizer-grip > span {
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--fg-subtle);
+}
+
+.pane-resizer:hover .pane-resizer-grip,
+.pane-resizer:focus-visible .pane-resizer-grip,
+.pane-resizer[data-dragging] .pane-resizer-grip {
+  opacity: 1;
+}
+
 /* Ruled paper for the exam-client skin: the horizontal rhythm of a real answer
    sheet, drawn from the divider token so it follows the theme. */
 @utility ruled {

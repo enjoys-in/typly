@@ -1,6 +1,7 @@
 import {
   Activity,
   Keyboard as KeyboardIcon,
+  TextCursorInput,
   Maximize,
   Minimize,
   RotateCcw,
@@ -29,6 +30,18 @@ interface Props {
   onShowKeys: (v: boolean) => void;
   showStats: boolean;
   onShowStats: (v: boolean) => void;
+  /**
+   * Paper mode. There is no passage, which takes the meaning out of half these
+   * controls: no on-screen keyboard to raise, no split to switch, no field to
+   * hide and no metrics panel to put away. They are not shown rather than shown
+   * disabled — a chip that can never do anything in this mode is not a state
+   * worth explaining, it is clutter over the one screen that should be bare.
+   */
+  paper?: boolean;
+  showInput: boolean;
+  onShowInput: (v: boolean) => void;
+  /** Blind mode: the field cannot be hidden, and the chip says why. */
+  inputLocked?: boolean;
   fullscreen: { supported: boolean; isFullscreen: boolean; toggle: () => void };
   timer: React.ReactNode;
   /**
@@ -66,6 +79,10 @@ export function ExamToolbar({
   onShowKeys,
   showStats,
   onShowStats,
+  paper = false,
+  showInput,
+  onShowInput,
+  inputLocked = false,
   fullscreen,
   timer,
   remainingFraction = null,
@@ -142,7 +159,7 @@ export function ExamToolbar({
       <div className="flex flex-wrap items-center gap-2">
         {/* The view controls are one group: exam-day mode puts all of them
             away, so there is nothing to fiddle with mid-test. */}
-        {!examDay && <LayoutSwitcher layout={layout} onChange={onLayout} />}
+        {!examDay && !paper && <LayoutSwitcher layout={layout} onChange={onLayout} />}
 
         {/* One recessed rail, so three toggles read as a single view-options
             control instead of three more buttons. `p-0.5` around an h-8 chip
@@ -150,24 +167,28 @@ export function ExamToolbar({
             the row. */}
         {!examDay && (
           <div className="flex items-center gap-0.5 rounded-control border border-line bg-surface-3 p-0.5">
-            {/* Hiding the keyboard hands its ~300px to the passage. */}
-            <ToggleChip
-              active={keyboardVisible}
-              disabled={!isSplit}
-              onClick={() => onShowKeyboard(!showKeyboard)}
-              title={
-                !isSplit
-                  ? 'The keyboard is off in Stacked so the passage keeps the height'
-                  : showKeyboard
-                    ? 'Hide the on-screen keyboard'
-                    : 'Show the on-screen keyboard'
-              }
-            >
-              <KeyboardIcon size={14} />
-              <span className="hidden lg:inline">
-                {t(keyboardVisible ? 'exam.hideKeyboard' : 'exam.showKeyboard')}
-              </span>
-            </ToggleChip>
+            {/* Hiding the keyboard hands its ~300px to the passage. Paper mode
+                never draws one — there is no next character to highlight
+                without a passage — so the toggle is not offered there. */}
+            {!paper && (
+              <ToggleChip
+                active={keyboardVisible}
+                disabled={!isSplit}
+                onClick={() => onShowKeyboard(!showKeyboard)}
+                title={
+                  !isSplit
+                    ? 'The keyboard is off in Stacked so the passage keeps the height'
+                    : showKeyboard
+                      ? 'Hide the on-screen keyboard'
+                      : 'Show the on-screen keyboard'
+                }
+              >
+                <KeyboardIcon size={14} />
+                <span className="hidden lg:inline">
+                  {t(keyboardVisible ? 'exam.hideKeyboard' : 'exam.showKeyboard')}
+                </span>
+              </ToggleChip>
+            )}
 
             {/* Redundant while the full keyboard is up, so it is disabled there. */}
             <ToggleChip
@@ -186,16 +207,47 @@ export function ExamToolbar({
               <span className="hidden lg:inline">{t('exam.showKeys')}</span>
             </ToggleChip>
 
-            <ToggleChip
-              active={showStats}
-              onClick={() => onShowStats(!showStats)}
-              title={showStats ? 'Hide the live metrics panel' : 'Show the live metrics panel'}
-            >
-              <Activity size={14} />
-              <span className="hidden lg:inline">
-                {t(showStats ? 'exam.hideStats' : 'exam.showStats')}
-              </span>
-            </ToggleChip>
+            {/* Hiding the field gives its whole share of the column to the
+                passage. The passage already carries the caret and the
+                correct/incorrect colouring, so for a touch typist the field
+                below was a second copy of what they were already reading.
+                Blind mode keeps the chip but disables it, because there the
+                passage shows no progress and the field is the only sign a
+                keystroke landed — that is worth saying. */}
+            {!paper && (
+              <ToggleChip
+                active={inputLocked || showInput}
+                disabled={inputLocked}
+                onClick={() => onShowInput(!showInput)}
+                title={
+                  inputLocked
+                    ? t('exam.inputLockedHint')
+                    : showInput
+                      ? t('exam.hideInputHint')
+                      : t('exam.showInputHint')
+                }
+              >
+                <TextCursorInput size={14} />
+                <span className="hidden lg:inline">
+                  {t(inputLocked || showInput ? 'exam.hideInput' : 'exam.showInput')}
+                </span>
+              </ToggleChip>
+            )}
+
+            {/* Paper mode's readings live on a rail under the field and are the
+                run's only feedback, so there is nothing here to switch. */}
+            {!paper && (
+              <ToggleChip
+                active={showStats}
+                onClick={() => onShowStats(!showStats)}
+                title={showStats ? 'Hide the live metrics panel' : 'Show the live metrics panel'}
+              >
+                <Activity size={14} />
+                <span className="hidden lg:inline">
+                  {t(showStats ? 'exam.hideStats' : 'exam.showStats')}
+                </span>
+              </ToggleChip>
+            )}
           </div>
         )}
 
