@@ -1,0 +1,60 @@
+name: Release (Windows)
+
+# Builds the Windows installers on a Windows runner — better-sqlite3 is native, so
+# it cannot be cross-compiled from macOS or Linux.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: bun install --frozen-lockfile
+
+      - name: Fetch OCR assets
+        run: bun run ocr:assets
+
+      - name: Build renderer and main process
+        run: |
+          bun run build
+          bun run electron:build
+
+      - name: Rebuild native modules for Electron
+        run: bun run rebuild
+
+      - name: Package installers
+        run: bunx electron-builder --win --publish never
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: typly-windows
+          path: |
+            release/*.exe
+            release/*.blockmap
+            release/latest*.yml
+
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: |
+            release/*.exe
+            release/*.blockmap
+            release/latest*.yml

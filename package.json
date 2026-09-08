@@ -25,6 +25,7 @@
     "dist": "bun run ocr:assets && bun run build && bun run electron:build && bun run rebuild && electron-builder --mac",
     "dist:universal": "bun run ocr:assets && bun run build && bun run electron:build && bun run rebuild && electron-builder --mac --universal",
     "dist:desktop": "bash scripts/build-desktop.sh",
+    "dist:win": "bun run ocr:assets && bun run build && bun run electron:build && bun run rebuild && electron-builder --win",
     "dist:portable": "bun run ocr:assets && bun run build && bun run electron:build && electron-builder --win portable"
   },
   "dependencies": {

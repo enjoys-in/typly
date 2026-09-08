@@ -193,6 +193,16 @@ regenerated with `node docs/make-collages.mjs`.
 Desktop builds store your data in a local SQLite database; the web app uses your
 browser's local storage. Nothing leaves your device unless you enable AI.
 
+### Download
+
+Installers are published on the
+[releases page](https://github.com/enjoys-in/typly/releases/latest). The Windows builds
+are produced by the
+[Release (Windows) workflow](.github/workflows/release-windows.yml) — push a `v*` tag (or
+run it by hand) and it packages the x64 and arm64 installers plus the portable build on a
+Windows runner and attaches them to a draft release. Windows cannot be built from macOS:
+`better-sqlite3` is a native module and has to be compiled on the target platform.
+
 ### Portable mode
 
 The Windows portable build and the Linux tarball keep their database **beside the
