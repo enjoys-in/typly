@@ -14,11 +14,15 @@ import { BrowserSound } from './sound';
 import { BrowserTts } from './tts';
 import { BrowserShell } from './shell';
 import { BrowserDeviceSync } from './sync';
+import { BrowserQuotes } from './quotes';
 
 export function createBrowserPlatform(): Platform {
+  // One cache instance, shared: the quote adapter stores its batch through the
+  // same port the rest of the app reads from, rather than reaching past it.
+  const cache = new BrowserCache();
   return {
     repo: new BrowserRepository(),
-    cache: new BrowserCache(),
+    cache,
     files: new BrowserFilePicker(),
     pdf: new BrowserPdfReader(),
     ocr: new BrowserOcrEngine(),
@@ -32,5 +36,6 @@ export function createBrowserPlatform(): Platform {
     tts: new BrowserTts(),
     shell: new BrowserShell(),
     sync: new BrowserDeviceSync(),
+    quotes: new BrowserQuotes(cache),
   };
 }

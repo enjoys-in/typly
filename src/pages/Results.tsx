@@ -11,6 +11,7 @@ import { applyDifficulty, applyMode } from '@/core/scoring/scoring';
 import { isDevanagari } from '@/core/text/scripts';
 import { computeBadges, type Badge } from '@/core/achievements/badges';
 import { Celebration, celebrationFor } from '@/core/achievements/celebrate';
+import { Pace, paceOf } from '@/core/motivation/pace';
 import type { AdaptiveRun } from '@/core/exam/adaptive';
 import { summarisePaper } from '@/core/exam/paper';
 import type { Series } from '@/core/types';
@@ -42,6 +43,7 @@ import { FONT_FAMILY } from '@/ui/fonts';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { Confetti } from '@/ui/Confetti';
+import { MotivationCard } from '@/components/result/MotivationCard';
 import { translate, useT } from '@/i18n';
 import { useNotify } from '@/hooks/useNotify';
 
@@ -70,6 +72,7 @@ export function Results() {
   const dailyGoal = useSettingsStore((s) => s.dailyGoal);
   const hindiFont = useSettingsStore((s) => s.hindiFont);
   const confettiOn = useSettingsStore((s) => s.confetti);
+  const motivationOn = useSettingsStore((s) => s.motivation);
   const account = useAuthStore((s) => s.account);
   // Set when this run answered a challenge file, so the head-to-head can show.
   const answering = useIncomingStore((s) => s.challenge);
@@ -105,6 +108,32 @@ export function Results() {
   const celebration = useMemo(
     () => (finished ? celebrationFor(finished.result, rules) : Celebration.None),
     [finished, rules],
+  );
+
+  /**
+   * The other half of that judgement: how far under the board's speed floor
+   * this run landed, if it did. Mutually exclusive with the celebration by
+   * construction — a run below the cut-off fails, and `celebrationFor` says
+   * nothing about a failed run — so the two can never fire together.
+   */
+  const pace = useMemo(
+    () =>
+      finished
+        ? paceOf(finished.result, rules, finished.payload.durationSec)
+        : null,
+    [finished, rules],
+  );
+
+  /**
+   * Quotes for the nudge, loaded only once a slow run has actually earned one.
+   *
+   * Gated on the verdict rather than fetched on mount: most runs are not slow,
+   * and the batch is cached for a day, so this is one request per day of
+   * practice at the point it first matters — not one per result screen.
+   */
+  const quotes = useAsync(
+    async () => (pace && pace.pace !== Pace.Fine ? await platform.quotes.batch() : null),
+    [pace?.pace, platform],
   );
 
   /**
@@ -396,6 +425,18 @@ export function Results() {
           rules={rules}
           examName={profileFor(finished.payload.examBoard).name}
           history={history.data?.priorWpm ?? []}
+        />
+      )}
+      {/* The consolation prize, immediately under the card that just spelled
+          out the miss. Never above the headline numbers: the score is what this
+          screen is for, and a quote that greeted the reader before their WPM
+          did would be insufferable. */}
+      {motivationOn && pace && quotes.data && (
+        <MotivationCard
+          verdict={pace}
+          quotes={quotes.data}
+          credit={platform.quotes.fromNetwork()}
+          seed={savedId ?? finished.result.charsTyped}
         />
       )}
       {finished.paper ? (

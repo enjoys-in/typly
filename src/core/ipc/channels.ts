@@ -33,6 +33,8 @@ export const enum IpcChannel {
   AiGrammar = 'ai:grammar',
   AiOcr = 'ai:ocrVision',
   AiPassage = 'ai:passage',
+  /** A batch of motivational quotes, fetched on the app's behalf. */
+  Quotes = 'quotes:batch',
 }
 
 // The AI channels are exposed both over IPC (desktop) and HTTP (web/dev).
@@ -49,10 +51,33 @@ export const AI_CHANNELS: readonly AiChannel[] = [
   IpcChannel.AiPassage,
 ];
 
+/**
+ * Everything the backend serves, AI or not.
+ *
+ * The dispatch underneath — the preload allowlist, the renderer transport, the
+ * Vite middleware and the Electron handlers — was never actually specific to
+ * AI; it is "work the renderer cannot do itself, done in a trusted process".
+ * Quotes need exactly that and nothing else: the quote API sends no
+ * `Access-Control-Allow-Origin` header, so a fetch from the page is blocked by
+ * CORS on the web and the request has to be made somewhere that is not a
+ * browsing context. Hence a backend channel rather than a `fetch` in an adapter.
+ *
+ * `AiChannel` stays as it is so the AI callers keep saying what they mean.
+ */
+export type BackendChannel = AiChannel | IpcChannel.Quotes;
+
+export const BACKEND_CHANNELS: readonly BackendChannel[] = [...AI_CHANNELS, IpcChannel.Quotes];
+
 // Web/dev HTTP route for each AI channel (Vite exposes these same channels).
 export const AI_HTTP_ROUTE: Record<AiChannel, string> = {
   [IpcChannel.AiCoach]: '/api/coach/analyze',
   [IpcChannel.AiGrammar]: '/api/grammar/check',
   [IpcChannel.AiOcr]: '/api/ocr/vision',
   [IpcChannel.AiPassage]: '/api/passage/generate',
+};
+
+/** The same, for every backend channel. */
+export const BACKEND_HTTP_ROUTE: Record<BackendChannel, string> = {
+  ...AI_HTTP_ROUTE,
+  [IpcChannel.Quotes]: '/api/quotes/batch',
 };

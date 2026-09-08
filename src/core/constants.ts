@@ -296,6 +296,24 @@ export const BREAK_EYE_REST_SEC = 20;
 /** Wrist and posture prompt, offset from the eye break so they don't collide. */
 export const BREAK_POSTURE_MINUTES = 30;
 
+// --- Motivation nudge ------------------------------------------------------
+// How far below a board's speed floor a run landed, as a share of it. The tiers
+// exist so the copy can match the miss: someone two words short is having a
+// different day from someone at half the required speed, and one line of
+// encouragement cannot serve both without patronising one of them.
+/** At or above this share of the cut-off, the miss was a near thing. */
+export const PACE_NEAR_SHARE = 0.9;
+/** Below this share, it was not close. */
+export const PACE_ADRIFT_SHARE = 0.7;
+/**
+ * How long a fetched batch of quotes is kept.
+ *
+ * A day, to match how the source publishes them — and because the batch is
+ * fetched once and read from many times, which is what keeps a results screen
+ * off the network entirely on all but the first slow run of the day.
+ */
+export const QUOTES_TTL_SEC = 24 * 60 * 60;
+
 // --- Adaptive / endless runs ----------------------------------------------
 /** Consecutive passages below the cut-off that end an endless run. */
 export const ENDLESS_FAIL_STREAK = 3;

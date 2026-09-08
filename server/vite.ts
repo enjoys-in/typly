@@ -1,4 +1,4 @@
-// Mounts the backend coach endpoint onto Vite's dev/preview server so the app
+// Mounts the backend endpoints onto Vite's dev/preview server so the app
 // runs as a single process during development. The server-side fallback API key
 // is read once at config time and injected here — it never reaches the browser
 // bundle. In production, serve `handleCoachAnalyze` from a real backend instead.
@@ -10,22 +10,29 @@ import {
   handleGrammarCheck,
   handleOcrVision,
   handlePassageGenerate,
+  handleQuotesBatch,
   type HandlerResult,
 } from './http/handler';
-import { AI_HTTP_ROUTE, IpcChannel, type AiChannel } from '../src/core/ipc/channels';
+import {
+  BACKEND_HTTP_ROUTE,
+  IpcChannel,
+  type BackendChannel,
+} from '../src/core/ipc/channels';
 
 const MAX_BODY_BYTES = 256 * 1024;
 const OCR_MAX_BODY_BYTES = 16 * 1024 * 1024; // base64 images are large
 
 type Handler = (body: unknown, fallbackKey: string) => Promise<HandlerResult>;
 
-// Every AI channel + its main handler and body cap — the same channels the
-// Electron main process serves over IPC (see electron/ipc/ai.ts).
-const AI_HANDLERS: Record<AiChannel, { handler: Handler; maxBytes: number }> = {
+// Every backend channel + its main handler and body cap — the same channels the
+// Electron main process serves over IPC (see electron/ipc/backend.ts).
+const BACKEND_HANDLERS: Record<BackendChannel, { handler: Handler; maxBytes: number }> = {
   [IpcChannel.AiCoach]: { handler: handleCoachAnalyze, maxBytes: MAX_BODY_BYTES },
   [IpcChannel.AiGrammar]: { handler: handleGrammarCheck, maxBytes: MAX_BODY_BYTES },
   [IpcChannel.AiOcr]: { handler: handleOcrVision, maxBytes: OCR_MAX_BODY_BYTES },
   [IpcChannel.AiPassage]: { handler: handlePassageGenerate, maxBytes: MAX_BODY_BYTES },
+  // Takes no body at all, so the cap is nominal.
+  [IpcChannel.Quotes]: { handler: handleQuotesBatch, maxBytes: 1024 },
 };
 
 export function aiBackendPlugin(fallbackKey: string): Plugin {
@@ -46,9 +53,9 @@ export function aiBackendPlugin(fallbackKey: string): Plugin {
     };
 
   const mount = (server: { middlewares: Connect.Server }) => {
-    (Object.keys(AI_HANDLERS) as AiChannel[]).forEach((channel) => {
-      const { handler, maxBytes } = AI_HANDLERS[channel];
-      server.middlewares.use(AI_HTTP_ROUTE[channel], middleware(handler, maxBytes));
+    (Object.keys(BACKEND_HANDLERS) as BackendChannel[]).forEach((channel) => {
+      const { handler, maxBytes } = BACKEND_HANDLERS[channel];
+      server.middlewares.use(BACKEND_HTTP_ROUTE[channel], middleware(handler, maxBytes));
     });
   };
 

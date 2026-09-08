@@ -4,7 +4,7 @@ import type { GrammarIssue } from '@/core/types';
 import { GrammarMode, Lang, LANG_LABEL } from '@/core/constants';
 import { useLanguageToolsStore } from '@/store/languageToolsStore';
 import { currentAiSettings, isAiEnabled, useAiSettingsStore } from '@/store/aiSettingsStore';
-import { callAi } from './aiTransport';
+import { callBackend } from './backendTransport';
 import { IpcChannel } from '@/core/ipc/channels';
 
 type HarperLinter = {
@@ -87,7 +87,7 @@ export class BrowserGrammarChecker implements GrammarChecker {
 // AI grammar (Mode 2) — English + Hindi, via the backend (IPC in Electron, HTTP on web).
 async function checkGrammarViaAi(text: string, lang: Lang): Promise<GrammarIssue[]> {
   const settings = currentAiSettings(useAiSettingsStore.getState());
-  const data = (await callAi(IpcChannel.AiGrammar, { text, lang: LANG_LABEL[lang], settings })) as {
+  const data = (await callBackend(IpcChannel.AiGrammar, { text, lang: LANG_LABEL[lang], settings })) as {
     issues?: GrammarIssue[];
   };
   return data.issues ?? [];

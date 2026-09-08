@@ -20,6 +20,7 @@ import type { GeneratedPassage } from '@/core/passage/types';
 import type { Lang, SourceType } from '@/core/constants';
 import type { ShellRoute, ShellStatus } from '@/core/ipc/shell';
 import type { SyncState } from '@/core/sync/lan';
+import type { Quote } from '@/core/motivation/quotes';
 
 export interface PickedFile {
   name: string;
@@ -239,6 +240,22 @@ export interface DeviceSync {
   onIncoming(handler: (bundle: BackupBundle) => void): () => void;
 }
 
+/**
+ * A supply of motivational quotes, for the nudge a slow run earns.
+ *
+ * A port rather than a `fetch` at the call site for the usual reason — the
+ * desktop and the web reach the network differently — and because the thing
+ * behind it is allowed to fail. `batch()` always resolves: offline, rate
+ * limited or blocked, it returns the bundled set, so a results screen never
+ * shows an error where it meant to show encouragement.
+ */
+export interface Quotes {
+  /** Never rejects, never empty. Cached, so repeated calls cost nothing. */
+  batch(): Promise<Quote[]>;
+  /** True when the last batch came from the network rather than the bundle. */
+  fromNetwork(): boolean;
+}
+
 export interface Platform {
   files: FilePicker;
   pdf: PdfReader;
@@ -255,4 +272,5 @@ export interface Platform {
   tts: Tts;
   shell: Shell;
   sync: DeviceSync;
+  quotes: Quotes;
 }

@@ -510,6 +510,9 @@ export const en = {
   'settings.confetti': 'Celebrate a pass',
   'settings.confettiHint':
     'Confetti on the result screen when a run clears the cut-off, or comes in without a single mistake.',
+  'settings.motivation': 'Motivate a slow run',
+  'settings.motivationHint':
+    'Miss the speed cut-off and the result screen offers a motivational quote, plus a small amount of abuse. The mirror of the setting above.',
   'settings.dailyGoal': 'Daily goal',
   'settings.dailyGoalHint': 'Tests to complete each day.',
   'settings.dailyGoalAria': 'Daily goal in tests',
@@ -1084,6 +1087,24 @@ export const en = {
   'pacer.behind': '{seconds}s behind',
   'pacer.hintAhead': 'You are above the pass line. Hold this and you clear it.',
   'pacer.hintBehind': 'At this pace you would not pass. The marker is the cut-off, not a rival.',
+  // The slow-run nudge. Three tiers, because someone two words short is having
+  // a different day from someone at half the required speed, and one line of
+  // encouragement cannot serve both without patronising one of them. The joke
+  // is always at the app's expense or nobody's — never at the typist's.
+  'motivation.headingNear': 'Painfully close. You need this:',
+  'motivation.headingShort': 'Not your finest run. You need this:',
+  'motivation.headingAdrift': 'Right. You REALLY need this:',
+  'motivation.footNear':
+    '{gap} {unit} under the {required} you needed — a rounding error with feelings. Go again and this quote turns into confetti.',
+  'motivation.footShort':
+    '{gap} {unit} under the {required} you needed. The quote is free; the practice is not.',
+  'motivation.footAdrift':
+    '{gap} {unit} under the {required} you needed. We both know the fix, and it is not the quote.',
+  'motivation.unitWpm': 'WPM',
+  'motivation.unitKdph': 'KDPH',
+  // Attribution is a condition of the free tier, so it is shown whenever the
+  // quote actually came from there — and not when it came from the bundle.
+  'motivation.credit': 'Quote via ZenQuotes.io',
   'pacer.toggle': 'Pace against the cut-off',
   'pacer.toggleHint':
     'A marker moves at exactly the exam’s minimum speed. Fall behind it and you would have failed — no past attempt needed.',

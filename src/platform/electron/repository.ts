@@ -22,7 +22,8 @@ interface Bridge {
   reminder?: {
     set(enabled: boolean, time: string): Promise<void>;
   };
-  ai?: {
+  /** Allowlisted backend dispatch: the AI channels, and the quote batch. */
+  backend?: {
     invoke(channel: string, payload: unknown): Promise<{ status: number; body: unknown }>;
   };
   /** Tray / dock / taskbar integration and "Open with Typly". Desktop only. */

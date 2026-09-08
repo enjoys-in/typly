@@ -1,6 +1,6 @@
 import type { AiCoach } from '../ports';
 import type { AiSettings, CoachFeedback, CoachInput } from '@/core/coach/types';
-import { callAi } from './aiTransport';
+import { callBackend } from './backendTransport';
 import { IpcChannel } from '@/core/ipc/channels';
 import { isAiEnabled } from '@/store/aiSettingsStore';
 
@@ -16,6 +16,6 @@ export class BrowserAiCoach implements AiCoach {
     settings: AiSettings,
     signal?: AbortSignal,
   ): Promise<CoachFeedback> {
-    return (await callAi(IpcChannel.AiCoach, { input, settings }, signal)) as CoachFeedback;
+    return (await callBackend(IpcChannel.AiCoach, { input, settings }, signal)) as CoachFeedback;
   }
 }

@@ -378,6 +378,14 @@ export function Settings() {
           checked={settings.confetti}
           onChange={settings.setConfetti}
         />
+        {/* The other half of the same judgement — see `motivation` in the
+            settings store for why both default on. */}
+        <Toggle
+          label={t('settings.motivation')}
+          hint={t('settings.motivationHint')}
+          checked={settings.motivation}
+          onChange={settings.setMotivation}
+        />
         {settings.reminderEnabled && notifyPermission !== 'granted' && (
           <p className="max-w-2xl text-xs text-danger-text">
             {t(

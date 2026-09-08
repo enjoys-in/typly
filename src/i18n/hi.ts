@@ -510,6 +510,9 @@ export const hi: Record<TKey, string> = {
   'settings.confetti': 'पास होने पर जश्न',
   'settings.confettiHint':
     'रन कट-ऑफ़ पार करे, या एक भी ग़लती के बिना पूरा हो, तो परिणाम स्क्रीन पर रंगीन कतरनें।',
+  'settings.motivation': 'धीमे रन पर हौसला',
+  'settings.motivationHint':
+    'स्पीड कट-ऑफ़ चूकने पर परिणाम स्क्रीन एक प्रेरक विचार देती है, साथ में थोड़ी चुटकी। ऊपर वाली सेटिंग का उलटा।',
   'settings.dailyGoal': 'दैनिक लक्ष्य',
   'settings.dailyGoalHint': 'रोज़ पूरे करने वाले टेस्ट।',
   'settings.dailyGoalAria': 'दैनिक लक्ष्य (टेस्ट में)',
@@ -1085,6 +1088,18 @@ export const hi: Record<TKey, string> = {
   'pacer.behind': '{seconds}से. पीछे',
   'pacer.hintAhead': 'आप पास लाइन से ऊपर हैं। यही गति बनाए रखें तो निकल जाएँगे।',
   'pacer.hintBehind': 'इस गति से आप पास नहीं होते। यह निशान कट-ऑफ़ है, कोई प्रतियोगी नहीं।',
+  'motivation.headingNear': 'बहुत क़रीब। यह आपके काम का है:',
+  'motivation.headingShort': 'यह रन आपका सबसे अच्छा नहीं था। यह पढ़ लीजिए:',
+  'motivation.headingAdrift': 'ठीक है। यह आपको सच में चाहिए:',
+  'motivation.footNear':
+    'ज़रूरी {required} से {gap} {unit} कम — बस बाल भर की दूरी। एक बार और, और यही विचार जश्न बन जाएगा।',
+  'motivation.footShort':
+    'ज़रूरी {required} से {gap} {unit} कम। विचार मुफ़्त है; अभ्यास नहीं।',
+  'motivation.footAdrift':
+    'ज़रूरी {required} से {gap} {unit} कम। हल हम दोनों जानते हैं, और वह यह विचार नहीं है।',
+  'motivation.unitWpm': 'WPM',
+  'motivation.unitKdph': 'KDPH',
+  'motivation.credit': 'विचार स्रोत: ZenQuotes.io',
   'pacer.toggle': 'कट-ऑफ़ के मुक़ाबले गति',
   'pacer.toggleHint':
     'एक निशान ठीक परीक्षा की न्यूनतम गति से चलता है। उससे पीछे रह गए तो आप फ़ेल होते — इसके लिए पिछले प्रयास की ज़रूरत नहीं।',

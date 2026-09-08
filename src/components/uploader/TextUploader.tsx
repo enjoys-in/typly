@@ -5,7 +5,7 @@ import { cleanText } from '@/core/text/ocrCleanup';
 import { textStats } from '@/core/text/textStats';
 import { recognizeVision, bytesToDataUrl } from '@/platform/browser/visionOcr';
 import { preprocessImageForOcr } from '@/platform/browser/imagePreprocess';
-import { AiRequestError } from '@/platform/browser/aiTransport';
+import { AiRequestError } from '@/platform/browser/backendTransport';
 import { RATE_LIMIT_STATUS } from '@/core/ai/rateLimit';
 import { currentAiSettings, isAiEnabled, useAiSettingsStore } from '@/store/aiSettingsStore';
 import { isChallengeFile, sourceForFile } from '@/core/text/fileKind';

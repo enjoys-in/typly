@@ -18,7 +18,7 @@ import { SqliteRepository } from './data/db';
 import { registerRepoIpc } from './ipc/repository';
 import { registerFontIpc } from './ipc/fonts';
 import { createReminderScheduler } from './ipc/reminders';
-import { registerAiIpc } from './ipc/ai';
+import { registerBackendIpc } from './ipc/backend';
 import { registerAppSchemePrivileges, registerAppProtocol, appUrl } from './shell/protocol';
 import { devToolsPref, registerDevToolsPolicy } from './shell/devTools';
 import { applyPortablePaths, portableRoot } from './shell/portable';
@@ -272,7 +272,7 @@ function bootstrap(): void {
   });
 
   registerFontIpc();
-  registerAiIpc();
+  registerBackendIpc();
   // The 60-second drill in its own overlay window, from the tray or a global
   // hotkey. Loads the same renderer with ?quick=1 — no second codebase.
   registerQuickTest({

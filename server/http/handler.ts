@@ -9,6 +9,7 @@ import { generateCoachFeedback } from '../coach/service';
 import { checkGrammarWithAi } from '../grammar/service';
 import { buildOcrPrompt, extractTextFromImage } from '../ocr/service';
 import { generatePassage } from '../passage/service';
+import { fetchQuotes } from '../quotes/service';
 import { PassageBand } from '../../src/core/constants';
 import type { PassageRequest } from '../../src/core/passage/prompt';
 
@@ -193,5 +194,27 @@ export async function handlePassageGenerate(
     const status = err instanceof AiError ? err.status : 500;
     const message = err instanceof Error ? err.message : 'Unexpected AI error.';
     return { status, body: { error: message } };
+  }
+}
+
+/**
+ * POST /api/quotes/batch — a batch of motivational quotes.
+ *
+ * Takes no body and needs no key: it is a plain proxy for a public endpoint,
+ * and it exists only because that endpoint sends no CORS headers, so the
+ * renderer cannot call it directly on the web. A failure here is never worth
+ * surfacing — the caller has a bundled set to fall back to — so the error is
+ * returned plainly and the adapter swallows it.
+ */
+export async function handleQuotesBatch(
+  _raw: unknown,
+  _fallbackKey: string,
+  signal?: AbortSignal,
+): Promise<HandlerResult> {
+  try {
+    return { status: 200, body: await fetchQuotes(signal) };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Could not reach the quote service.';
+    return { status: 502, body: { error: message } };
   }
 }

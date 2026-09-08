@@ -1,6 +1,6 @@
 import type { AiSettings } from '@/core/coach/types';
 import { IpcChannel } from '@/core/ipc/channels';
-import { callAi } from './aiTransport';
+import { callBackend } from './backendTransport';
 
 // Detect image mime from magic bytes so the data URL is well-formed.
 function mimeFromBytes(b: Uint8Array): string {
@@ -29,7 +29,7 @@ export async function recognizeVision(
   signal?: AbortSignal,
 ): Promise<string> {
   const model = settings.visionModel?.trim() || undefined;
-  const body = (await callAi(
+  const body = (await callBackend(
     IpcChannel.AiOcr,
     { imageDataUrl, settings, lang, model },
     signal,

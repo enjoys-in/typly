@@ -2,7 +2,7 @@ import type { PassageWriter } from '../ports';
 import type { AiSettings } from '@/core/coach/types';
 import type { PassageRequest } from '@/core/passage/prompt';
 import type { GeneratedPassage } from '@/core/passage/types';
-import { callAi } from './aiTransport';
+import { callBackend } from './backendTransport';
 import { IpcChannel } from '@/core/ipc/channels';
 import { isAiEnabled } from '@/store/aiSettingsStore';
 
@@ -19,7 +19,7 @@ export class BrowserPassageWriter implements PassageWriter {
     settings: AiSettings,
     signal?: AbortSignal,
   ): Promise<GeneratedPassage> {
-    return (await callAi(
+    return (await callBackend(
       IpcChannel.AiPassage,
       { request, settings },
       signal,

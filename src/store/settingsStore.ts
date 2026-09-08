@@ -91,6 +91,8 @@ interface SettingsState {
   breakNudges: boolean;
   /** Confetti on the result screen when a run clears the cut-off. */
   confetti: boolean;
+  /** A quote and a bit of ribbing when a run comes in under the cut-off. */
+  motivation: boolean;
   /** Word drill: one word at a time, or the whole batch on one line. */
   dictationView: DictationView;
   /** Word drill: hold each word to a clock. */
@@ -135,6 +137,7 @@ interface SettingsState {
   setPressure: (v: boolean) => void;
   setBreakNudges: (v: boolean) => void;
   setConfetti: (v: boolean) => void;
+  setMotivation: (v: boolean) => void;
   setDictationView: (v: DictationView) => void;
   setDictationTimed: (v: boolean) => void;
   setDictationLimitSec: (v: number) => void;
@@ -189,6 +192,10 @@ const DEFAULTS: Persisted = {
   // a run with no mistakes at all, so it stays rare enough to still mean
   // something — and a run that earns it is the reason anyone practises.
   confetti: true,
+  // On by default, and the mirror of `confetti`: the two fire on opposite
+  // halves of the same judgement, so switching one on and not the other would
+  // mean the app only ever spoke up when things went well.
+  motivation: true,
   dictationView: DictationView.Word,
   // The clock is the drill. Without it the exercise is copying — which the rest
   // of the app already does, and which is not where the marks go.
@@ -235,6 +242,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setPressure: (pressure) => set({ pressure }),
   setBreakNudges: (breakNudges) => set({ breakNudges }),
   setConfetti: (confetti) => set({ confetti }),
+  setMotivation: (motivation) => set({ motivation }),
   setDictationView: (dictationView) => set({ dictationView }),
   setDictationTimed: (dictationTimed) => set({ dictationTimed }),
   setDictationShuffle: (dictationShuffle) => set({ dictationShuffle }),

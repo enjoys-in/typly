@@ -1,9 +1,9 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { IpcChannel, AI_CHANNELS } from '../src/core/ipc/channels';
+import { IpcChannel, BACKEND_CHANNELS } from '../src/core/ipc/channels';
 
 // Whether the main process's native SQLite store loaded (else IndexedDB fallback).
 const repoAvailable = ipcRenderer.sendSync(IpcChannel.RepoAvailable) === true;
-const aiChannels = new Set<string>(AI_CHANNELS);
+const backendChannels = new Set<string>(BACKEND_CHANNELS);
 
 /**
  * One-way main→renderer subscription. The event object never crosses into the
@@ -55,10 +55,12 @@ contextBridge.exposeInMainWorld('bridge', {
     onState: (handler: (state: unknown) => void) => subscribe(IpcChannel.SyncState, handler),
     onIncoming: (handler: (bundle: unknown) => void) => subscribe(IpcChannel.SyncIncoming, handler),
   },
-  // Generic, allowlisted AI channel dispatch (coach / grammar / OCR).
-  ai: {
+  // Generic, allowlisted backend dispatch (coach / grammar / OCR / passages /
+  // quotes). The allowlist is the point: the renderer names a channel, and
+  // anything not on the list is refused rather than forwarded.
+  backend: {
     invoke: (channel: string, payload: unknown) =>
-      aiChannels.has(channel)
+      backendChannels.has(channel)
         ? ipcRenderer.invoke(channel, payload)
         : Promise.reject(new Error(`Blocked channel: ${channel}`)),
   },

@@ -1,7 +1,12 @@
-// One transport for the AI backend channels: over IPC in the packaged desktop
-// app (Electron main serves them), or the matching HTTP route on the web/dev
+// One transport for every backend channel: over IPC in the packaged desktop app
+// (Electron main serves them), or the matching HTTP route on the web/dev
 // server. `window.bridge` is typed globally in platform/electron/repository.ts.
-import { AI_HTTP_ROUTE, type AiChannel } from '@/core/ipc/channels';
+//
+// Most of these channels are AI, but the transport never cared — it forwards a
+// channel name and a payload. The quote batch rides the same rails because the
+// quote API sends no CORS headers, so the request has to be made outside the
+// page just as an API key has to be used outside it.
+import { BACKEND_HTTP_ROUTE, type BackendChannel } from '@/core/ipc/channels';
 import { RATE_LIMIT_STATUS, rateLimitMessage, retryAfterSeconds } from '@/core/ai/rateLimit';
 
 interface HandlerResult {
@@ -20,12 +25,12 @@ export class AiRequestError extends Error {
   }
 }
 
-export async function callAi(
-  channel: AiChannel,
+export async function callBackend(
+  channel: BackendChannel,
   payload: unknown,
   signal?: AbortSignal,
 ): Promise<unknown> {
-  const bridge = window.bridge?.ai;
+  const bridge = window.bridge?.backend;
   if (bridge) {
     const { status, body } = (await bridge.invoke(channel, payload)) as HandlerResult;
     if (status < 200 || status >= 300 || isError(body)) {
@@ -34,7 +39,7 @@ export async function callAi(
     return body;
   }
 
-  const res = await fetch(AI_HTTP_ROUTE[channel], {
+  const res = await fetch(BACKEND_HTTP_ROUTE[channel], {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     signal,
