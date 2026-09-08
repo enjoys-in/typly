@@ -10,6 +10,33 @@ over time.
 
 ---
 
+## What it looks like
+
+**Start here** — the landing page, the dashboard, turning any source into a test, and the
+exam setup with its profiles and rules.
+
+![Landing, dashboard, new test, exam setup and rules](docs/screenshots/collage-1-start.png)
+
+**Sitting the exam** — the instructions briefing, the live run with WPM, accuracy and the
+keyboard map, then the result, the mistake taxonomy and the mechanics behind it.
+
+![Briefing, live typing exam, result, mistake analysis and finger load](docs/screenshots/collage-2-exam.png)
+
+**Learn and improve** — per-minute progress against the cut-off, the lessons curriculum,
+practice drills, the trainer's weak-key work and dictation.
+
+![Per-minute progress, lessons, practice drills, trainer and dictation](docs/screenshots/collage-3-learn.png)
+
+**Library, progress and tools** — saved paragraphs and passage packs, history with replay
+and certificates, your trend, the offline Kruti Dev converter and settings.
+
+![Library, history, progress, tools and settings](docs/screenshots/collage-4-library.png)
+
+Individual screenshots live in [docs/screenshots](docs/screenshots); the sheets are
+regenerated with `node docs/make-collages.mjs`.
+
+---
+
 ## Features
 
 ### Exam-accurate practice
@@ -223,6 +250,13 @@ Every user-visible string lives in `src/i18n/en.ts`, and `hi.ts` is typed as a
 ## Documentation
 
 - **Setup, development & packaging** → [docs/SETUP.md](docs/SETUP.md)
+
+### Deploying the web app
+
+`vercel.json` configures the Vite build, so the whole thing is a Vercel UI job: import the
+repository, leave every field on its detected default, and deploy. The build runs
+`bun run build` into `dist`, and every path is rewritten to `index.html` for the SPA. No
+environment variables are needed — AI is bring-your-own-key and is entered in the app.
 
 ---
 
