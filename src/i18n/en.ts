@@ -507,6 +507,9 @@ export const en = {
   'settings.onScreenKeyboard': 'On-screen keyboard',
   'settings.onScreenKeyboardHint':
     'Show a color-coded keyboard that highlights the next key and finger.',
+  'settings.confetti': 'Celebrate a pass',
+  'settings.confettiHint':
+    'Confetti on the result screen when a run clears the cut-off, or comes in without a single mistake.',
   'settings.dailyGoal': 'Daily goal',
   'settings.dailyGoalHint': 'Tests to complete each day.',
   'settings.dailyGoalAria': 'Daily goal in tests',
@@ -1644,22 +1647,34 @@ export const en = {
   'nav.dictation': 'Dictation',
   'dictate.title': 'Dictation practice',
   'dictate.subtitle':
-    'The words you keep getting wrong, read aloud one at a time. Nothing is shown — you spell it.',
+    'The words you keep getting wrong, one at a time with a clock on each. Type it before the bar runs out.',
   'dictate.newBatch': 'New batch',
-  'dictate.unsupportedBody':
-    'This device has no speech voice, so nothing can be dictated. The review queue in the Trainer drills the same words on screen instead.',
+  'dictate.options': 'Options',
+  'dictate.optionsTitle': 'Drill options',
+  'dictate.viewLabel': 'Show',
+  'dictate.viewHint': 'One word on its own, or the whole batch as a line to work along.',
+  'dictate.viewWord': 'One word',
+  'dictate.viewLine': 'Whole line',
+  'dictate.timedLabel': 'Time each word',
+  'dictate.timedHint': 'Run out of time and the word is marked wrong, same as a misspelling.',
+  'dictate.limitLabel': 'Seconds per word',
+  'dictate.limitHint': 'Three is roughly what a word gets in a real passage.',
+  'dictate.shuffleLabel': 'Shuffle the batch',
+  'dictate.shuffleHint': 'Random order, so you are not typing from memory of the order.',
+  'dictate.batchLabel': 'Words per batch',
+  'dictate.batchHint': 'Takes effect on the next batch.',
+  'dictate.timeLeft': '{sec}s',
+  'dictate.timeUp': 'Time up.',
+  'dictate.timerAria': 'Time left on this word',
   'dictate.empty':
     'No mistakes recorded yet, so there is nothing to dictate. Sit a test and whatever you miss turns up here on its own.',
   'dictate.emptyAction': 'Start a test',
   'dictate.wordOf': 'Word {current} of {total}',
   'dictate.correctSoFar': '{correct} right of {answered}',
-  'dictate.listenBody': 'Listen, then type what you heard.',
-  'dictate.holdBody': 'The correct spelling is being read out. Continue when you are ready.',
-  'dictate.replay': 'Play again ({left} left)',
-  'dictate.replayHint': 'Hear the word again',
-  'dictate.noReplays': 'No replays left for this word',
+  'dictate.typeBody': 'Type it, then press space or Enter.',
+  'dictate.holdBody': 'That is the right spelling. Continue when you are ready.',
   'dictate.inputLabel': 'Spell it',
-  'dictate.inputPlaceholder': 'Type the word you heard…',
+  'dictate.inputPlaceholder': 'Type the word…',
   'dictate.check': 'Check',
   'dictate.skip': 'Skip',
   'dictate.continue': 'Continue',
@@ -1680,7 +1695,7 @@ export const en = {
     'Every word here came from a mistake in one of your runs. Spell it right and its review card climbs a rung; miss it and the card drops to the bottom and returns tomorrow.',
   'dictate.cardTitle': 'Dictation practice',
   'dictate.cardHint':
-    'The same weak words, spoken instead of shown — the test that copying from a screen never gives you.',
+    'The same weak words, one at a time against a three-second clock — no sentence to work the spelling out from.',
   'dictate.cardAction': 'Start dictation',
 
   'changelog.resumeFocus': 'Resuming a paused test puts the cursor back in the typing field.',
@@ -1694,8 +1709,10 @@ export const en = {
     'Hide the typing box altogether and type into the passage, where the caret already is.',
   'changelog.paperMistakes':
     'Misspellings from a paper run now feed the trainer, the review queue and dictation practice.',
+  'changelog.confetti':
+    'Clear a board\u2019s cut-off, or finish a run without a single mistake, and the result screen throws confetti.',
   'changelog.dictateMistakes':
-    'Dictation practice: the words you miss are read aloud, one at a time, for you to spell from memory.',
+    'Dictation practice: the words you miss, one at a time against a three-second clock — shown alone, or as a whole line to work along.',
 } as const;
 
 export type TKey = keyof typeof en;

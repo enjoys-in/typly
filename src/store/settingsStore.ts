@@ -3,6 +3,13 @@ import type { Repository } from '@/platform/ports';
 import type { SeriesBase } from '@/core/types';
 import { applyHtmlLang, isUiLang, type UiLang } from '@/i18n';
 import {
+  DICTATION_DRILL_WORDS,
+  DICTATION_DRILL_WORDS_MAX,
+  DICTATION_DRILL_WORDS_MIN,
+  DICTATION_LIMIT_SEC,
+  DICTATION_LIMIT_SEC_MAX,
+  DICTATION_LIMIT_SEC_MIN,
+  DictationView,
   Difficulty,
   EXAM_INPUT_SHARE_DEFAULT,
   EXAM_INPUT_SHARE_MAX,
@@ -16,6 +23,7 @@ import {
   ExamSkin,
   HindiFont,
   InputMethod,
+  isDictationView,
   Lang,
   TimingMode,
 } from '@/core/constants';
@@ -81,6 +89,18 @@ interface SettingsState {
   pressure: boolean;
   /** Break nudges (20-20-20 and posture) during a long session. */
   breakNudges: boolean;
+  /** Confetti on the result screen when a run clears the cut-off. */
+  confetti: boolean;
+  /** Word drill: one word at a time, or the whole batch on one line. */
+  dictationView: DictationView;
+  /** Word drill: hold each word to a clock. */
+  dictationTimed: boolean;
+  /** Word drill: seconds one word gets, when the clock is on. */
+  dictationLimitSec: number;
+  /** Word drill: scramble the batch instead of hardest-first. */
+  dictationShuffle: boolean;
+  /** Word drill: words in one batch. */
+  dictationWords: number;
   setLang: (lang: Lang) => void;
   setBoard: (board: ExamBoard) => void;
   setTiming: (timing: TimingMode) => void;
@@ -114,6 +134,12 @@ interface SettingsState {
   setPacer: (v: boolean) => void;
   setPressure: (v: boolean) => void;
   setBreakNudges: (v: boolean) => void;
+  setConfetti: (v: boolean) => void;
+  setDictationView: (v: DictationView) => void;
+  setDictationTimed: (v: boolean) => void;
+  setDictationLimitSec: (v: number) => void;
+  setDictationShuffle: (v: boolean) => void;
+  setDictationWords: (v: number) => void;
 }
 
 /** The persisted slice — every field above except the setters. */
@@ -159,6 +185,17 @@ const DEFAULTS: Persisted = {
   // On by default: the cost of a nudge is a banner, the cost of skipping it is
   // an injury months down the line.
   breakNudges: true,
+  // On by default. It only ever fires on a pass that was actually graded, or on
+  // a run with no mistakes at all, so it stays rare enough to still mean
+  // something — and a run that earns it is the reason anyone practises.
+  confetti: true,
+  dictationView: DictationView.Word,
+  // The clock is the drill. Without it the exercise is copying — which the rest
+  // of the app already does, and which is not where the marks go.
+  dictationTimed: true,
+  dictationLimitSec: DICTATION_LIMIT_SEC,
+  dictationShuffle: true,
+  dictationWords: DICTATION_DRILL_WORDS,
 };
 
 // Single row in the Dexie `settings` table, so preferences live in IndexedDB
@@ -197,6 +234,10 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setPacer: (pacer) => set({ pacer }),
   setPressure: (pressure) => set({ pressure }),
   setBreakNudges: (breakNudges) => set({ breakNudges }),
+  setConfetti: (confetti) => set({ confetti }),
+  setDictationView: (dictationView) => set({ dictationView }),
+  setDictationTimed: (dictationTimed) => set({ dictationTimed }),
+  setDictationShuffle: (dictationShuffle) => set({ dictationShuffle }),
   // The document language travels with it, for screen readers and fonts.
   setUiLang: (uiLang) => {
     applyHtmlLang(uiLang);
@@ -205,6 +246,9 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   // Clamped here so callers can pass raw input.
   setReadingSec: (readingSec) =>
     set({ readingSec: Math.min(MAX_READING_SEC, Math.max(0, Math.round(readingSec) || 0)) }),
+  setDictationLimitSec: (dictationLimitSec) =>
+    set({ dictationLimitSec: clampLimitSec(dictationLimitSec) }),
+  setDictationWords: (dictationWords) => set({ dictationWords: clampWords(dictationWords) }),
   setExamZoom: (examZoom) =>
     set({ examZoom: Math.min(EXAM_ZOOM_MAX, Math.max(EXAM_ZOOM_MIN, examZoom)) }),
   setExamInputShare: (examInputShare) => set({ examInputShare: clampShare(examInputShare) }),
@@ -214,6 +258,17 @@ export const useSettingsStore = create<SettingsState>((set) => ({
 function clampShare(value: number): number {
   if (!Number.isFinite(value)) return EXAM_INPUT_SHARE_DEFAULT;
   return Math.min(EXAM_INPUT_SHARE_MAX, Math.max(EXAM_INPUT_SHARE_MIN, value));
+}
+
+/** Both drill numbers come from a number field, where a user can clear it. */
+function clampLimitSec(value: number): number {
+  if (!Number.isFinite(value)) return DICTATION_LIMIT_SEC;
+  return Math.min(DICTATION_LIMIT_SEC_MAX, Math.max(DICTATION_LIMIT_SEC_MIN, Math.round(value)));
+}
+
+function clampWords(value: number): number {
+  if (!Number.isFinite(value)) return DICTATION_DRILL_WORDS;
+  return Math.min(DICTATION_DRILL_WORDS_MAX, Math.max(DICTATION_DRILL_WORDS_MIN, Math.round(value)));
 }
 
 /**
@@ -273,6 +328,11 @@ function sanitize(raw: unknown): Partial<Persisted> {
     if (value !== undefined && typeof value === typeof fallback) out[key] = value;
   }
   if (!isUiLang(out.uiLang)) delete out.uiLang;
+  if (!isDictationView(out.dictationView)) delete out.dictationView;
+  if (typeof out.dictationLimitSec === 'number') {
+    out.dictationLimitSec = clampLimitSec(out.dictationLimitSec);
+  }
+  if (typeof out.dictationWords === 'number') out.dictationWords = clampWords(out.dictationWords);
   const zoom = out.examZoom;
   if (typeof zoom === 'number') {
     out.examZoom = Math.min(EXAM_ZOOM_MAX, Math.max(EXAM_ZOOM_MIN, zoom));

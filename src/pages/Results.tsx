@@ -10,6 +10,7 @@ import { profileFor, shortNameFor } from '@/core/scoring/examProfiles';
 import { applyDifficulty, applyMode } from '@/core/scoring/scoring';
 import { isDevanagari } from '@/core/text/scripts';
 import { computeBadges, type Badge } from '@/core/achievements/badges';
+import { Celebration, celebrationFor } from '@/core/achievements/celebrate';
 import type { AdaptiveRun } from '@/core/exam/adaptive';
 import { summarisePaper } from '@/core/exam/paper';
 import type { Series } from '@/core/types';
@@ -40,6 +41,7 @@ import { HindiFont } from '@/core/constants';
 import { FONT_FAMILY } from '@/ui/fonts';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
+import { Confetti } from '@/ui/Confetti';
 import { translate, useT } from '@/i18n';
 import { useNotify } from '@/hooks/useNotify';
 
@@ -67,6 +69,7 @@ export function Results() {
   const notifier = useNotify();
   const dailyGoal = useSettingsStore((s) => s.dailyGoal);
   const hindiFont = useSettingsStore((s) => s.hindiFont);
+  const confettiOn = useSettingsStore((s) => s.confetti);
   const account = useAuthStore((s) => s.account);
   // Set when this run answered a challenge file, so the head-to-head can show.
   const answering = useIncomingStore((s) => s.challenge);
@@ -93,6 +96,16 @@ export function Results() {
     const base = profileFor(board).rules;
     return config ? applyMode(applyDifficulty(base, config.difficulty), config.examMode) : base;
   }, [board, config]);
+
+  /**
+   * Whether this run earned the paper — a graded cut-off cleared, or a run with
+   * no mistakes in it at all. Computed here rather than in the component so the
+   * page decides once, on the run, and not on every countdown tick.
+   */
+  const celebration = useMemo(
+    () => (finished ? celebrationFor(finished.result, rules) : Celebration.None),
+    [finished, rules],
+  );
 
   /**
    * A multi-section paper's combined report.
@@ -260,6 +273,12 @@ export function Results() {
 
   return (
     <div className="space-y-6">
+      {/* A clean run gets visibly more of it than a pass that scraped through:
+          the two are not the same result and should not read as the same
+          moment. It unmounts itself once the paper has landed. */}
+      {confettiOn && celebration !== Celebration.None && (
+        <Confetti pieces={celebration === Celebration.Flawless ? 150 : 80} />
+      )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">{t('result.title')}</h1>
         {series && (

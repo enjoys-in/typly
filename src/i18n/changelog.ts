@@ -23,6 +23,7 @@ export const RELEASES: readonly Release[] = [
     version: '0.7.0',
     date: '2026-09-07',
     items: [
+      'changelog.confetti',
       'changelog.dictateMistakes',
       'changelog.paperMistakes',
       'changelog.resizeSplit',

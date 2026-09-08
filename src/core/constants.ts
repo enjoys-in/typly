@@ -255,10 +255,39 @@ export const DICTATION_CHUNK_WORDS = 12;
  * gets done on a day nobody wants to sit a full mock.
  */
 export const DICTATION_DRILL_WORDS = 12;
-/** Speed a practice word is spoken at, slower than a real dictation. */
-export const DICTATION_DRILL_WPM = 70;
-/** Times one word may be replayed before the answer is graded anyway. */
-export const DICTATION_DRILL_REPLAYS = 3;
+/** Batch sizes the drill accepts, so a hand-edited setting cannot ask for 900. */
+export const DICTATION_DRILL_WORDS_MIN = 4;
+export const DICTATION_DRILL_WORDS_MAX = 40;
+
+/**
+ * How a drill word is put in front of you.
+ *
+ * Both views show the word — the drill is against the clock, not against your
+ * memory of a voice. What differs is how much of the batch you can see: one
+ * word alone is a flash card, the whole batch on one line is the exam, where
+ * the next word is already in the corner of your eye while you finish this one.
+ */
+export enum DictationView {
+  Word = 'word',
+  Line = 'line',
+}
+
+/** Guards a view read back from storage. */
+export function isDictationView(value: unknown): value is DictationView {
+  return typeof value === 'string' && (Object.values(DictationView) as string[]).includes(value);
+}
+
+/**
+ * Seconds one word gets before it is marked.
+ *
+ * Three is the default because it is roughly what a 40 WPM candidate has per
+ * word in a real passage — enough to type a word you know cold, not enough to
+ * assemble one you are guessing at, which is exactly the line this drill exists
+ * to find.
+ */
+export const DICTATION_LIMIT_SEC = 3;
+export const DICTATION_LIMIT_SEC_MIN = 1;
+export const DICTATION_LIMIT_SEC_MAX = 30;
 
 // --- Breaks (RSI) ----------------------------------------------------------
 /** 20-20-20: every 20 minutes, look 20 feet away for 20 seconds. */

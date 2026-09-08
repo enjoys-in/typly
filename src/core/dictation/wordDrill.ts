@@ -9,14 +9,15 @@
  * off a screen still writes `goverment` when the passage is on the desk beside
  * them or being read aloud.
  *
- * So this is the same weakness list, delivered the other way round: the word is
- * spoken and never shown, and you spell it. Nothing here is a separate deck to
- * curate — the queue *is* the mistake history, so every fresh slip enrols
- * itself, and every answer feeds back into the same Leitner ladder the review
- * queue runs on. Get it right and it climbs; miss it and it drops and returns
- * tomorrow.
+ * So this is the same weakness list, delivered the other way round: one word at
+ * a time, on its own, against a clock short enough that there is no time to
+ * reconstruct the spelling from the passage it came out of. Nothing here is a
+ * separate deck to curate — the queue *is* the mistake history, so every fresh
+ * slip enrols itself, and every answer feeds back into the same Leitner ladder
+ * the review queue runs on. Get it right and it climbs; miss it and it drops
+ * and returns tomorrow.
  *
- * Pure: no speech, no storage, no clock. The hook owns all three.
+ * Pure: no storage and no clock. The hook owns both.
  */
 
 import type { ReviewItem } from '../review/review';
@@ -68,21 +69,21 @@ export interface DrillStats {
  * The gap is the part that does the work — re-drilling a word ten seconds later
  * tests short-term memory and nothing else — so the real repetition is the next
  * day's, scheduled by the ladder. One immediate retry is worth having anyway:
- * it separates "cannot spell this" from "misheard it", and hearing the right
- * answer once while it still matters is how the correction lands.
+ * it separates "cannot spell this" from "ran out of clock", and typing the word
+ * correctly once while the correction is still on screen is how it lands.
  */
 const MAX_RETRIES = 1;
 
-/** Punctuation that a spoken word cannot convey, so it is never marked on. */
+/** Punctuation carried over from the passage, never part of the answer. */
 const EDGE_PUNCTUATION = /^[\s"'“”‘’(),.;:!?।—–-]+|[\s"'“”‘’(),.;:!?।—–-]+$/g;
 
 /**
  * What two spellings have to share to count as the same answer.
  *
- * Case is dropped because a voice does not pronounce it, and neither does the
- * word list — a card reading `india` must not fail an answer of `India`. Edge
- * punctuation goes for the same reason: the mistake history stores words as
- * they appeared in a passage, commas and all.
+ * Case is dropped because the word list does not agree with itself about it — a
+ * card reading `india` must not fail an answer of `India`. Edge punctuation
+ * goes for the same reason: the mistake history stores words as they appeared
+ * in a passage, commas and all, and the comma is not the thing being drilled.
  */
 export function normalizeAnswer(value: string): string {
   return value.replace(EDGE_PUNCTUATION, '').replace(/\s+/g, ' ').toLocaleLowerCase();
@@ -102,18 +103,41 @@ export function drillable(word: string): boolean {
 }
 
 /**
+ * A copy of `items` in random order (Fisher-Yates).
+ *
+ * Only ever applied to a batch that has already been *chosen*, never to the
+ * choosing: shuffling the candidates would let a random draw push out the cards
+ * the ladder says are due today, which is the one ordering that is not
+ * arbitrary.
+ */
+function shuffled<T>(items: T[]): T[] {
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j] as T, out[i] as T];
+  }
+  return out;
+}
+
+/**
  * Build a session.
  *
  * Due cards come first — the ladder has already decided those are today's work.
  * Whatever is left of the batch is filled from the rest of the deck and then
  * from raw mistake history, so a user whose cards are all resting still gets a
  * drill rather than an empty screen.
+ *
+ * `shuffle` then scrambles the chosen batch. It is on by default because the
+ * unshuffled order is the same every sitting — hardest first, longest-overdue
+ * first — and a batch you have seen in that order three times is a batch you
+ * are partly typing from position rather than from spelling.
  */
 export function buildSession(
   due: ReviewItem[],
   cards: ReviewItem[],
   mistakeWords: string[],
   limit: number,
+  shuffle = false,
 ): DrillSession {
   const queue: DrillWord[] = [];
   const seen = new Set<string>();
@@ -131,7 +155,7 @@ export function buildSession(
   for (const item of words(cards)) add(item.value, item.id);
   for (const word of mistakeWords) add(word, null);
 
-  return { queue, answers: [] };
+  return { queue: shuffle ? shuffled(queue) : queue, answers: [] };
 }
 
 /** The word being dictated, or null once the session is over. */
@@ -242,6 +266,40 @@ export function drillVerdicts(session: DrillSession): { passed: string[]; failed
     (answer.correct ? passed : failed).push(answer.cardId);
   }
   return { passed, failed };
+}
+
+/** Where one word of the batch stands, for the line view. */
+export type DrillWordState = 'right' | 'wrong' | 'current' | 'pending';
+
+export interface DrillLineItem {
+  word: string;
+  state: DrillWordState;
+  /** Stable across renders, and unique even when a retry repeats a word. */
+  key: string;
+}
+
+/**
+ * The whole batch on one line: what has been answered, what is being typed, and
+ * what is still coming.
+ *
+ * Answered words are listed in the order they were answered rather than in
+ * their original slots, so the line reads strictly left to right and the caret
+ * never jumps backwards. A word that was missed therefore appears twice — once
+ * behind you in red, once ahead of you as the retry — which is the truth of
+ * what the queue is going to do.
+ */
+export function lineup(session: DrillSession): DrillLineItem[] {
+  const done: DrillLineItem[] = session.answers.map((answer, i) => ({
+    word: answer.word,
+    state: answer.correct ? 'right' : 'wrong',
+    key: `a${i}-${answer.word}`,
+  }));
+  const todo: DrillLineItem[] = session.queue.map((item, i) => ({
+    word: item.word,
+    state: i === 0 ? 'current' : 'pending',
+    key: `q${i}-${item.word}-${item.misses}`,
+  }));
+  return [...done, ...todo];
 }
 
 /** The words this session got wrong, for the summary. */

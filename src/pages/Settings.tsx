@@ -372,6 +372,12 @@ export function Settings() {
           checked={settings.breakNudges}
           onChange={settings.setBreakNudges}
         />
+        <Toggle
+          label={t('settings.confetti')}
+          hint={t('settings.confettiHint')}
+          checked={settings.confetti}
+          onChange={settings.setConfetti}
+        />
         {settings.reminderEnabled && notifyPermission !== 'granted' && (
           <p className="max-w-2xl text-xs text-danger-text">
             {t(
