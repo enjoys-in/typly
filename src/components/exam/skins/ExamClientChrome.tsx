@@ -25,6 +25,13 @@ interface Props {
  * So this is deliberately ugly. The fixed slate palette is not a theming
  * oversight — the real client looks the same on every machine in every centre,
  * and a skin that followed the user's accent colour would defeat the purpose.
+ *
+ * `exam-client-skin` is what makes that true of the *panes* as well as the
+ * chrome. The field, the paper strip and the readings rail are the app's own
+ * components asking for the app's own roles, so on a dark theme they came out
+ * near-black inside a light slate window — half client, half Typly. That class
+ * redefines the colour roles for this subtree, so everything under here is
+ * painted in the client's palette without being told it is in a skin.
  */
 export function ExamClientChrome({ config, profile, candidate, timer, children }: Props) {
   const t = useT();
@@ -33,7 +40,7 @@ export function ExamClientChrome({ config, profile, candidate, timer, children }
   const roll = `TY${String(profile.board.length * 137).padStart(4, '0')}2026`;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-slate-400 bg-slate-100 text-slate-900">
+    <div className="exam-client-skin flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border border-slate-400 bg-slate-100 text-slate-900">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-slate-400 bg-slate-300 px-4 py-2">
         <div className="min-w-0">
           <p className="truncate text-sm font-bold">{profile.name}</p>

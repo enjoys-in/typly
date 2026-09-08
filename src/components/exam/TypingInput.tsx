@@ -46,6 +46,24 @@ interface Props {
   onBlocked?: (key: string) => void;
 }
 
+/**
+ * Editing chords that can undo a whole run in one keypress.
+ *
+ * Select-all is the dangerous one. ⌘A leaves the entire transcript selected and
+ * the very next character replaces it, so a candidate eight minutes into a
+ * paper run — where there is no passage to retype from, only what they have
+ * typed — can lose all of it to one mistimed chord. Undo does the same in a
+ * single step, redo undoes the recovery, and cut is a delete that also walks
+ * off with a copy.
+ *
+ * None of the four is typing, which is the only thing this field exists to
+ * accept, so all four are refused down the same path as a disabled Backspace:
+ * the field flashes, the run counts a blocked keystroke, and the text does not
+ * move. Paste is deliberately absent — it has its own rule (`pasteAllowed`),
+ * because some boards do allow it.
+ */
+const WRECKING_CHORDS = new Set(['a', 'z', 'y', 'x']);
+
 export function TypingInput({
   typed,
   disabled,
@@ -112,6 +130,16 @@ export function TypingInput({
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
+    // Before anything else, including the layout remapping below: a chord is
+    // never a character, and this one must not reach the value at all.
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && WRECKING_CHORDS.has(e.key.toLowerCase())) {
+      e.preventDefault();
+      flashRejected();
+      // Reported as the chord it was. Handing the chip a bare "a" would show
+      // the candidate a letter they never typed, on a finger they never used.
+      onBlocked?.(`${e.metaKey ? '⌘' : 'Ctrl+'}${e.key.toUpperCase()}`);
+      return;
+    }
     // Remapped layouts translate the physical key and insert it themselves.
     if (keymap && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.length === 1) {
       const el = e.currentTarget;
@@ -160,6 +188,13 @@ export function TypingInput({
       onChange={handleChange}
       onKeyDown={handleKeyDown}
       onPaste={(e) => !pasteAllowed && e.preventDefault()}
+      // A drop is a paste that came in by mouse, so it answers to the same
+      // rule; a drag *out* of the field moves the transcript around, which is
+      // not typing however it is done. Cut is refused even from a menu, where
+      // no keystroke exists for the chord guard above to catch.
+      onDrop={(e) => !pasteAllowed && e.preventDefault()}
+      onDragStart={(e) => e.preventDefault()}
+      onCut={(e) => e.preventDefault()}
       onContextMenu={(e) => e.preventDefault()}
       spellCheck={false}
       aria-invalid={rejected || undefined}

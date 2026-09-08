@@ -155,6 +155,81 @@
     0 1px 0 rgb(255 255 255 / 0.05) inset, 0 16px 40px -12px rgb(0 0 0 / 0.7);
 }
 
+/* ── The exam client's own palette ────────────────
+   The skin imitates government exam software, and the point of it is that the
+   real client looks the same on every machine in every centre. That held for
+   the chrome, which paints its own slate, and broke everywhere inside it: the
+   typing field, the paper strip and the readings rail all ask for `bg-inset`,
+   `bg-surface` and `text-fg` like every other panel in the app — so on a dark
+   theme the candidate got a slate-grey exam window with a near-black text box
+   inside it. Half the screen was the client and half was Typly.
+
+   Every colour in the app is a role resolved through a custom property, so the
+   fix is to redefine the roles for this subtree rather than to thread a `skin`
+   prop through five components: anything rendered inside the client, now or
+   later, comes out in the client's colours without knowing it is in there.
+
+   Fixed light values on purpose. This is the one screen in the app that must
+   *not* follow the user's theme or accent — the blue is the institutional blue
+   of the software being imitated, and a candidate who practises in dark mode
+   still has to sit the real thing under fluorescent light on a white box.
+
+   The radii go square for the same reason, and the shadows go flat: the real
+   client has no rounded corners and no elevation anywhere. */
+.exam-client-skin {
+  color-scheme: light;
+
+  --canvas: #e2e8f0;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9;
+  --surface-3: #e2e8f0;
+  --field: #ffffff;
+  --inset: #ffffff;
+  --surface-hover: color-mix(in oklab, #0f172a 6%, transparent);
+
+  --line: #94a3b8;
+  --edge: #64748b;
+
+  --fg: #0f172a;
+  --fg-muted: #334155;
+  --fg-subtle: #64748b;
+
+  --accent: #1d4ed8;
+  --accent-hover: #1e40af;
+  --accent-fg: #ffffff;
+  --accent-text: #1e40af;
+  --accent-soft: #dbe6fe;
+  --accent-soft-fg: #1e3a8a;
+  --accent-ring: color-mix(in oklab, #1d4ed8 35%, transparent);
+  --accent-border: #93b4fd;
+  --accent2-soft: #e2e8f0;
+  --accent2-soft-fg: #334155;
+
+  --danger: #b91c1c;
+  --danger-hover: #dc2626;
+  --danger-fg: #ffffff;
+  --danger-text: #b91c1c;
+  --danger-soft: #fee2e2;
+  --danger-soft-fg: #991b1b;
+  --danger-ring: color-mix(in oklab, #dc2626 35%, transparent);
+  --danger-border: #fca5a5;
+
+  --warn: #a16207;
+  --warn-text: #a16207;
+  --warn-soft: #fef9c3;
+  --warn-soft-fg: #854d0e;
+  --warn-border: #fde047;
+
+  --radius-inner: 2px;
+  --radius-control: 2px;
+  --radius-panel: 3px;
+  --radius-well: 3px;
+
+  --elev-1: 0 0 #0000;
+  --elev-2: 0 1px 2px rgb(15 23 42 / 0.15);
+  --elev-3: 0 2px 6px rgb(15 23 42 / 0.2);
+}
+
 /* Register the roles as Tailwind colours. `inline` keeps each utility pointing
    at the raw custom property above, so [data-theme] swaps apply at runtime. */
 @theme inline {

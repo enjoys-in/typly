@@ -84,13 +84,28 @@ export function createAppMenu(handlers: AppMenuHandlers): void {
     {
       label: '&Edit',
       submenu: [
-        { role: 'undo' },
-        { role: 'redo' },
+        /*
+         * Four of these carry `registerAccelerator: false`, which shows the
+         * shortcut in the menu but does not bind it.
+         *
+         * A registered accelerator is consumed by the menu before the page ever
+         * sees the keystroke, so the typing field's guard against them could
+         * never fire on the desktop build: ⌘A selected a candidate's whole
+         * transcript mid-run and the next character replaced it, with the
+         * renderer none the wiser. Unregistered, the keystroke reaches the page
+         * — where Chromium still performs select-all, undo, redo and cut in
+         * every ordinary field, and the exam field alone refuses them.
+         *
+         * The menu items themselves keep working when clicked, which is the
+         * one route left for someone who genuinely means it.
+         */
+        { role: 'undo', registerAccelerator: false },
+        { role: 'redo', registerAccelerator: false },
         { type: 'separator' },
-        { role: 'cut' },
+        { role: 'cut', registerAccelerator: false },
         { role: 'copy' },
         { role: 'paste' },
-        { role: 'selectAll' },
+        { role: 'selectAll', registerAccelerator: false },
       ],
     },
     {

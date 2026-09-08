@@ -185,14 +185,19 @@ export function Confetti({ pieces = 90, durationMs = 3200 }: Props) {
 
   if (done || typeof document === 'undefined') return null;
 
-  // Portalled to the body: `fixed` is measured against the nearest ancestor
+  // Portalled out of the tree: `fixed` is measured against the nearest ancestor
   // holding a transform or filter, and half the app's panels have one.
+  //
+  // Into the fullscreen element when there is one. Only that element's subtree
+  // is painted while the Fullscreen API is engaged, so a canvas on the body
+  // would be perfectly correct and completely invisible — which is exactly the
+  // case a run sat in full screen, the way an exam-day rehearsal is run.
   return createPortal(
     <canvas
       ref={canvasRef}
       aria-hidden
       className="pointer-events-none fixed inset-0 z-40 h-full w-full print:hidden"
     />,
-    document.body,
+    document.fullscreenElement ?? document.body,
   );
 }

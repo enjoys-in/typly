@@ -753,7 +753,15 @@ export function ExamRun({ config, resume }: Props) {
       ref={rootRef}
       // In full screen this element *is* the screen, so it takes the canvas
       // and the dot lattice with it; embedded, it inherits the page's.
-      className={`flex flex-col gap-4 ${
+      //
+      // The exam-client palette goes on here rather than only on the chrome
+      // that draws it. The toolbar above the client and the commit bar below
+      // it are outside that card but part of the same screen, and left on the
+      // app's own theme they sandwiched a light slate exam window between two
+      // near-black bars with a green submit button — which is not what anyone
+      // is sitting in a test centre. (The chrome keeps the class too: it owns
+      // its palette wherever it is rendered.)
+      className={`flex flex-col gap-4 ${examClient ? 'exam-client-skin' : ''} ${
         fullscreen.isFullscreen
           ? 'dot-grid h-screen overflow-auto bg-canvas p-5'
           : 'h-[calc(100vh-4rem-var(--titlebar-inset,0px))]'
