@@ -43,6 +43,7 @@ import { keymapFor, isPhonetic } from '@/core/text/keymaps';
 import { isDevanagari } from '@/core/text/scripts';
 import { grossWpm } from '@/core/scoring/scoring';
 import { pacerAvailable } from '@/core/exam/pacer';
+import { withTimeout } from '@/core/exam/submit';
 import { depressionsOf } from '@/core/scoring/kdph';
 import { strictPossible } from '@/core/typing/strict';
 import {
@@ -51,7 +52,9 @@ import {
   ExamSkin,
   HindiFont,
   IDLE_SECONDS,
+  PAPER_ANALYSIS_TIMEOUT_MS,
   SETTING_KEY,
+  SUBMIT_STORAGE_TIMEOUT_MS,
   ScoringMode,
   TimingMode,
 } from '@/core/constants';
@@ -142,6 +145,10 @@ export function ExamRun({ config, resume }: Props) {
   const [layout, setLayout] = useState<ExamLayout>('split');
   const [lastKey, setLastKey] = useState('');
   const [blocked, setBlocked] = useState(0);
+  // The analysis between the last keystroke and the results screen takes a moment,
+  // and on a paper run it can take several. Without this the submit button looked
+  // idle while it worked, so it got pressed again.
+  const [submitting, setSubmitting] = useState(false);
   const keystrokes = useRef<Keystroke[]>(resume ? [...resume.keystrokes] : []);
   // Keystroke timestamps are relative to this. It is re-based the moment typing
   // actually starts, so time spent on the briefing or reading the passage does
@@ -215,142 +222,192 @@ export function ExamRun({ config, resume }: Props) {
       if (done.current) return;
       done.current = true;
       setRunning(false);
-      await clearSnapshot();
+      setSubmitting(true);
+      try {
+        // Cleanup, and nothing below depends on it: bounded so a stalled
+        // storage layer cannot sit between the last keystroke and the result.
+        await withTimeout(clearSnapshot(), undefined, SUBMIT_STORAGE_TIMEOUT_MS);
 
-      // Read the latest typed text from the ref — state may not have committed yet.
-      const finalTyped = typedRef.current;
+        // Read the latest typed text from the ref — state may not have committed yet.
+        const finalTyped = typedRef.current;
 
-      // Nothing typed → an abandoned attempt; don't record a zero-score test.
-      if (finalTyped.length === 0) {
-        navigate('/app', { replace: true });
-        return;
-      }
-
-      const totalMs = Math.max(elapsedMs, 1000);
-
-      // Paper mode has no passage to compare against, so the language decides
-      // what was wrong: the dictionary and the grammar checker.
-      let paper: PaperResult | undefined;
-      let mistakes: Mistake[] = [];
-      let result: TestResult;
-
-      if (config.paper) {
-        const spelling = await findMisspellings(finalTyped, platform.spell);
-        const grammar = await platform.grammar
-          .check(finalTyped, config.lang)
-          .catch(() => [] as GrammarIssue[]);
-        const findings = {
-          words: liveWordCount(finalTyped),
-          misspelled: spelling.misspelled,
-          misspelledCount: spelling.misspelledCount,
-          grammar,
-          spellChecked: spelling.checked,
-        };
-        result = scoreFreeform({
-          typed: finalTyped,
-          elapsedMs: totalMs,
-          keystrokes: keystrokes.current,
-          findings,
-          rules,
-        });
-        paper = {
-          typed: finalTyped,
-          words: findings.words,
-          misspelled: findings.misspelled,
-          grammar,
-          spellChecked: findings.spellChecked,
-        };
-        // A paper run's misspellings are stored as mistakes like any other
-        // run's, so the trainer, the review ladder and the dictation drill all
-        // learn from it. They used to end on this screen and go no further —
-        // and typing from a printed passage is precisely where spelling from
-        // memory is being tested, so it was the best evidence being thrown
-        // away. The results screen still shows the paper report, not a mistake
-        // list, so nothing is duplicated there.
-        mistakes = misspellingMistakes(finalTyped, findings.misspelled, (word) =>
-          platform.spell.suggest(word),
-        );
-      } else {
-        const { correctChars, incorrectChars } = evaluate(config.passage, finalTyped);
-        // Only the part of the passage that was reached is compared, so an
-        // unfinished (i.e. normal) attempt is not penalised for the untyped tail.
-        mistakes = findMistakes(attemptedSlice(config.passage, finalTyped), finalTyped);
-        const wrongWords = mistakes.length;
-        result = score({
-          charsTyped: finalTyped.length,
-          correctChars,
-          incorrectChars,
-          correctWords: Math.max(0, countWords(finalTyped) - wrongWords),
-          wrongWords,
-          backspaces: countBackspaces(keystrokes.current),
-          deletes: countDeletes(keystrokes.current),
-          errors: mistakes.length,
-          elapsedMs: totalMs,
-          rules,
-        });
-      }
-
-      notifier.notify(
-        t(
-          reason === 'time'
-            ? 'notify.timeUp'
-            : reason === 'away'
-              ? 'notify.submitted'
-              : 'notify.complete',
-        ),
-        t('notify.result', { wpm: result.netWpm, accuracy: result.accuracy }),
-      );
-      if (sound) platform.sound.play('complete');
-
-      // Lesson (curriculum or custom): record completion when its targets are met.
-      const lesson = config.lessonId
-        ? await resolveLessonTargets(config.lessonId, (k) => platform.repo.getSetting(k))
-        : undefined;
-      if (lesson && result.netWpm >= lesson.targetWpm && result.accuracy >= lesson.targetAccuracy) {
-        const raw = (await platform.repo.getSetting(SETTING_KEY.CompletedLessons)) ?? '[]';
-        let completed: string[] = [];
-        try {
-          completed = JSON.parse(raw);
-        } catch {
-          completed = [];
+        // Nothing typed → an abandoned attempt; don't record a zero-score test.
+        if (finalTyped.length === 0) {
+          navigate('/app', { replace: true });
+          return;
         }
-        if (!completed.includes(lesson.id)) {
-          await platform.repo.setSetting(
-            SETTING_KEY.CompletedLessons,
-            JSON.stringify([...completed, lesson.id]),
+
+        const totalMs = Math.max(elapsedMs, 1000);
+
+        // Paper mode has no passage to compare against, so the language decides
+        // what was wrong: the dictionary and the grammar checker.
+        let paper: PaperResult | undefined;
+        let mistakes: Mistake[] = [];
+        let result: TestResult;
+
+        if (config.paper) {
+          // Both of these are optional enrichment, and both can stall rather
+          // than fail — a dictionary fetch that never returns, a WASM linter
+          // that never loads, an AI provider that never answers. A run is marked
+          // on its keystrokes, so neither is allowed to hold the result back:
+          // whatever has not answered in time is reported as unchecked.
+          const spelling = await withTimeout(
+            findMisspellings(finalTyped, platform.spell),
+            { misspelled: [], misspelledCount: 0, checked: false },
+            PAPER_ANALYSIS_TIMEOUT_MS,
+          );
+          const grammar = await withTimeout(
+            platform.grammar.check(finalTyped, config.lang),
+            [] as GrammarIssue[],
+            PAPER_ANALYSIS_TIMEOUT_MS,
+          );
+          const findings = {
+            words: liveWordCount(finalTyped),
+            misspelled: spelling.misspelled,
+            misspelledCount: spelling.misspelledCount,
+            grammar,
+            spellChecked: spelling.checked,
+          };
+          result = scoreFreeform({
+            typed: finalTyped,
+            elapsedMs: totalMs,
+            keystrokes: keystrokes.current,
+            findings,
+            rules,
+          });
+          paper = {
+            typed: finalTyped,
+            words: findings.words,
+            misspelled: findings.misspelled,
+            grammar,
+            spellChecked: findings.spellChecked,
+          };
+          // A paper run's misspellings are stored as mistakes like any other
+          // run's, so the trainer, the review ladder and the dictation drill all
+          // learn from it. They used to end on this screen and go no further —
+          // and typing from a printed passage is precisely where spelling from
+          // memory is being tested, so it was the best evidence being thrown
+          // away. The results screen still shows the paper report, not a mistake
+          // list, so nothing is duplicated there.
+          mistakes = misspellingMistakes(finalTyped, findings.misspelled, (word) =>
+            platform.spell.suggest(word),
+          );
+        } else {
+          const { correctChars, incorrectChars } = evaluate(config.passage, finalTyped);
+          // Only the part of the passage that was reached is compared, so an
+          // unfinished (i.e. normal) attempt is not penalised for the untyped tail.
+          mistakes = findMistakes(attemptedSlice(config.passage, finalTyped), finalTyped);
+          const wrongWords = mistakes.length;
+          result = score({
+            charsTyped: finalTyped.length,
+            correctChars,
+            incorrectChars,
+            correctWords: Math.max(0, countWords(finalTyped) - wrongWords),
+            wrongWords,
+            backspaces: countBackspaces(keystrokes.current),
+            deletes: countDeletes(keystrokes.current),
+            errors: mistakes.length,
+            elapsedMs: totalMs,
+            rules,
+          });
+        }
+
+        notifier.notify(
+          t(
+            reason === 'time'
+              ? 'notify.timeUp'
+              : reason === 'away'
+                ? 'notify.submitted'
+                : 'notify.complete',
+          ),
+          t('notify.result', { wpm: result.netWpm, accuracy: result.accuracy }),
+        );
+        if (sound) platform.sound.play('complete');
+
+        // Lesson (curriculum or custom): record completion when its targets are
+        // met. Three more reads and writes, bounded like the rest — a lesson
+        // that fails to tick itself off is a far smaller loss than a result
+        // nobody gets to see.
+        await withTimeout(
+          (async () => {
+            const lesson = config.lessonId
+              ? await resolveLessonTargets(config.lessonId, (k) => platform.repo.getSetting(k))
+              : undefined;
+            if (
+              !lesson ||
+              result.netWpm < lesson.targetWpm ||
+              result.accuracy < lesson.targetAccuracy
+            ) {
+              return;
+            }
+            const raw = (await platform.repo.getSetting(SETTING_KEY.CompletedLessons)) ?? '[]';
+            let completed: string[] = [];
+            try {
+              completed = JSON.parse(raw);
+            } catch {
+              completed = [];
+            }
+            if (completed.includes(lesson.id)) return;
+            await platform.repo.setSetting(
+              SETTING_KEY.CompletedLessons,
+              JSON.stringify([...completed, lesson.id]),
+            );
+          })(),
+          undefined,
+          SUBMIT_STORAGE_TIMEOUT_MS,
+        );
+
+        const payload = {
+          createdAt: new Date().toISOString(),
+          documentId: config.documentId,
+          lang: config.lang,
+          sourceType: config.sourceType,
+          examBoard: config.board,
+          durationSec: Math.round(totalMs / 1000),
+          passageLen: config.passage.length,
+          result,
+          mistakes,
+          timeline: buildTimeline(keystrokes.current, totalMs),
+          keystrokes: keystrokes.current,
+        };
+
+        // Bounded for the same reason. A save that answers late still lands —
+        // the result screen simply has no id for it, which costs the review
+        // grading and the certificate for this one run, not the run itself.
+        const savedId = await withTimeout(
+          platform.repo.saveTest(payload).catch(() => null),
+          null,
+          SUBMIT_STORAGE_TIMEOUT_MS,
+        );
+
+        // One part of a split document: remember it, so the library and the
+        // dashboard resume at the *next* passage rather than this one.
+        if (config.documentId != null && config.partIndex != null) {
+          await withTimeout(
+            markPartDone(
+              (key) => platform.repo.getSetting(key),
+              (key, value) => platform.repo.setSetting(key, value),
+              config.documentId,
+              config.partIndex,
+            ),
+            undefined,
+            SUBMIT_STORAGE_TIMEOUT_MS,
           );
         }
+
+        setFinished({ payload, result, mistakes, savedId, ...(paper ? { paper } : {}) });
+        navigate('/app/result');
+      } catch {
+        /*
+         * A submission that fails must not end the run in a stopped clock and no
+         * result. The guard goes back so End & submit works again — the elapsed
+         * time is already frozen, so a second attempt scores the same run rather
+         * than a longer one, and everything it depends on (the saved keystrokes,
+         * the typed text) is still in hand.
+         */
+        done.current = false;
+        setSubmitting(false);
       }
-
-      const payload = {
-        createdAt: new Date().toISOString(),
-        documentId: config.documentId,
-        lang: config.lang,
-        sourceType: config.sourceType,
-        examBoard: config.board,
-        durationSec: Math.round(totalMs / 1000),
-        passageLen: config.passage.length,
-        result,
-        mistakes,
-        timeline: buildTimeline(keystrokes.current, totalMs),
-        keystrokes: keystrokes.current,
-      };
-
-      const savedId = await platform.repo.saveTest(payload).catch(() => null);
-
-      // One part of a split document: remember it, so the library and the
-      // dashboard resume at the *next* passage rather than this one.
-      if (config.documentId != null && config.partIndex != null) {
-        await markPartDone(
-          (key) => platform.repo.getSetting(key),
-          (key, value) => platform.repo.setSetting(key, value),
-          config.documentId,
-          config.partIndex,
-        ).catch(() => {});
-      }
-
-      setFinished({ payload, result, mistakes, savedId, ...(paper ? { paper } : {}) });
-      navigate('/app/result');
     },
     [config, rules, elapsedMs, platform, setFinished, navigate, notifier, sound, clearSnapshot, t],
   );
@@ -852,8 +909,8 @@ export function ExamRun({ config, resume }: Props) {
             )}
           </Button>
         )}
-        <Button onClick={() => void finish('manual')}>
-          {t('exam.endSubmit')}
+        <Button onClick={() => void finish('manual')} disabled={submitting}>
+          {submitting ? t('exam.submitting') : t('exam.endSubmit')}
           <ArrowRight size={16} />
         </Button>
       </div>

@@ -289,6 +289,27 @@ export const DICTATION_LIMIT_SEC = 3;
 export const DICTATION_LIMIT_SEC_MIN = 1;
 export const DICTATION_LIMIT_SEC_MAX = 30;
 
+/**
+ * How long a finished paper run waits for its optional analysis.
+ *
+ * Long enough for the grammar linter to load its WASM and read a full
+ * transcript on a slow machine; short enough that nobody watching a stopped
+ * clock concludes the app has died. Whatever has not answered by then is
+ * reported as unavailable and the result goes up without it.
+ */
+export const PAPER_ANALYSIS_TIMEOUT_MS = 8_000;
+
+/**
+ * How long submitting waits on the app's own storage.
+ *
+ * Clearing the checkpoint and saving the row are the only two awaits every run
+ * passes through, and IndexedDB can stall indefinitely rather than fail — a
+ * second window holding the database through a version change is enough to do
+ * it. Neither is what the candidate is waiting for, so both are bounded: the
+ * result is already computed in memory and belongs on screen either way.
+ */
+export const SUBMIT_STORAGE_TIMEOUT_MS = 3_000;
+
 // --- Breaks (RSI) ----------------------------------------------------------
 /** 20-20-20: every 20 minutes, look 20 feet away for 20 seconds. */
 export const BREAK_EYE_MINUTES = 20;

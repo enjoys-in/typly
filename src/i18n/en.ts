@@ -69,6 +69,7 @@ export const en = {
 
   // Exam screen
   'exam.endSubmit': 'End & submit',
+  'exam.submitting': 'Submitting…',
   'exam.pause': 'Pause',
   'exam.resume': 'Resume',
   'exam.paused': 'Paused',
@@ -625,7 +626,7 @@ export const en = {
   'paperReport.title': 'Spelling & grammar',
   'paperReport.wordsTyped': '{words} words typed from your paper',
   'paperReport.notChecked':
-    'No dictionary was available for this language, so spelling was not checked. Speed, words and corrections above are unaffected.',
+    'Spelling was not checked — either no dictionary was available for this language, or the check did not answer in time. Speed, words and corrections above are unaffected.',
   'paperReport.clean':
     'Nothing flagged — every word was in the dictionary and the grammar check found no issues.',
   'paperReport.notInDictionary': 'Words not in the dictionary ({count})',
@@ -1730,10 +1731,20 @@ export const en = {
     'Hide the typing box altogether and type into the passage, where the caret already is.',
   'changelog.paperMistakes':
     'Misspellings from a paper run now feed the trainer, the review queue and dictation practice.',
+  'changelog.drillTimed':
+    'Dictation practice shows each word instead of speaking it, and holds it to a clock — three seconds by default, one word at a time or the whole batch as a line, all of it configurable on the page.',
+  'changelog.examClientColours':
+    'The exam-software skin paints the typing box and its rails in the client\u2019s own colours now, whatever theme you use — no more black field inside a grey exam window.',
+  'changelog.examSelectAll':
+    'Select-all, undo and cut are refused inside a run: one stray \u2318A can no longer wipe everything you have typed.',
+  'changelog.submitTimeout':
+    'Submitting can no longer stall. The spell and grammar checks are given a limit, and your result goes up whether or not they answer.',
+  'changelog.motivation':
+    'A run that comes in under the cut-off gets a quote and a bit of ribbing, instead of silence.',
   'changelog.confetti':
     'Clear a board\u2019s cut-off, or finish a run without a single mistake, and the result screen throws confetti.',
   'changelog.dictateMistakes':
-    'Dictation practice: the words you miss, one at a time against a three-second clock — shown alone, or as a whole line to work along.',
+    'Dictation practice: the words you miss are read aloud, one at a time, for you to spell from memory.',
 } as const;
 
 export type TKey = keyof typeof en;

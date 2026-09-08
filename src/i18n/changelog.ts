@@ -20,10 +20,21 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    version: '0.8.0',
+    date: '2026-09-08',
+    items: [
+      'changelog.drillTimed',
+      'changelog.confetti',
+      'changelog.motivation',
+      'changelog.examClientColours',
+      'changelog.examSelectAll',
+      'changelog.submitTimeout',
+    ],
+  },
+  {
     version: '0.7.0',
     date: '2026-09-07',
     items: [
-      'changelog.confetti',
       'changelog.dictateMistakes',
       'changelog.paperMistakes',
       'changelog.resizeSplit',
