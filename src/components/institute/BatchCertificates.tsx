@@ -10,7 +10,7 @@ import {
 } from '@/core/institute/certificate';
 import { useInstituteBrand } from '@/hooks/useInstituteBrand';
 import { activeTheme, appConfig } from '@/config/appConfig';
-import { profileFor } from '@/core/scoring/examProfiles';
+import { examNameFor } from '@/core/scoring/examProfiles';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
 import { useT } from '@/i18n';
@@ -52,7 +52,7 @@ export function BatchCertificates({ rows }: Props) {
       const theme = activeTheme();
       drawCertificate(ctx, {
         name,
-        examName: profileFor(row.examBoard).name,
+        examName: examNameFor(row.examBoard, row.examName),
         netWpm: row.netWpm,
         accuracy: row.accuracy,
         errors: row.errors,
@@ -151,7 +151,7 @@ export function BatchCertificates({ rows }: Props) {
                   />
                 </td>
                 <td className="max-w-40 truncate py-1.5 pr-3 text-fg-muted">
-                  {profileFor(entry.row.examBoard).name}
+                  {examNameFor(entry.row.examBoard, entry.row.examName)}
                 </td>
                 <td className="py-1.5 text-right font-semibold tabular-nums text-accent-text">
                   {entry.row.netWpm}

@@ -19,6 +19,7 @@ import { applyDifficulty } from '@/core/scoring/scoring';
 import type { PaperSection } from '@/core/types';
 import { useAsync } from '@/hooks/useAsync';
 import {
+  CUSTOM_EXAM_NAME_MAX,
   DEFAULT_DURATIONS_MIN,
   Difficulty,
   ExamBoard,
@@ -79,6 +80,12 @@ export function ExamSetup() {
   const profile = profileFor(settings.board);
   const dictation = dictationFor(settings.board);
   const kdph = isKdph(settings.board);
+  // The Custom profile is the one board with no exam behind it, so the typist
+  // names it themselves — and the name is required, because it is what the
+  // result header, the certificate and the history column will read.
+  const isCustom = settings.board === ExamBoard.Custom;
+  const customName = settings.customExamName.trim();
+  const needsName = isCustom && customName.length === 0;
 
   // Saved paragraphs, so a multi-section paper can fill its other sections
   // from the library rather than asking for an import mid-setup.
@@ -152,12 +159,12 @@ export function ExamSetup() {
   }
 
   function start() {
-    if (!draft) return;
+    if (!draft || needsName) return;
     const base = baseConfig();
     // A split document runs as a series: finishing one part starts the next,
     // and each finished part is recorded so the run can be picked up later.
     if (split) {
-      startSeries(seriesFrom(draft), base);
+      startSeries(seriesFrom(draft), { ...base, continuous: false });
       navigate('/app/exam');
       return;
     }
@@ -175,7 +182,14 @@ export function ExamSetup() {
 
   /** A multi-section paper: one series, each section with its own settings. */
   function startPaper(template: PaperTemplate, sections: PaperSection[]) {
-    startSeries(paperSeries(sections), { ...baseConfig(), board: template.board });
+    // A paper names itself from its own board, so the Custom name does not
+    // apply to it and cannot be what is missing.
+    startSeries(paperSeries(sections), {
+      ...baseConfig(),
+      board: template.board,
+      examName: null,
+      continuous: false,
+    });
     navigate('/app/exam');
   }
 
@@ -257,6 +271,33 @@ export function ExamSetup() {
                 })}
           </p>
         </Field>
+
+        {/* Only for Custom, and required there: "Custom" is a placeholder, not
+            the name of the exam anybody is actually sitting. */}
+        {isCustom && (
+          <Field label={t('setup.customName')}>
+            <input
+              value={settings.customExamName}
+              onChange={(e) => settings.setCustomExamName(e.target.value)}
+              placeholder={t('setup.customNamePlaceholder')}
+              maxLength={CUSTOM_EXAM_NAME_MAX}
+              required
+              aria-invalid={needsName || undefined}
+              aria-describedby="custom-name-hint"
+              className={`w-full max-w-xl rounded-control border bg-field px-3 py-2 text-sm outline-none transition-colors focus:ring-4 ${
+                needsName
+                  ? 'border-danger focus:border-danger focus:ring-danger-ring'
+                  : 'border-edge focus:border-accent focus:ring-accent-ring'
+              }`}
+            />
+            <p
+              id="custom-name-hint"
+              className={`mt-1 text-xs ${needsName ? 'text-danger-text' : 'text-fg-muted'}`}
+            >
+              {needsName ? t('setup.customNameRequired') : t('setup.customNameHint')}
+            </p>
+          </Field>
+        )}
 
         <Field label={t('setup.language')}>
           <select
@@ -488,11 +529,27 @@ export function ExamSetup() {
               checked={settings.examLock}
               onChange={settings.setExamLock}
             />
+            {/* Paper mode has no passage to run out of, and a split document
+                already continues into its own next part, so neither offers
+                this. */}
+            {!draft.paper && !split && (
+              <Toggle
+                label={t('setup.continuous')}
+                hint={t('setup.continuousHint')}
+                checked={settings.continuous}
+                onChange={settings.setContinuous}
+              />
+            )}
           </div>
         </Field>
 
-        <div className="flex justify-end">
-          <Button onClick={start}>{t('setup.startExam')}</Button>
+        <div className="flex items-center justify-end gap-3">
+          {needsName && (
+            <span className="text-xs text-danger-text">{t('setup.customNameRequired')}</span>
+          )}
+          <Button onClick={start} disabled={needsName}>
+            {t('setup.startExam')}
+          </Button>
         </div>
       </Card>
     </div>

@@ -4,7 +4,7 @@ import { usePlatform } from '@/platform/PlatformContext';
 import { useSettingsStore } from '@/store/settingsStore';
 import type { TestRow } from '@/core/types';
 import { TestStatus } from '@/core/constants';
-import { profileFor } from '@/core/scoring/examProfiles';
+import { examNameFor } from '@/core/scoring/examProfiles';
 import {
   currentStreak,
   realAttempts,
@@ -20,6 +20,7 @@ import { fatigueCurve, longitudinalKeys } from '@/core/analysis/longitudinal';
 import { KEYSTROKE_SCAN_TESTS } from '@/core/constants';
 import { useAsync } from '@/hooks/useAsync';
 import { LongitudinalHeatmap } from '@/components/analysis/LongitudinalHeatmap';
+import { PracticeTimeCard } from '@/components/analysis/PracticeTimeCard';
 import { FatigueCurveCard } from '@/components/analysis/FatigueCurveCard';
 import { EligibilityCard } from '@/components/eligibility/EligibilityCard';
 import { RecapCard } from '@/components/achievements/RecapCard';
@@ -139,6 +140,8 @@ export function Progress() {
             />
           </div>
 
+          <PracticeTimeCard rows={rows} />
+
           <Card className="grid grid-cols-2 gap-6 sm:grid-cols-4">
             <Stat label={t('progress.testsTaken')} value={String(stats.total)} />
             <Stat label={t('progress.avgWpm')} value={String(stats.avgWpm)} />
@@ -226,7 +229,7 @@ function Leaderboard({ runs }: { runs: TestRow[] }) {
           </span>
           <span className="w-14 text-lg font-bold text-accent-text">{r.netWpm}</span>
           <span className="hidden w-14 text-sm text-fg-muted sm:inline">{r.accuracy}%</span>
-          <span className="flex-1 truncate text-sm">{profileFor(r.examBoard).name}</span>
+          <span className="flex-1 truncate text-sm">{examNameFor(r.examBoard, r.examName)}</span>
           <span className="text-xs text-fg-subtle">{d.dateShort(r.createdAt)}</span>
         </li>
       ))}

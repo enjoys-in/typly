@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Printer, Repeat, Share2 } from 'lucide-react';
+import { BookOpen, Printer, Repeat, Share2 } from 'lucide-react';
 import { usePlatform } from '@/platform/PlatformContext';
 import { useExamStore } from '@/store/examStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { ScoringMode, SETTING_KEY, SERIES_ADVANCE_SECONDS, TestStatus } from '@/core/constants';
-import { profileFor, shortNameFor } from '@/core/scoring/examProfiles';
+import { examNameFor, profileFor, shortNameFor } from '@/core/scoring/examProfiles';
 import { applyDifficulty, applyMode } from '@/core/scoring/scoring';
 import { isDevanagari } from '@/core/text/scripts';
 import { computeBadges, type Badge } from '@/core/achievements/badges';
@@ -37,6 +37,7 @@ import { PaperSectionsReport } from '@/components/result/PaperSectionsReport';
 import { useEndlessRun } from '@/hooks/useEndlessRun';
 import { useAsync } from '@/hooks/useAsync';
 import { useTrainerDrill } from '@/hooks/useTrainerDrill';
+import { useNextFromLibrary } from '@/hooks/useNextFromLibrary';
 import { gradeRunAgainstDeck } from '@/hooks/useReviewDeck';
 import { useDateFormat } from '@/hooks/useDateFormat';
 import { HindiFont } from '@/core/constants';
@@ -70,6 +71,8 @@ export function Results() {
   const endAdaptive = useExamStore((s) => s.endAdaptive);
   const endless = useEndlessRun();
   const drill = useTrainerDrill();
+  // The paragraph after this one in the library, ready to run on the same rules.
+  const fromLibrary = useNextFromLibrary(config);
   const notifier = useNotify();
   const dailyGoal = useSettingsStore((s) => s.dailyGoal);
   const hindiFont = useSettingsStore((s) => s.hindiFont);
@@ -98,6 +101,9 @@ export function Results() {
 
   const board = finished?.payload.examBoard;
   const savedId = finished?.savedId ?? null;
+  // What this run was called. A Custom run carries the name the typist gave it
+  // at setup; every graded board is named by its profile.
+  const examName = board ? examNameFor(board, finished?.payload.examName) : '';
   // The rules this run was graded against — difficulty and mode included.
   const rules = useMemo(() => {
     if (!board) return null;
@@ -402,8 +408,7 @@ export function Results() {
         <div className="mb-4 hidden print:block">
           <h2 className="text-xl font-bold">{t('result.printHeading')}</h2>
           <p className="text-sm">
-            {profileFor(finished.payload.examBoard).name} ·{' '}
-            {d.dateTime(finished.payload.createdAt)}
+            {examName} · {d.dateTime(finished.payload.createdAt)}
           </p>
         </div>
         <Card>
@@ -425,7 +430,7 @@ export function Results() {
       <ShareCard
         wpm={finished.result.netWpm}
         accuracy={finished.result.accuracy}
-        examName={shortNameFor(finished.payload.examBoard)}
+        examName={shortNameFor(finished.payload.examBoard, finished.payload.examName)}
         streak={history.data?.streak ?? 0}
         passed={finished.result.status === TestStatus.Passed}
         defaultName={account?.name ?? ''}
@@ -442,7 +447,7 @@ export function Results() {
         <CutoffCard
           result={finished.result}
           rules={rules}
-          examName={profileFor(finished.payload.examBoard).name}
+          examName={examName}
           history={history.data?.priorWpm ?? []}
         />
       )}
@@ -526,8 +531,21 @@ export function Results() {
           </>
         ) : (
           <>
-            <Button onClick={again}>{t('result.newTest')}</Button>
-            <Button variant="secondary" onClick={() => navigate('/app/history')}>
+            {/* The momentum a finished paper leaves is worth more than a menu.
+                Offered only when the library actually has another paragraph to
+                give, and never mid-series — the series has its own next. */}
+            {fromLibrary.next && !hasNext && (
+              <Button onClick={fromLibrary.start} disabled={fromLibrary.starting}>
+                <BookOpen size={16} /> {t('result.nextFromLibrary')}
+              </Button>
+            )}
+            <Button
+              variant={fromLibrary.next && !hasNext ? 'secondary' : 'primary'}
+              onClick={again}
+            >
+              {t('result.newTest')}
+            </Button>
+            <Button variant="ghost" onClick={() => navigate('/app/history')}>
               {t('result.viewHistory')}
             </Button>
           </>

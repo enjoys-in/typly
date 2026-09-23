@@ -84,6 +84,7 @@ export class BrowserRepository implements Repository {
       documentId: payload.documentId,
       lang: payload.lang,
       examBoard: payload.examBoard,
+      examName: payload.examName ?? null,
       grossWpm: result.grossWpm,
       netWpm: result.netWpm,
       accuracy: result.accuracy,

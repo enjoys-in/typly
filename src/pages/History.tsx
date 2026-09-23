@@ -6,7 +6,7 @@ import { useExamStore } from '@/store/examStore';
 import { useAsync } from '@/hooks/useAsync';
 import type { TestRow } from '@/core/types';
 import { TestStatus } from '@/core/constants';
-import { profileFor } from '@/core/scoring/examProfiles';
+import { examNameFor } from '@/core/scoring/examProfiles';
 import { ProgressChart } from '@/components/history/ProgressChart';
 import { ReplayModal } from '@/components/result/ReplayModal';
 import { BatchCertificates } from '@/components/institute/BatchCertificates';
@@ -29,7 +29,7 @@ function columnsFor(t: (key: TKey) => string, d: DateFormatter): Column<TestRow>
     {
       key: 'exam',
       header: t('history.colExam'),
-      render: (r) => profileFor(r.examBoard).name,
+      render: (r) => examNameFor(r.examBoard, r.examName),
     },
     {
       key: 'netWpm',

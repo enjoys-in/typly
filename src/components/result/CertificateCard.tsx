@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Lock } from 'lucide-react';
 import type { FinishedExam } from '@/store/examStore';
 import { useAuthStore } from '@/store/authStore';
-import { profileFor } from '@/core/scoring/examProfiles';
+import { examNameFor } from '@/core/scoring/examProfiles';
 import { featuresFor } from '@/core/profile/profile';
 import {
   CERT_H,
@@ -35,7 +35,7 @@ export function CertificateCard({ finished }: { finished: FinishedExam }) {
   const [name, setName] = useState(account?.name ?? '');
   const unlocked = featuresFor(account);
   const result = finished.result;
-  const examName = profileFor(finished.payload.examBoard).name;
+  const examName = examNameFor(finished.payload.examBoard, finished.payload.examName);
   const dateStr = d.date(finished.payload.createdAt);
 
   const draw = useCallback(() => {

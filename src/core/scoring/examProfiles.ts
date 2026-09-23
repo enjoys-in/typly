@@ -216,11 +216,35 @@ export function profileFor(board: ExamBoard): ExamProfile {
 }
 
 /**
+ * What to call this run: the user's own name where they gave one, the board's
+ * otherwise.
+ *
+ * Only the Custom profile is named by its user — it is the one board with no
+ * real exam behind it, so "Custom" is all the profile can offer. Everywhere a
+ * run is labelled (the result header, the certificate, the history column)
+ * goes through here, so a named Custom run reads as the exam it was set up to
+ * rehearse rather than as the word "Custom".
+ *
+ * An absent name falls back rather than blanking the label: rows saved before
+ * the field existed, and every graded board, have none.
+ */
+export function examNameFor(board: ExamBoard, custom?: string | null): string {
+  const name = custom?.trim();
+  if (name && board === ExamBoard.Custom) return name;
+  return profileFor(board).name;
+}
+
+/**
  * The exam's name with its paper dropped — "SSC CHSL — DEST (LDC/DEO)" becomes
  * "SSC CHSL". Full names are right on a setup screen and far too long for a
  * notification title or a countdown headline.
  */
-export function shortNameFor(board: ExamBoard): string {
+export function shortNameFor(board: ExamBoard, custom?: string | null): string {
+  const named = examNameFor(board, custom);
+  if (named !== profileFor(board).name) {
+    const [head] = named.split('—');
+    return (head ?? '').trim() || named;
+  }
   const [head] = profileFor(board).name.split('—');
   return (head ?? '').trim() || profileFor(board).name;
 }

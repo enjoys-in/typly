@@ -39,6 +39,7 @@ import {
 import { profileFor } from '@/core/scoring/examProfiles';
 import { resolveLessonTargets } from '@/core/lessons/customLessons';
 import { markPartDone } from '@/core/library/progress';
+import { nextInSequence } from '@/core/library/sequence';
 import { keymapFor, isPhonetic } from '@/core/text/keymaps';
 import { isDevanagari } from '@/core/text/scripts';
 import { grossWpm } from '@/core/scoring/scoring';
@@ -52,6 +53,7 @@ import { depressionsOf } from '@/core/scoring/kdph';
 import { strictPossible } from '@/core/typing/strict';
 import {
   CHARS_PER_WORD,
+  CONTINUOUS_LOOKAHEAD_CHARS,
   COUNT_IN_SEC,
   ExamMode,
   ExamSkin,
@@ -133,6 +135,19 @@ export function ExamRun({ config, resume }: Props) {
   // Captured once: the checkpoint is consumed below, but the run stays labelled.
   const [resumed] = useState(resume !== null);
   const [typed, setTyped] = useState(resume?.typed ?? '');
+  /**
+   * The text being typed against.
+   *
+   * Ordinarily this is `config.passage` and never changes. In continuous mode
+   * it grows: each time the caret comes within sight of the end, the next
+   * paragraph in the library is joined on, so a session is bounded by the clock
+   * (or the typist) instead of by where one paragraph happened to stop. Held in
+   * state *and* a ref — the ref so the keystroke logger and the submission read
+   * the current text without re-subscribing, the state so what is on screen
+   * repaints when it grows.
+   */
+  const [passage, setPassage] = useState(config.passage);
+  const passageRef = useRef(config.passage);
   const [running, setRunning] = useState(true);
   const [paused, setPaused] = useState(false);
   const [layout, setLayout] = useState<ExamLayout>('split');
@@ -223,9 +238,69 @@ export function ExamRun({ config, resume }: Props) {
     else beginRun();
   }, [config.readingSec, beginRun]);
 
+  /**
+   * Continuous mode's supply of paragraphs.
+   *
+   * Read once, when the run starts, and never again: reaching for the library
+   * at the moment the passage runs out would put a storage round-trip between
+   * two keystrokes, which is exactly the hitch this mode exists to avoid. Paper
+   * mode has no passage to extend, and an ordinary run never asks.
+   */
+  const continuous = config.continuous === true && !config.paper;
+  const supply = useAsync(
+    async () => (continuous ? await platform.repo.listDocuments() : []),
+    [continuous, platform],
+  );
+  // Paragraphs already joined on, so the run works through the library instead
+  // of looping on whichever one comes first.
+  const usedDocs = useRef<number[]>(config.documentId != null ? [config.documentId] : []);
+  const [joined, setJoined] = useState(0);
+
+  /**
+   * Join the next library paragraph onto the passage.
+   *
+   * Returns false when the library has nothing left to add, which is how the
+   * caller knows to end the run the ordinary way. The join is a single space,
+   * not a paragraph break: Enter can be disallowed by the exam rules, and a run
+   * that extended itself with a newline nobody was allowed to type would sit
+   * there refusing every keystroke.
+   */
+  const extend = useCallback((): boolean => {
+    const documents = supply.data;
+    if (!continuous || !documents || documents.length === 0) return false;
+    const previous = usedDocs.current[usedDocs.current.length - 1] ?? config.documentId ?? null;
+    const next = nextInSequence(documents, previous, {
+      lang: config.lang,
+      skipIds: usedDocs.current,
+    });
+    if (!next) return false;
+    usedDocs.current = [...usedDocs.current, next.id];
+    // The ref is updated synchronously, before the state: the keystroke that
+    // triggered this is still being handled, and it is about to ask how long
+    // the passage now is.
+    passageRef.current = `${passageRef.current.trimEnd()} ${next.content.trim()}`;
+    setPassage(passageRef.current);
+    setJoined((n) => n + 1);
+    return true;
+  }, [continuous, supply.data, config.documentId, config.lang]);
+
+  /**
+   * The config the checkpoint records.
+   *
+   * In continuous mode it has to carry the *grown* passage, or a resumed run
+   * would be marked against a passage shorter than what has already been typed.
+   * Memoised on the passage rather than built inline: the snapshot effect keys
+   * off this object's identity, and a fresh one per render would tear the save
+   * interval down — and flush a write — on every keystroke.
+   */
+  const snapshotConfig = useMemo(
+    () => (continuous ? { ...config, passage } : config),
+    [continuous, config, passage],
+  );
+
   const clearSnapshot = useExamSnapshot({
     active: typing,
-    config,
+    config: snapshotConfig,
     read: () => ({ typed: typedRef.current, elapsedMs, keystrokes: keystrokes.current }),
   });
 
@@ -305,10 +380,14 @@ export function ExamRun({ config, resume }: Props) {
             platform.spell.suggest(word),
           );
         } else {
-          const { correctChars, incorrectChars } = evaluate(config.passage, finalTyped);
+          // The passage as it now stands: in continuous mode it has grown
+          // since the run began, and the marking has to be against what was
+          // actually on screen.
+          const finalPassage = passageRef.current;
+          const { correctChars, incorrectChars } = evaluate(finalPassage, finalTyped);
           // Only the part of the passage that was reached is compared, so an
           // unfinished (i.e. normal) attempt is not penalised for the untyped tail.
-          mistakes = findMistakes(attemptedSlice(config.passage, finalTyped), finalTyped);
+          mistakes = findMistakes(attemptedSlice(finalPassage, finalTyped), finalTyped);
           const wrongWords = mistakes.length;
           result = score({
             charsTyped: finalTyped.length,
@@ -376,7 +455,8 @@ export function ExamRun({ config, resume }: Props) {
           sourceType: config.sourceType,
           examBoard: config.board,
           durationSec: Math.round(totalMs / 1000),
-          passageLen: config.passage.length,
+          examName: config.examName ?? null,
+          passageLen: passageRef.current.length,
           result,
           mistakes,
           timeline: buildTimeline(keystrokes.current, totalMs),
@@ -431,8 +511,8 @@ export function ExamRun({ config, resume }: Props) {
   // Passage progress on the dock / taskbar icon, so a running test stays
   // visible from another window. Stepped to whole percent, so a fast typist
   // doesn't push an IPC message per keystroke.
-  const progressPct = config.passage.length
-    ? Math.floor((typed.length / config.passage.length) * 100)
+  const progressPct = passage.length
+    ? Math.floor((typed.length / passage.length) * 100)
     : 0;
   useEffect(() => {
     if (typing) platform.shell.setProgress(progressPct / 100);
@@ -524,7 +604,7 @@ export function ExamRun({ config, resume }: Props) {
       // much it replaced are judged and logged.
       const output = keymap && e.key.length === 1 ? keymap.resolve(e.key, typedRef.current) : null;
       const replaced = output?.replace ?? 0;
-      const expected = config.passage[index - replaced] ?? '';
+      const expected = passageRef.current[index - replaced] ?? '';
       const logged = output?.text ?? e.key;
       const correct =
         output !== null ? expected !== '' && logged.startsWith(expected) : e.key === expected;
@@ -538,7 +618,7 @@ export function ExamRun({ config, resume }: Props) {
         ...(replaced > 0 ? { replaced } : {}),
       });
     },
-    [config.passage, ping, sound, platform, keymap, startTyping],
+    [ping, sound, platform, keymap, startTyping],
   );
 
   const onChange = useCallback(
@@ -547,9 +627,23 @@ export function ExamRun({ config, resume }: Props) {
       setTyped(next);
       ping();
       // Paper mode has no end to reach — only the clock or the user stops it.
-      if (!config.paper && next.length >= config.passage.length) void finish('complete');
+      if (config.paper) return;
+      // Continuous mode joins the next paragraph on while the caret is still a
+      // line or two short of the end, so the text is already there by the time
+      // it is reached and the rhythm never breaks. Only when the library has
+      // nothing left to give does the run end the ordinary way.
+      if (continuous && passageRef.current.length - next.length <= CONTINUOUS_LOOKAHEAD_CHARS) {
+        extend();
+      }
+      if (next.length >= passageRef.current.length) {
+        // A continuous run must not be ended by its own supply being a moment
+        // late: while the library read is still in flight there may well be
+        // another paragraph coming, and the next keystroke will ask again.
+        if (continuous && supply.loading) return;
+        void finish('complete');
+      }
     },
-    [config.paper, config.passage.length, finish, ping],
+    [config.paper, continuous, extend, finish, ping, supply.loading],
   );
 
   // A refused keystroke is silent otherwise, which reads as a broken input.
@@ -583,7 +677,7 @@ export function ExamRun({ config, resume }: Props) {
   // only if the passage actually *is* one. A prose passage on a KDPH board still
   // scores in depressions; it just reads better in the ordinary passage view.
   const kdphMode = rules.scoringMode === ScoringMode.Kdph && !config.paper;
-  const tabular = kdphMode && config.passage.includes('\t');
+  const tabular = kdphMode && passage.includes('\t');
   const examClient = config.skin === ExamSkin.ExamClient;
   // Paper mode has no passage on screen, so nothing competes with the typing
   // field for the column: it becomes a full-height page, with the counts on one
@@ -639,8 +733,8 @@ export function ExamRun({ config, resume }: Props) {
       enterEnabled={config.enterEnabled}
       enforceCorrect={enforceCorrect}
       strict={strict}
-      passage={config.passage}
-      expectedChar={config.passage[typed.length]}
+      passage={passage}
+      expectedChar={passage[typed.length]}
       phonetic={phonetic}
       keymap={keymap}
       fontFamily={fontFamily}
@@ -662,7 +756,7 @@ export function ExamRun({ config, resume }: Props) {
           rules={rules}
           elapsedMs={elapsedMs}
           typedChars={typed.length}
-          passageLength={config.passage.length}
+          passageLength={passage.length}
         />
       )}
       {ghost.data && typing && (
@@ -671,7 +765,7 @@ export function ExamRun({ config, resume }: Props) {
           ghostWpm={ghost.data.wpm}
           elapsedMs={elapsedMs}
           typedChars={typed.length}
-          passageLength={config.passage.length}
+          passageLength={passage.length}
         />
       )}
     </>
@@ -720,7 +814,7 @@ export function ExamRun({ config, resume }: Props) {
                    table so it looks like the form a real candidate is copying
                    from. */
                 <DataEntryPanel
-                  source={config.passage}
+                  source={passage}
                   typed={typed}
                   elapsedMs={elapsedMs}
                   targetKdph={rules.minKdph}
@@ -729,14 +823,30 @@ export function ExamRun({ config, resume }: Props) {
                 />
               ) : (
                 <PassageView
-                  passage={config.passage}
+                  passage={passage}
                   typed={typed}
                   className="min-h-0 flex-1"
                   fontScale={examZoom}
                   blind={blind}
                   fontFamily={fontFamily}
                   caret={typing && !blind}
-                  toolbar={<ZoomControl zoom={examZoom} onChange={setExamZoom} />}
+                  toolbar={
+                    <div className="flex items-center gap-2">
+                      {/* A run whose passage keeps growing must say so, or the
+                          progress bar sliding backwards reads as a bug. */}
+                      {continuous && (
+                        <span
+                          className="rounded-full bg-accent-soft px-2 py-0.5 text-[10px] font-bold tracking-wide text-accent-soft-fg uppercase tabular-nums"
+                          title={t('exam.continuousHint')}
+                        >
+                          {joined > 0
+                            ? t('exam.continuousJoined', { count: joined })
+                            : t('exam.continuousOn')}
+                        </span>
+                      )}
+                      <ZoomControl zoom={examZoom} onChange={setExamZoom} />
+                    </div>
+                  }
                 />
               )}
             </div>
@@ -761,7 +871,7 @@ export function ExamRun({ config, resume }: Props) {
         )}
         {keyboardVisible ? (
           <Keyboard
-            nextChar={config.passage[typed.length]}
+            nextChar={passage[typed.length]}
             fontFamily={keymap ? undefined : keyFontFamily}
             keymap={keymap}
           />
@@ -782,7 +892,7 @@ export function ExamRun({ config, resume }: Props) {
       {!notepad && (
         <div className={`${statsVisible ? '' : 'hidden'} ${isSplit ? '' : 'shrink-0'}`}>
           <LiveStats
-            passage={config.passage}
+            passage={passage}
             typed={typed}
             elapsedMs={elapsedMs}
             targetWpm={rules.minWpm}
@@ -809,7 +919,7 @@ export function ExamRun({ config, resume }: Props) {
   if (phase === 'dictation' && config.dictation) {
     return (
       <DictationStage
-        passage={config.passage}
+        passage={passage}
         spec={config.dictation}
         lang={config.lang}
         onDone={leaveDictation}

@@ -19,11 +19,12 @@ import { useReviewDeck } from '@/hooks/useReviewDeck';
 import { usePaperRun } from '@/hooks/usePaperRun';
 import { clearExamSnapshot, readExamSnapshot } from '@/hooks/useExamSnapshot';
 import { readSampleDocument, seedSampleLibrary } from '@/hooks/useSampleLibrary';
-import { profileFor } from '@/core/scoring/examProfiles';
+import { examNameFor, profileFor } from '@/core/scoring/examProfiles';
 import { readinessFor } from '@/core/exam/readiness';
 import { parseTarget, serializeTarget, type ExamTarget } from '@/core/exam/target';
 import { weakKeys } from '@/core/analysis/analysis';
 import { currentStreak, realAttempts, testsToday, totalPoints, wpmAverages } from '@/core/stats';
+import { practiceTotals } from '@/core/analysis/practiceTime';
 import { SETTING_KEY, TestStatus } from '@/core/constants';
 import { firstName } from '@/core/profile/profile';
 import { greetingFor } from '@/core/profile/greeting';
@@ -84,6 +85,8 @@ export function Dashboard() {
       averages: wpmAverages(overview.data.rows),
       streak: currentStreak(real),
       today: testsToday(real),
+      // Time at the keyboard today, beside the count of runs.
+      todaySeconds: practiceTotals(real).today.seconds,
       weakest: weakKeys(overview.data.mistakes, 5),
     };
   }, [overview.data]);
@@ -211,7 +214,12 @@ export function Dashboard() {
       ) : summary ? (
         <>
           <div className="grid gap-5 lg:grid-cols-2">
-            <GoalCard today={summary.today} goal={dailyGoal} streak={summary.streak} />
+            <GoalCard
+              today={summary.today}
+              goal={dailyGoal}
+              streak={summary.streak}
+              todaySeconds={summary.todaySeconds}
+            />
             <Card className="grid grid-cols-2 gap-5 sm:grid-cols-4 lg:grid-cols-2">
               <Stat label={t('dashboard.bestWpm')} value={String(summary.bestWpm)} accent />
               <Stat label={t('dashboard.avgAccuracy')} value={`${summary.avgAccuracy}%`} />
@@ -227,7 +235,9 @@ export function Dashboard() {
               <h2 className="text-[0.9375rem] font-bold tracking-tight">{t('dashboard.lastTest')}</h2>
               <div className="flex items-baseline justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium">{profileFor(summary.last.examBoard).name}</p>
+                  <p className="text-sm font-medium">
+                    {examNameFor(summary.last.examBoard, summary.last.examName)}
+                  </p>
                   <p className="text-xs text-fg-muted">
                     {d.dateTime(summary.last.createdAt)}
                   </p>

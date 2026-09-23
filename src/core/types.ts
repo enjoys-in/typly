@@ -109,6 +109,11 @@ export interface SaveTestPayload {
   lang: Lang;
   sourceType: SourceType;
   examBoard: ExamBoard;
+  /**
+   * What the user called this exam, on the one profile that has no name of its
+   * own. Null on every graded board, whose name comes from its profile.
+   */
+  examName?: string | null;
   durationSec: number;
   passageLen: number;
   result: TestResult;
@@ -124,6 +129,8 @@ export interface TestRow {
   documentId: number | null;
   lang: Lang;
   examBoard: ExamBoard;
+  /** The user's own name for a Custom run; absent on rows saved before it existed. */
+  examName?: string | null;
   grossWpm: number;
   netWpm: number;
   accuracy: number;
@@ -215,6 +222,19 @@ export interface ExamConfig {
    * every ordinary run.
    */
   dictation: DictationSpec | null;
+  /**
+   * The user's own name for this exam, entered on setup when the profile is
+   * Custom. Null everywhere else: a graded board is named by its profile, and
+   * an alias for one would put a name on a certificate the board never issued.
+   */
+  examName?: string | null;
+  /**
+   * Continuous mode: reaching the end of the passage joins the next paragraph
+   * from the library onto it instead of ending the run, so a session is bounded
+   * by the clock (or the typist) rather than by how long one paragraph happens
+   * to be.
+   */
+  continuous?: boolean;
   /** Set when this run is a curriculum lesson, so completion can be recorded. */
   lessonId?: string | null;
   /**

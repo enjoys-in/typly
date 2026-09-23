@@ -40,6 +40,8 @@ interface TestRow {
   documentId: number | null;
   lang: string;
   examBoard: string;
+  /** The user's own name for a Custom run; null on rows saved before it existed. */
+  examName?: string | null;
   grossWpm: number;
   netWpm: number;
   accuracy: number;
@@ -52,6 +54,7 @@ interface SaveTestPayload {
   documentId: number | null;
   lang: string;
   examBoard: string;
+  examName?: string | null;
   durationSec: number;
   result: TestResultRow;
   mistakes: Mistake[];
@@ -95,8 +98,8 @@ interface BackupBundle {
 const SCHEMA = `
 CREATE TABLE IF NOT EXISTS tests (
   id INTEGER PRIMARY KEY AUTOINCREMENT, createdAt TEXT NOT NULL, documentId INTEGER,
-  lang TEXT NOT NULL, examBoard TEXT NOT NULL, grossWpm REAL, netWpm REAL, accuracy REAL,
-  errors INTEGER, durationSec INTEGER, status TEXT);
+  lang TEXT NOT NULL, examBoard TEXT NOT NULL, examName TEXT, grossWpm REAL, netWpm REAL,
+  accuracy REAL, errors INTEGER, durationSec INTEGER, status TEXT);
 CREATE TABLE IF NOT EXISTS results (
   testId INTEGER PRIMARY KEY, grossWpm REAL, netWpm REAL, accuracy REAL, charsTyped INTEGER,
   correctChars INTEGER, incorrectChars INTEGER, correctWords INTEGER, wrongWords INTEGER,
@@ -127,12 +130,20 @@ export class SqliteRepository {
 
   /** Add columns that arrived after a database was first created. */
   private migrate(): void {
-    const columns = (this.db.prepare(`PRAGMA table_info(results)`).all() as { name: string }[]).map(
-      (c) => c.name,
-    );
-    if (!columns.includes('deletes')) {
+    if (!this.columns('results').includes('deletes')) {
       this.db.exec(`ALTER TABLE results ADD COLUMN deletes INTEGER`);
     }
+    // The user's own name for a Custom run. Nullable, so every row saved before
+    // it existed reads back as "no name given" and falls back to its profile.
+    if (!this.columns('tests').includes('examName')) {
+      this.db.exec(`ALTER TABLE tests ADD COLUMN examName TEXT`);
+    }
+  }
+
+  private columns(table: string): string[] {
+    return (this.db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).map(
+      (c) => c.name,
+    );
   }
 
   saveTest(payload: SaveTestPayload): number {
@@ -141,10 +152,10 @@ export class SqliteRepository {
       const id = Number(
         this.db
           .prepare(
-            `INSERT INTO tests (createdAt, documentId, lang, examBoard, grossWpm, netWpm, accuracy, errors, durationSec, status)
-             VALUES (?,?,?,?,?,?,?,?,?,?)`,
+            `INSERT INTO tests (createdAt, documentId, lang, examBoard, examName, grossWpm, netWpm, accuracy, errors, durationSec, status)
+             VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
           )
-          .run(p.createdAt, p.documentId, p.lang, p.examBoard, r.grossWpm, r.netWpm, r.accuracy, r.errors, p.durationSec, r.status)
+          .run(p.createdAt, p.documentId, p.lang, p.examBoard, p.examName ?? null, r.grossWpm, r.netWpm, r.accuracy, r.errors, p.durationSec, r.status)
           .lastInsertRowid,
       );
       this.db
@@ -346,12 +357,12 @@ export class SqliteRepository {
       }
       const testMap = new Map<number, number>();
       const insTest = this.db.prepare(
-        `INSERT INTO tests (createdAt, documentId, lang, examBoard, grossWpm, netWpm, accuracy, errors, durationSec, status) VALUES (?,?,?,?,?,?,?,?,?,?)`,
+        `INSERT INTO tests (createdAt, documentId, lang, examBoard, examName, grossWpm, netWpm, accuracy, errors, durationSec, status) VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
       );
       for (const row of t.tests ?? []) {
         const documentId = row.documentId != null ? (docMap.get(row.documentId) ?? null) : null;
         const id = Number(
-          insTest.run(row.createdAt, documentId, row.lang, row.examBoard, row.grossWpm, row.netWpm, row.accuracy, row.errors, row.durationSec, row.status).lastInsertRowid,
+          insTest.run(row.createdAt, documentId, row.lang, row.examBoard, row.examName ?? null, row.grossWpm, row.netWpm, row.accuracy, row.errors, row.durationSec, row.status).lastInsertRowid,
         );
         testMap.set(row.id, id);
       }

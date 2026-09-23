@@ -17,6 +17,7 @@ import {
   EXAM_ZOOM_DEFAULT,
   EXAM_ZOOM_MAX,
   EXAM_ZOOM_MIN,
+  CUSTOM_EXAM_NAME_MAX,
   ExamBoard,
   MAX_READING_SEC,
   ExamMode,
@@ -105,6 +106,17 @@ interface SettingsState {
   dictationShuffle: boolean;
   /** Word drill: words in one batch. */
   dictationWords: number;
+  /**
+   * The user's own name for the Custom profile — the one board with no name of
+   * its own. Remembered, because someone practising for one post types its name
+   * once and sits twenty runs under it.
+   */
+  customExamName: string;
+  /**
+   * Continuous mode: when the passage runs out, carry on into the next
+   * paragraph in the library instead of ending the run.
+   */
+  continuous: boolean;
   setLang: (lang: Lang) => void;
   setBoard: (board: ExamBoard) => void;
   setTiming: (timing: TimingMode) => void;
@@ -146,6 +158,8 @@ interface SettingsState {
   setDictationLimitSec: (v: number) => void;
   setDictationShuffle: (v: boolean) => void;
   setDictationWords: (v: number) => void;
+  setCustomExamName: (v: string) => void;
+  setContinuous: (v: boolean) => void;
 }
 
 /** The persisted slice — every field above except the setters. */
@@ -211,6 +225,10 @@ const DEFAULTS: Persisted = {
   dictationLimitSec: DICTATION_LIMIT_SEC,
   dictationShuffle: true,
   dictationWords: DICTATION_DRILL_WORDS,
+  customExamName: '',
+  // Off by default: every exam this app rehearses ends when its passage ends,
+  // and a mock that quietly ran on into another paragraph would not be one.
+  continuous: false,
 };
 
 // Single row in the Dexie `settings` table, so preferences live in IndexedDB
@@ -269,6 +287,11 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setExamZoom: (examZoom) =>
     set({ examZoom: Math.min(EXAM_ZOOM_MAX, Math.max(EXAM_ZOOM_MIN, examZoom)) }),
   setExamInputShare: (examInputShare) => set({ examInputShare: clampShare(examInputShare) }),
+  setContinuous: (continuous) => set({ continuous }),
+  // Trimmed on the way in, and capped: it is typed into a text field and ends
+  // up on a certificate, a history column and a notification title.
+  setCustomExamName: (customExamName) =>
+    set({ customExamName: customExamName.slice(0, CUSTOM_EXAM_NAME_MAX) }),
 }));
 
 /** The splitter is dragged, so raw values arrive continuously and out of range. */
@@ -311,6 +334,10 @@ export function examBase(s: SettingsState): SeriesBase {
     skin: s.examSkin,
     pacer: s.pacer,
     pressure: s.pressure,
+    // Only the Custom profile is named by the user; a graded board's name is
+    // its profile's, and must not be overridable from a text field.
+    examName: s.board === ExamBoard.Custom ? s.customExamName.trim() || null : null,
+    continuous: s.continuous,
     // Turned on by the New Test page, never remembered as a preference.
     paper: false,
     ghostTestId: null,
@@ -330,6 +357,9 @@ export function drillBase(s: SettingsState): SeriesBase {
     // carries over into one.
     pressure: false,
     dictation: null,
+    // A drill is generated to a length that is part of the exercise, so it is
+    // never run on into library paragraphs.
+    continuous: false,
   };
 }
 

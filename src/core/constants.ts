@@ -391,6 +391,22 @@ export const SNAPSHOT_SAVE_MS = 5_000;
 // mean parsing every stored run).
 export const KEYSTROKE_SCAN_TESTS = 20;
 
+// A Custom run is named by the user — it is the one profile with no board to
+// name it. Long enough for "UP Police Computer Operator Typing Test", short
+// enough to sit on a certificate line and in a history column.
+export const CUSTOM_EXAM_NAME_MAX = 64;
+/**
+ * Continuous mode: how far ahead of the caret the next paragraph is joined on.
+ *
+ * The join has to happen before the typist can see the end coming, or the run
+ * stalls for the length of a state update at exactly the moment rhythm matters.
+ * A fast typist covers roughly 6 characters a second, so this is a good twenty
+ * seconds of runway.
+ */
+export const CONTINUOUS_LOOKAHEAD_CHARS = 120;
+/** Days of practice history the per-day chart plots. */
+export const PRACTICE_DAYS = 14;
+
 // The tray/hotkey drill: short enough that starting one is never a decision.
 export const QUICK_DRILL_SECONDS = 60;
 export const WARNING_SECONDS = 60; // T-1 min warning
