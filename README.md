@@ -45,11 +45,15 @@ regenerated with `node docs/make-collages.mjs`.
   are actually recruited on. 8,000 and 15,000 KDPH profiles, a live depression counter,
   and every keystroke counted the way the notification counts it: corrections included.
 - Built-in **exam profiles** — SSC (CHSL/CGL/MTS/DEST/DEO), Stenographer Grade C & D,
-  Railway, Banking, Court, State & more.
+  Railway, Banking, Court, State & more. A **Custom run takes your own exam's name**, and
+  it follows the run through the result header, the history column and the certificate.
 - **Dictation → transcription** for Stenographer posts: the passage is *read aloud* at a
   controlled 80 or 100 words a minute and is never shown on screen, then the
   transcription window starts. Play, pause and repeat, with the pace held to the target
   by the clock rather than by the voice.
+- A **3 · 2 · 1 count-in** before the clock starts, so the first seconds of a run are not
+  spent finding the home row and then charged to the score. The passage behind it is
+  blurred, a resumed attempt gets one too, and typing skips it. Switchable off.
 - **Exam mode** with optional exam lock, backspace/space/enter rules, and fullscreen.
 - **Strict mode** blocks progress until the current word is correct — the standard cure
   for typing fast and fixing later, which is exactly what fails an accuracy-gated test.
@@ -72,6 +76,10 @@ regenerated with `node docs/make-collages.mjs`.
 - **Ghost race** — run against a past attempt of the same paragraph, live, as you type.
 - **Pressure mode** — a flashing clock near the end, ambient hall noise and a live rank
   ticker. People lose 5–8 WPM to nerves on the day and otherwise cannot practise it.
+- **Continuous typing** — the run reaches the end of its passage and finds the next
+  library paragraph already joined onto it, so the clock (or you) ends the sitting rather
+  than wherever a paragraph happened to stop. Papers, split documents and drills force it
+  off; each already ends where it means to.
 - **Endless run** — passages keep coming, difficulty climbs while you hold the target and
   eases when you drop, and the run ends when you have missed the cut-off three times in a
   row. The output is one honest number: how long you can hold exam pace.
@@ -80,6 +88,12 @@ regenerated with `node docs/make-collages.mjs`.
 - A **sample paragraph** is in your library from the first launch.
 - **Paste** a paragraph, or import from **image (OCR)**, **PDF**, or **DOCX**.
 - On-device OCR (Tesseract) with an optional AI vision pass for tough scans.
+- **A long import splits into passages** — a chapter or a 30-page PDF becomes a numbered
+  set cut at sentence ends, and the library remembers which one you reached, so one source
+  drives a run of tests over several sittings. Off unless you ask for it: the text runs as
+  it arrived until you throw the switch.
+- **Saved paragraphs can be edited** — fix a typo in an imported passage without deleting
+  it, and every attempt recorded against it keeps its scores.
 - **Passage difficulty ratings** with matched recommendations — every paragraph scored on
   what actually slows typing down (word length, punctuation, capitals, digits, rare
   letters), and a note when one sits above or below your current level.
@@ -126,6 +140,10 @@ regenerated with `node docs/make-collages.mjs`.
   been drilling shows whether it is actually healing.
 - **A fatigue curve** — first-minute against last-minute WPM across attempts. Most
   aspirants fail a 10-minute DEST on fade, not on peak speed.
+- **Hours practised, not tests taken** — today, this week, this month and all time, with
+  the per-day history underneath and empty days drawn as empty. Counting tests only
+  measures practice if every test is the same length, and a 15-minute DEST paper and a
+  2-minute drill are not.
 - **A monthly recap** — hours practised, WPM gained, keys fixed, best day, longest streak.
 - History, per-minute WPM charts, cross-test progress, **badges**, **streaks** and a
   **daily goal**.
@@ -168,6 +186,16 @@ regenerated with `node docs/make-collages.mjs`.
   small always-on-top window. It saves like any other attempt, so it counts towards your
   streak — which is the point: a session that costs one keystroke to start is the kind
   that survives a busy evening.
+- **The result screen hands back the next thing to type** — after a library run, the next
+  paragraph under the same board and clock; after a trainer drill, the next set of the same
+  kind. Nobody who was doing weak-spot sets wants to pick a passage, a board and a clock to
+  do another one.
+- **A small "i" beside a control** explains what it does, on hover, on a tap or on a Tab
+  stop, instead of a paragraph sitting permanently on the panel.
+- **Report a problem** from the sidebar, on the screen it happened on. There is no token
+  and no server behind it: the app fills in a GitHub issue — version, build, interface
+  language and runtime spelled out before it goes — and you submit it under your own
+  account.
 - **20-20-20 eye breaks and a wrist prompt** during long sessions, never during a run.
   Two hours a day for eight months is where typing injuries come from.
 - **Do not disturb** holds every notification — including the daily reminder, which is
@@ -186,7 +214,7 @@ regenerated with `node docs/make-collages.mjs`.
 | Platform | Format |
 | --- | --- |
 | **Web / PWA** | Runs in any modern browser; installable, works offline |
-| **Windows** | `Typly-<version>-x64.exe` · `-arm64.exe` (NSIS installer) · `-portable.exe` |
+| **Windows** | `Typly-<version>.exe` (installs for either architecture) · `-x64.exe` · `-arm64.exe` · `-portable.exe` |
 | **macOS** | `Typly-<version>-arm64.dmg` |
 | **Linux** | AppImage · `.deb` · `.tar.gz` |
 
@@ -196,12 +224,19 @@ browser's local storage. Nothing leaves your device unless you enable AI.
 ### Download
 
 Installers are published on the
-[releases page](https://github.com/enjoys-in/typly/releases/latest). The Windows builds
-are produced by the
-[Release (Windows) workflow](.github/workflows/release-windows.yml) — push a `v*` tag (or
-run it by hand) and it packages the x64 and arm64 installers plus the portable build on a
-Windows runner and attaches them to a draft release. Windows cannot be built from macOS:
-`better-sqlite3` is a native module and has to be compiled on the target platform.
+[releases page](https://github.com/enjoys-in/typly/releases/latest). On Windows, take
+`Typly-<version>.exe` if you are not sure what is inside your machine — it installs the
+right build for either architecture. The per-architecture installers are smaller
+downloads, and the portable build needs no install at all.
+
+Any platform's installers can be built from any other: `better-sqlite3` ships NAPI
+prebuilds for every platform and `npmRebuild` is off, so nothing is recompiled at package
+time. `bash scripts/build-desktop.sh --w` produces the whole Windows set on macOS or
+Linux, and the
+[Release (Windows) workflow](.github/workflows/release-windows.yml) — push a `v*` tag or
+run it by hand — is a convenience rather than a requirement. Desktop builds are unsigned,
+so Windows shows a SmartScreen warning (**More info ▸ Run anyway**) and macOS needs
+**right-click ▸ Open** the first time.
 
 ### Portable mode
 
@@ -254,6 +289,17 @@ electron/        Main process: window, tray, dock, SQLite store, portable paths
 
 Every user-visible string lives in `src/i18n/en.ts`, and `hi.ts` is typed as a
 *complete* record of its keys — so a new feature cannot ship without its Hindi wording.
+
+### Tests
+
+`bun run test` — the runner is Bun's own, so there is no test framework to install. The
+pure core is tested directly; the few components whose *behaviour* is the point (a
+count-in that has to reach zero, a tooltip that has to open and close) are mounted in a
+Happy-DOM document by the thin harness in `src/test/`. One suite covers both
+dictionaries, so a key added to English without its Hindi wording fails there rather than
+printing a raw `{count}` to whoever reads Hindi.
+
+`bun run typecheck` covers both tsconfigs (renderer and Electron main).
 
 ---
 
