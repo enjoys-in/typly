@@ -134,6 +134,8 @@ export const en = {
   'result.replay': 'Replay',
   'result.newTest': 'New test',
   'result.viewHistory': 'View history',
+  'result.nextDrill': 'Next drill',
+  'result.backToTrainer': 'Back to trainer',
   'result.print': 'Print',
   'result.share': 'Share',
   'result.cutoff': 'Cut-off',
@@ -377,6 +379,8 @@ export const en = {
   'trainer.speedHint': 'Keys and transitions that cost you time',
   'trainer.startTargeted': 'Start targeted drill',
   'trainer.startRhythm': 'Start rhythm drill',
+  'trainer.targetedTitle': 'Weak-spot trainer',
+  'trainer.rhythmTitle': 'Rhythm trainer',
   'trainer.noMistakes':
     'No mistakes recorded yet. Take a few tests and your weak spots will show up here.',
   'trainer.heatmap': 'Weak-key heatmap',

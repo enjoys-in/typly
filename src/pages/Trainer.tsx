@@ -2,15 +2,12 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Crosshair, Ear, Play } from 'lucide-react';
 import { usePlatform } from '@/platform/PlatformContext';
-import { useExamStore } from '@/store/examStore';
-import { drillBase, useSettingsStore } from '@/store/settingsStore';
 import { useAsync } from '@/hooks/useAsync';
-import { KEYSTROKE_SCAN_TESTS, SourceType } from '@/core/constants';
+import { DrillKind, KEYSTROKE_SCAN_TESTS } from '@/core/constants';
 import { confusedPairs, weakKeys, weakWords } from '@/core/analysis/analysis';
 import { mistakeTaxonomy } from '@/core/analysis/taxonomy';
-import { generateSpeedDrill, generateWeaknessDrill } from '@/core/practice/generators';
-import { drillSeed } from '@/core/review/review';
 import { useReviewDeck } from '@/hooks/useReviewDeck';
+import { useTrainerDrill } from '@/hooks/useTrainerDrill';
 import { ReviewPanel } from '@/components/trainer/ReviewPanel';
 import { Card } from '@/ui/Card';
 import { Button } from '@/ui/Button';
@@ -18,7 +15,7 @@ import { Segmented, type SegmentedOption } from '@/ui/Segmented';
 import { SkeletonCard } from '@/ui/Skeleton';
 import { Chip, ChipRow } from '@/components/trainer/Chips';
 import { KeyHeatmap } from '@/components/trainer/KeyHeatmap';
-import { SpeedPanel, speedFocus } from '@/components/trainer/SpeedPanel';
+import { SpeedPanel } from '@/components/trainer/SpeedPanel';
 import { FingerLoadCard } from '@/components/analysis/FingerLoadCard';
 import { useT } from '@/i18n';
 import type { TKey } from '@/i18n/en';
@@ -29,11 +26,10 @@ type Focus = 'errors' | 'speed';
 export function Trainer() {
   const platform = usePlatform();
   const navigate = useNavigate();
-  const setConfig = useExamStore((s) => s.setConfig);
-  const settings = useSettingsStore();
   const [focus, setFocus] = useState<Focus>('errors');
   const t = useT();
   const review = useReviewDeck();
+  const drill = useTrainerDrill();
 
   const focusOptions: SegmentedOption<Focus>[] = [
     { value: 'errors', label: t('trainer.accuracy'), title: t('trainer.accuracyHint') },
@@ -72,38 +68,11 @@ export function Trainer() {
    * heatmap: the queue decides what today is for.
    */
   function startReview() {
-    const seed = drillSeed(review.due);
-    setConfig({
-      ...drillBase(settings),
-      passage: generateWeaknessDrill(seed.keys, seed.words),
-      title: t('review.drillTitle'),
-      documentId: null,
-      sourceType: SourceType.Text,
-    });
-    navigate('/app/exam');
+    void drill.start(DrillKind.Review);
   }
 
   function startDrill() {
-    const passage =
-      focus === 'speed'
-        ? speedDrillPassage()
-        : generateWeaknessDrill(
-            errors?.keys.map((k) => k.key) ?? [],
-            errors?.words.map((w) => w.expected) ?? [],
-          );
-    setConfig({
-      ...drillBase(settings),
-      passage,
-      title: focus === 'speed' ? 'Rhythm trainer' : 'Weak-spot trainer',
-      documentId: null,
-      sourceType: SourceType.Text,
-    });
-    navigate('/app/exam');
-  }
-
-  function speedDrillPassage(): string {
-    const { keys, pairs } = speedFocus(data.data?.keystrokes ?? []);
-    return generateSpeedDrill(pairs, keys);
+    void drill.start(focus === 'speed' ? DrillKind.Speed : DrillKind.Errors);
   }
 
   const canDrill = focus === 'speed' ? hasSpeed : hasErrors;
@@ -118,7 +87,7 @@ export function Trainer() {
           </p>
         </div>
         {canDrill && (
-          <Button onClick={startDrill}>
+          <Button onClick={startDrill} disabled={drill.starting}>
             <Play size={16} /> {t(focus === 'speed' ? 'trainer.startRhythm' : 'trainer.startTargeted')}
           </Button>
         )}

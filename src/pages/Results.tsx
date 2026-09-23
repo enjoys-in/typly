@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Printer, Share2 } from 'lucide-react';
+import { Printer, Repeat, Share2 } from 'lucide-react';
 import { usePlatform } from '@/platform/PlatformContext';
 import { useExamStore } from '@/store/examStore';
 import { useSettingsStore } from '@/store/settingsStore';
@@ -36,6 +36,7 @@ import { EndlessReport } from '@/components/result/EndlessReport';
 import { PaperSectionsReport } from '@/components/result/PaperSectionsReport';
 import { useEndlessRun } from '@/hooks/useEndlessRun';
 import { useAsync } from '@/hooks/useAsync';
+import { useTrainerDrill } from '@/hooks/useTrainerDrill';
 import { gradeRunAgainstDeck } from '@/hooks/useReviewDeck';
 import { useDateFormat } from '@/hooks/useDateFormat';
 import { HindiFont } from '@/core/constants';
@@ -68,6 +69,7 @@ export function Results() {
   const adaptive = useExamStore((s) => s.adaptive);
   const endAdaptive = useExamStore((s) => s.endAdaptive);
   const endless = useEndlessRun();
+  const drill = useTrainerDrill();
   const notifier = useNotify();
   const dailyGoal = useSettingsStore((s) => s.dailyGoal);
   const hindiFont = useSettingsStore((s) => s.hindiFont);
@@ -80,6 +82,9 @@ export function Results() {
   const uiLang = useSettingsStore((s) => s.uiLang);
 
   const hasNext = !!series && series.index + 1 < series.items.length;
+  // Set when this run came out of the trainer, which changes what the primary
+  // action on this page means.
+  const drillKind = config?.drill ?? null;
   const [countdown, setCountdown] = useState(SERIES_ADVANCE_SECONDS);
   // The endless run, after this lap has been folded in. Null until it is.
   const [endlessRun, setEndlessRun] = useState<AdaptiveRun | null>(null);
@@ -275,6 +280,20 @@ export function Results() {
     // setConfig (in the setup step) clears `finished`; navigating first avoids
     // the redirect race from this page's own not-finished guard.
     navigate('/app/new');
+  }
+
+  /**
+   * A finished drill continues the trainer.
+   *
+   * The new-test screen is the wrong answer here: nobody who came from the
+   * trainer wants to pick a passage, a board and a clock to do the next set —
+   * they want the next set. The drill is rebuilt from data that now includes
+   * this run, so what comes back has moved on with them.
+   */
+  function nextDrill() {
+    if (!drillKind) return;
+    clearSeries();
+    void drill.start(drillKind);
   }
 
   function skipNext() {
@@ -493,10 +512,26 @@ export function Results() {
         />
       )}
       <div className="flex flex-wrap items-center gap-3">
-        <Button onClick={again}>{t('result.newTest')}</Button>
-        <Button variant="secondary" onClick={() => navigate('/app/history')}>
-          {t('result.viewHistory')}
-        </Button>
+        {drillKind ? (
+          <>
+            <Button onClick={nextDrill} disabled={drill.starting}>
+              <Repeat size={16} /> {t('result.nextDrill')}
+            </Button>
+            <Button variant="secondary" onClick={() => navigate('/app/trainer')}>
+              {t('result.backToTrainer')}
+            </Button>
+            <Button variant="ghost" onClick={again}>
+              {t('result.newTest')}
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button onClick={again}>{t('result.newTest')}</Button>
+            <Button variant="secondary" onClick={() => navigate('/app/history')}>
+              {t('result.viewHistory')}
+            </Button>
+          </>
+        )}
         <Button variant="ghost" onClick={printReport}>
           <Printer size={16} /> {t('result.print')}
         </Button>

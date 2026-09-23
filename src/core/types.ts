@@ -2,6 +2,7 @@
 
 import type {
   Difficulty,
+  DrillKind,
   ErrorCategory,
   ExamBoard,
   ExamMode,
@@ -216,6 +217,11 @@ export interface ExamConfig {
   dictation: DictationSpec | null;
   /** Set when this run is a curriculum lesson, so completion can be recorded. */
   lessonId?: string | null;
+  /**
+   * Set when this run is a trainer drill, so the result screen can hand back
+   * the next drill of the same kind rather than the new-test screen.
+   */
+  drill?: DrillKind | null;
   /** Position in a split document, so finishing marks that part done. */
   partIndex?: number | null;
   /** How many parts the document was split into. */

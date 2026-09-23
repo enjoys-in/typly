@@ -168,6 +168,18 @@ export enum PracticeKind {
   DataEntry = 'data_entry',
 }
 
+/**
+ * Which trainer drill a run came out of, so a finished drill can offer the next
+ * one of the same kind instead of dropping the typist back on the setup screen.
+ * The three map to the trainer's own sections: the review queue, the error
+ * heatmap, and the timing panel.
+ */
+export enum DrillKind {
+  Review = 'review',
+  Errors = 'errors',
+  Speed = 'speed',
+}
+
 export enum ExamMode {
   Standard = 'standard',
   Blind = 'blind',

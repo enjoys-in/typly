@@ -136,6 +136,8 @@ export const hi: Record<TKey, string> = {
   'result.replay': 'रीप्ले',
   'result.newTest': 'नया टेस्ट',
   'result.viewHistory': 'इतिहास देखें',
+  'result.nextDrill': 'अगला अभ्यास',
+  'result.backToTrainer': 'ट्रेनर पर वापस',
   'result.print': 'प्रिंट',
   'result.share': 'साझा करें',
   'result.cutoff': 'कट-ऑफ',
@@ -377,6 +379,8 @@ export const hi: Record<TKey, string> = {
   'trainer.speedHint': 'जो कुंजियाँ और जोड़ आपका समय लेते हैं',
   'trainer.startTargeted': 'लक्षित अभ्यास शुरू करें',
   'trainer.startRhythm': 'लय अभ्यास शुरू करें',
+  'trainer.targetedTitle': 'कमज़ोर बिंदु अभ्यास',
+  'trainer.rhythmTitle': 'लय अभ्यास',
   'trainer.noMistakes':
     'अभी कोई ग़लती दर्ज नहीं। कुछ टेस्ट दें और आपके कमज़ोर हिस्से यहाँ दिखने लगेंगे।',
   'trainer.heatmap': 'कमज़ोर कुंजी हीटमैप',
