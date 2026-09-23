@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Scissors } from 'lucide-react';
 import { SPLIT_PRESETS, splitPassage } from '@/core/text/splitter';
+import { InfoHint } from '@/ui/InfoHint';
 import { Segmented, type SegmentedOption } from '@/ui/Segmented';
 import { Toggle } from '@/ui/Toggle';
 import { useT } from '@/i18n';
@@ -44,25 +45,35 @@ export function PassageSplitPanel({ text, chunkChars, onChange, suggested }: Pro
         <div className="flex items-start gap-2.5">
           <Scissors size={17} className="mt-0.5 shrink-0 text-fg-subtle" />
           <div>
-            <p className="text-sm font-semibold">{t('split.title')}</p>
+            {/* The one-line offer stays on the panel; what splitting actually
+                does to the run and to the saved progress is a paragraph, and
+                a paragraph belongs behind the "i". */}
+            <p className="flex items-center gap-1.5 text-sm font-semibold">
+              {t('split.title')}
+              <InfoHint text={t('split.about')} subject={t('split.title')} align="start" />
+            </p>
             <p className="mt-0.5 text-[13px] leading-relaxed text-fg-muted">
-              This text is long for one test. Split it and each part becomes its own attempt —
-              the library remembers which part you reached.
+              {t('split.offer')}
             </p>
           </div>
         </div>
         <Toggle
           checked={enabled}
           onChange={(next) => onChange(next ? suggested : NO_SPLIT)}
-          label="Split"
+          label={t('split.split')}
         />
       </div>
 
       {enabled && (
         <div className="space-y-3 border-t border-line pt-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="text-xs font-medium tracking-wide text-fg-muted uppercase">
+            <span className="flex items-center gap-1.5 text-xs font-medium tracking-wide text-fg-muted uppercase">
               {t('split.length')}
+              <InfoHint
+                text={t('split.aboutLength')}
+                subject={t('split.length')}
+                align="start"
+              />
             </span>
             <Segmented
               options={OPTIONS}

@@ -17,6 +17,7 @@ import { startProgress } from '@/core/library/progress';
 import { SourceType } from '@/core/constants';
 import { Button } from '@/ui/Button';
 import { Card } from '@/ui/Card';
+import { InfoHint } from '@/ui/InfoHint';
 import { PaperModeCard } from '@/components/uploader/PaperModeCard';
 import { PassageGenerator } from '@/components/uploader/PassageGenerator';
 import { ChallengeOpener } from '@/components/share/ChallengeOpener';
@@ -51,9 +52,10 @@ export function NewTest() {
     setPassage(text);
     setSource(src);
     setTitle(deriveTitle(text));
-    // Long imports default to being split — that is almost always what someone
-    // pasting a whole chapter wants, and the toggle is right there to undo it.
-    setChunkChars(isLongPassage(text) ? suggestChunkChars(text.trim().length) : NO_SPLIT);
+    // The split stays off until it is asked for: an import runs as the one
+    // passage it was pasted as, and the toggle is right there for whoever
+    // wants a whole chapter cut into sittings.
+    setChunkChars(NO_SPLIT);
   }
 
   // Back to the paste / upload step with a clean slate.
@@ -191,6 +193,11 @@ export function NewTest() {
                 <p className="flex items-center gap-1.5 text-sm font-semibold">
                   <Table2 size={15} className="shrink-0" />
                   {t('tabulate.title')}
+                  <InfoHint
+                    text={t('tabulate.about')}
+                    subject={t('tabulate.title')}
+                    align="start"
+                  />
                 </p>
                 <p className="mt-0.5 text-xs text-fg-muted">
                   {t('tabulate.hint', {

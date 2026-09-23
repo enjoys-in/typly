@@ -28,6 +28,10 @@ export const en = {
   'nav.collapse': 'Collapse sidebar',
   'nav.expand': 'Expand sidebar',
 
+  // The small "i" that carries a feature's explanation
+  'info.more': 'What is this?',
+  'info.about': 'What is this? {subject}',
+
   // Time-of-day greetings
   'greeting.lateNight': 'Still up',
   'greeting.morning': 'Good morning',
@@ -786,10 +790,17 @@ export const en = {
 
   // Split panel
   'split.title': 'Split into passages',
+  'split.offer':
+    'This text is long for one test — split it into passages you can finish one at a time.',
+  'split.about':
+    'Off unless you turn it on: the text runs as one test. Switched on, it is cut at sentence ends into numbered passages that run one after another, and the library remembers which passage you reached — so a chapter can be finished over several sittings.',
+  'split.aboutLength': 'Roughly how long each passage should be. The cut lands at the nearest sentence end, so parts vary a little. Short is a warm-up; Exam is about the length of a real skill test.',
   'split.length': 'Passage length',
   'split.split': 'Split',
   'split.recut': 'Re-cut at a different length:',
   'split.undo': 'Undo split',
+  'split.aboutRecut':
+    'Choosing another length cuts the whole text again from the start, so the parts are renumbered and the record of which ones you finished is cleared. The text itself is never changed.',
   'split.partsCount': '{count} passages',
   'split.nextPart': 'Next: part {index}',
 
@@ -1588,6 +1599,8 @@ export const en = {
   'tabulate.title': 'This looks like a form or register',
   'tabulate.hint':
     '{rows} rows of about {columns} columns. Convert the column gaps to Tabs and it runs as a data-entry test, scored in key depressions per hour.',
+  'tabulate.about':
+    'Scanned forms and registers come out of OCR as columns held apart by spaces. Converting those gaps to Tabs turns the text into a data-entry test, where the score is key depressions per hour rather than words per minute — the way DEST and similar papers are marked. Your text is left alone until you press the button.',
   'tabulate.apply': 'Convert to fields',
 
   'challenge.openTitle': 'Answer a challenge',

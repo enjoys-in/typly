@@ -5,6 +5,7 @@ import { SPLIT_PRESETS, splitPassage, suggestChunkChars } from '@/core/text/spli
 import { percentDone, type PartProgress } from '@/core/library/progress';
 import { planFor } from '@/core/library/parts';
 import { Button } from '@/ui/Button';
+import { InfoHint } from '@/ui/InfoHint';
 import { ProgressBar } from '@/ui/ProgressBar';
 import { Segmented, type SegmentedOption } from '@/ui/Segmented';
 import { useT } from '@/i18n';
@@ -48,6 +49,7 @@ export function DocumentParts({ doc, progress, onStart, onSplit, onReset }: Prop
       <div className="space-y-3">
         <p className="flex items-center gap-2 text-xs font-semibold tracking-wide text-fg-muted uppercase">
           <Scissors size={14} /> {t('split.title')}
+          <InfoHint text={t('split.about')} subject={t('split.title')} align="start" />
         </p>
         <p className="text-sm text-fg-muted">
           {doc.charCount.toLocaleString()} characters is a lot for one sitting. Cut it into parts
@@ -58,8 +60,9 @@ export function DocumentParts({ doc, progress, onStart, onSplit, onReset }: Prop
             options={OPTIONS}
             value={chunkChars}
             onChange={setChunkChars}
-            ariaLabel="{t('split.length')}"
+            ariaLabel={t('split.length')}
           />
+          <InfoHint text={t('split.aboutLength')} subject={t('split.length')} align="start" />
           <Button size="sm" onClick={() => onSplit(chunkChars)}>
             <Scissors size={13} /> Split into {preview?.length ?? 0}
           </Button>
@@ -119,7 +122,10 @@ export function DocumentParts({ doc, progress, onStart, onSplit, onReset }: Prop
       </div>
 
       <div className="flex flex-wrap items-center gap-3 border-t border-line pt-3">
-        <span className="text-xs text-fg-subtle">{t('split.recut')}</span>
+        <span className="flex items-center gap-1.5 text-xs text-fg-subtle">
+          {t('split.recut')}
+          <InfoHint text={t('split.aboutRecut')} subject={t('split.recut')} align="start" />
+        </span>
         <Segmented
           options={OPTIONS}
           value={chunkChars}
