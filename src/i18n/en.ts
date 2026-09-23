@@ -267,7 +267,7 @@ export const en = {
   'setup.allowEnterHint': 'Allow new lines / paragraph breaks.',
   'setup.examLock': 'Exam lock',
   'setup.customName': 'Exam name',
-  'setup.customNamePlaceholder': 'e.g. UP Police Computer Operator — Typing Test',
+  'setup.customNamePlaceholder': 'e.g. UP Police computer operator typing test',
   'setup.customNameHint':
     'What this run is called on the result, the certificate and your history.',
   'setup.customNameRequired': 'Name this exam to continue.',

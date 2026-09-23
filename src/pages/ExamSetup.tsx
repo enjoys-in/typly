@@ -238,90 +238,195 @@ export function ExamSetup() {
           </p>
         </Card>
       )}
-      <Card className="space-y-5">
-        <Field label={t('setup.examProfile')}>
-          <select
-            value={settings.board}
-            onChange={(e) => settings.setBoard(e.target.value as ExamBoard)}
-            className="select"
-          >
-            {boardsByCategory().map((group) => (
-              <optgroup key={group.category} label={group.category}>
-                {group.boards.map((b) => (
-                  <option key={b} value={b}>
-                    {profileFor(b).name}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-          <p className="mt-1 text-xs text-fg-muted">
-            {t('setup.source', { source: profile.source })}
-            {/* A data-entry post's bar is depressions per hour; showing it as
-                WPM would show the wrong number. */}
-            {kdph
-              ? t('setup.targetKdph', {
-                  kdph: profile.rules.minKdph.toLocaleString(),
-                  accuracy: profile.rules.minAccuracy,
-                })
-              : profile.rules.minWpm > 0 &&
-                t('setup.target', {
-                  wpm: profile.rules.minWpm,
-                  accuracy: profile.rules.minAccuracy,
-                })}
-          </p>
-        </Field>
+      <Card className="space-y-6">
+        {/* The exam, and — on the one profile that has no name of its own —
+            what to call it. Side by side once there is a name to put there, so
+            the pair reads as the one question it is; the profile keeps the
+            whole width on its own when there is nothing beside it.
 
-        {/* Only for Custom, and required there: "Custom" is a placeholder, not
-            the name of the exam anybody is actually sitting. */}
-        {isCustom && (
-          <Field label={t('setup.customName')}>
-            <input
-              value={settings.customExamName}
-              onChange={(e) => settings.setCustomExamName(e.target.value)}
-              placeholder={t('setup.customNamePlaceholder')}
-              maxLength={CUSTOM_EXAM_NAME_MAX}
-              required
-              aria-invalid={needsName || undefined}
-              aria-describedby="custom-name-hint"
-              className={`w-full max-w-xl rounded-control border bg-field px-3 py-2 text-sm outline-none transition-colors focus:ring-4 ${
-                needsName
-                  ? 'border-danger focus:border-danger focus:ring-danger-ring'
-                  : 'border-edge focus:border-accent focus:ring-accent-ring'
-              }`}
-            />
-            <p
-              id="custom-name-hint"
-              className={`mt-1 text-xs ${needsName ? 'text-danger-text' : 'text-fg-muted'}`}
+            The split favours the profile, and waits for `xl` rather than
+            `lg`: its option labels run to "SSC Stenographer Grade 'D' —
+            Dictation & Transcription", and a half column narrower than that
+            clips the one control on this page whose text is the answer. The
+            name beside it is something a person typed, and its input is capped
+            at `max-w-xl` regardless.
+
+            A flowing grid is safe with exactly two items and the conditional
+            one last — there is nothing after it to be pulled across. */}
+        <div
+          className={`grid items-start gap-x-6 gap-y-5 ${
+            isCustom ? 'xl:grid-cols-[3fr_2fr]' : ''
+          }`}
+        >
+          <Field label={t('setup.examProfile')}>
+            <select
+              value={settings.board}
+              onChange={(e) => settings.setBoard(e.target.value as ExamBoard)}
+              className="select"
             >
-              {needsName ? t('setup.customNameRequired') : t('setup.customNameHint')}
+              {boardsByCategory().map((group) => (
+                <optgroup key={group.category} label={group.category}>
+                  {group.boards.map((b) => (
+                    <option key={b} value={b}>
+                      {profileFor(b).name}
+                    </option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+            <p className="mt-1 text-xs text-fg-muted">
+              {t('setup.source', { source: profile.source })}
+              {/* A data-entry post's bar is depressions per hour; showing it as
+                  WPM would show the wrong number. */}
+              {kdph
+                ? t('setup.targetKdph', {
+                    kdph: profile.rules.minKdph.toLocaleString(),
+                    accuracy: profile.rules.minAccuracy,
+                  })
+                : profile.rules.minWpm > 0 &&
+                  t('setup.target', {
+                    wpm: profile.rules.minWpm,
+                    accuracy: profile.rules.minAccuracy,
+                  })}
             </p>
           </Field>
-        )}
 
-        <Field label={t('setup.language')}>
-          <select
-            value={settings.lang}
-            onChange={(e) => settings.setLang(e.target.value as Lang)}
-            className="select"
-          >
-            {Object.values(Lang).map((l) => (
-              <option key={l} value={l}>
-                {t(`lang.${l}`)}
-              </option>
-            ))}
-          </select>
-        </Field>
+          {/* Required here: "Custom" is a placeholder, not the name of the
+              exam anybody is actually sitting. */}
+          {isCustom && (
+            <Field label={t('setup.customName')}>
+              <input
+                value={settings.customExamName}
+                onChange={(e) => settings.setCustomExamName(e.target.value)}
+                placeholder={t('setup.customNamePlaceholder')}
+                maxLength={CUSTOM_EXAM_NAME_MAX}
+                required
+                aria-invalid={needsName || undefined}
+                aria-describedby="custom-name-hint"
+                className={`w-full max-w-xl rounded-control border bg-field px-3 py-2 text-sm outline-none transition-colors focus:ring-4 ${
+                  needsName
+                    ? 'border-danger focus:border-danger focus:ring-danger-ring'
+                    : 'border-edge focus:border-accent focus:ring-accent-ring'
+                }`}
+              />
+              <p
+                id="custom-name-hint"
+                className={`mt-1 text-xs ${needsName ? 'text-danger-text' : 'text-fg-muted'}`}
+              >
+                {needsName ? t('setup.customNameRequired') : t('setup.customNameHint')}
+              </p>
+            </Field>
+          )}
+        </div>
 
-        <Field label={t('setup.difficulty')}>
-          <Segmented
-            options={difficultyOptions}
-            value={settings.difficulty}
-            onChange={settings.setDifficulty}
-            ariaLabel={t('setup.difficultyAria')}
-          />
-        </Field>
+        {/* Two columns from `lg`, three from `xl`: these are the questions
+            that are one control and a label, and the page was a single file of
+            them — on a wide screen most of its width was margin.
 
+            The columns are independent stacks rather than one flowing grid.
+            Several fields here are conditional, and in a flowing grid losing
+            the duration row would pull every control after it across into the
+            other column, under the pointer, mid-setup. Separate stacks mean a
+            hidden field only shortens its own column, and tab order stays
+            "down one column, then the next" instead of zig-zagging.
+
+            The breakpoints are conservative because the sidebar never
+            collapses: at 1280px three columns are about 290px each, which is
+            what the widest control in here needs. */}
+        <div className="grid items-start gap-x-6 gap-y-5 lg:grid-cols-2 xl:grid-cols-3">
+          {/* What is being typed. */}
+          <div className="space-y-5">
+            <Field label={t('setup.language')}>
+              <select
+                value={settings.lang}
+                onChange={(e) => settings.setLang(e.target.value as Lang)}
+                className="select"
+              >
+                {Object.values(Lang).map((l) => (
+                  <option key={l} value={l}>
+                    {t(`lang.${l}`)}
+                  </option>
+                ))}
+              </select>
+            </Field>
+
+            <Field label={t('setup.difficulty')}>
+              <Segmented
+                options={difficultyOptions}
+                value={settings.difficulty}
+                onChange={settings.setDifficulty}
+                ariaLabel={t('setup.difficultyAria')}
+              />
+            </Field>
+          </div>
+          {/* The clock — and the duration directly under the control that
+              decides whether there is one, rather than in a row further down
+              the page. It is safe in a column where the mode strip is not: its
+              presets, field and note are a `flex-wrap` row, so a narrow column
+              costs it a second line instead of an overflow. */}
+          <div className="space-y-5">
+            <Field label={t('setup.timing')}>
+              <Segmented
+                options={timingOptions}
+                value={settings.timing}
+                onChange={settings.setTiming}
+                ariaLabel={t('setup.timingAria')}
+              />
+            </Field>
+
+            {settings.timing === TimingMode.Countdown && (
+              <Field label={t('setup.duration')}>
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {DEFAULT_DURATIONS_MIN.filter((m) => m <= maxMin).map((m) => (
+                      <Button
+                        key={m}
+                        size="sm"
+                        className="min-w-10 tabular-nums"
+                        variant={settings.durationSec === m * 60 ? 'primary' : 'secondary'}
+                        onClick={() => setMinutes(m)}
+                      >
+                        {m}
+                      </Button>
+                    ))}
+                    <span className="text-sm text-fg-subtle">{t('setup.or')}</span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={maxMin}
+                      value={durationMin}
+                      onChange={(e) => setMinutes(Number(e.target.value))}
+                      aria-label={t('setup.durationAria')}
+                      className="select w-24"
+                    />
+                    <span className="text-sm text-fg-muted">{t('setup.minutes')}</span>
+                  </div>
+                  <p className="text-xs text-fg-muted">
+                    {maxMin === MAX_DURATION_MIN
+                      ? t('setup.fullCap', { minutes: MAX_DURATION_MIN })
+                      : t('setup.guestCap', { minutes: GUEST_MAX_DURATION_MIN })}
+                  </p>
+                </div>
+              </Field>
+            )}
+          </div>
+          {/* How the screen itself is dressed. */}
+          <div className="space-y-5">
+            <Field label={t('skin.label')}>
+              <Segmented
+                options={skinOptions}
+                value={settings.examSkin}
+                onChange={settings.setExamSkin}
+                ariaLabel={t('skin.label')}
+              />
+              <p className="mt-1 text-xs text-fg-muted">{t('skin.hint')}</p>
+            </Field>
+          </div>
+        </div>
+
+        {/* Full width, both: the mode strip is six segments that neither wrap
+            nor scroll — and its Hindi labels are longer still — while the ghost
+            select carries a whole past run in every option. */}
         <Field label={t('setup.mode')}>
           <Segmented
             options={modeOptions}
@@ -337,144 +442,6 @@ export function ExamSetup() {
             rules={applyDifficulty(profile.rules, settings.difficulty)}
             kdph={kdph}
           />
-        </Field>
-
-        <Field label={t('setup.timing')}>
-          <Segmented
-            options={timingOptions}
-            value={settings.timing}
-            onChange={settings.setTiming}
-            ariaLabel={t('setup.timingAria')}
-          />
-        </Field>
-
-        {settings.timing === TimingMode.Countdown && (
-          <Field label={t('setup.duration')}>
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                {DEFAULT_DURATIONS_MIN.filter((m) => m <= maxMin).map((m) => (
-                  <Button
-                    key={m}
-                    size="sm"
-                    className="min-w-10 tabular-nums"
-                    variant={settings.durationSec === m * 60 ? 'primary' : 'secondary'}
-                    onClick={() => setMinutes(m)}
-                  >
-                    {m}
-                  </Button>
-                ))}
-                <span className="text-sm text-fg-subtle">{t('setup.or')}</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={maxMin}
-                  value={durationMin}
-                  onChange={(e) => setMinutes(Number(e.target.value))}
-                  aria-label={t('setup.durationAria')}
-                  className="select w-24"
-                />
-                <span className="text-sm text-fg-muted">{t('setup.minutes')}</span>
-              </div>
-              <p className="text-xs text-fg-muted">
-                {maxMin === MAX_DURATION_MIN
-                  ? t('setup.fullCap', { minutes: MAX_DURATION_MIN })
-                  : t('setup.guestCap', { minutes: GUEST_MAX_DURATION_MIN })}
-              </p>
-            </div>
-          </Field>
-        )}
-
-        <Field label={t('skin.label')}>
-          <Segmented
-            options={skinOptions}
-            value={settings.examSkin}
-            onChange={settings.setExamSkin}
-            ariaLabel={t('skin.label')}
-          />
-          <p className="mt-1 text-xs text-fg-muted">{t('skin.hint')}</p>
-        </Field>
-
-        {dictation && (
-          <Field label={t('setup.dictationLabel')} group>
-            <div className="space-y-3 rounded-panel border border-accent-border bg-accent-soft p-4">
-              <Toggle
-                label={t('setup.dictationToggle', { wpm: dictation.wpm })}
-                hint={t('setup.dictationHint', {
-                  wpm: dictation.wpm,
-                  minutes: dictation.transcriptionMinutes,
-                })}
-                checked={dictateOn}
-                onChange={setDictateOn}
-              />
-            </div>
-          </Field>
-        )}
-
-        <Field label={t('setup.pacing')} group>
-          <div className="space-y-3 rounded-panel border border-line p-4">
-            {/* Both of these can be switched off by the rest of the setup, and
-                a greyed-out toggle with no explanation reads as broken. Each
-                says why, and each reason names the setting that undoes it. */}
-            <Toggle
-              label={t('pacer.toggle')}
-              hint={
-                pacerAvailable(profile.rules) ? t('pacer.toggleHint') : t('setup.pacerNeedsCutoff')
-              }
-              checked={settings.pacer}
-              onChange={settings.setPacer}
-              disabled={!pacerAvailable(profile.rules)}
-            />
-            <Toggle
-              label={t('pressure.toggle')}
-              hint={
-                settings.timing === TimingMode.Countdown
-                  ? t('pressure.toggleHint')
-                  : t('setup.pressureNeedsCountdown')
-              }
-              checked={settings.pressure}
-              onChange={settings.setPressure}
-              disabled={settings.timing !== TimingMode.Countdown}
-            />
-          </div>
-        </Field>
-
-        {/* Only offered where there is a paragraph to build the paper on. */}
-        {!draft.paper && (
-          <PaperPicker
-            passage={draft.passage}
-            passageFor={passageForSection}
-            onStart={startPaper}
-          />
-        )}
-
-        <Field label={t('setup.mockExam')} group>
-          <div className="space-y-3 rounded-panel border border-line p-4">
-            <Toggle
-              label={t('setup.briefingToggle')}
-              hint={t('setup.briefingHint')}
-              checked={settings.briefing}
-              onChange={settings.setBriefing}
-            />
-            <Toggle
-              label={t('setup.examDayToggle')}
-              hint={t('setup.examDayHint')}
-              checked={settings.examDay}
-              onChange={settings.setExamDay}
-            />
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-fg">{t('setup.readingLabel')}</span>
-              <input
-                type="number"
-                min={0}
-                max={MAX_READING_SEC / 60}
-                value={Math.round(settings.readingSec / 60)}
-                onChange={(e) => setReadingMinutes(Number(e.target.value))}
-                aria-label={t('setup.readingAria')}
-                className="select w-20"
-              />
-              <span className="text-sm text-fg-muted">{t('setup.readingHint')}</span>
-            </div>
-          </div>
         </Field>
 
         {rivals.data && rivals.data.length > 0 && (
@@ -497,53 +464,157 @@ export function ExamSetup() {
           </Field>
         )}
 
-        <Field label={t('setup.behaviour')} group>
-          <div className="space-y-3 rounded-panel border border-line p-4">
-            <Toggle
-              label={t('setup.allowBackspace')}
-              hint={t('setup.allowBackspaceHint')}
-              checked={settings.backspaceEnabled}
-              onChange={settings.setBackspaceEnabled}
-            />
-            {/* Strict mode blocks the word boundary until the word is right, so
-                forbidding corrections as well would leave no way out of a
-                mistake. Said plainly rather than silently ignored. */}
-            {settings.examMode === ExamMode.Strict && !settings.backspaceEnabled && (
-              <p className="max-w-2xl text-xs text-danger-text">{t('setup.strictNeedsBackspace')}</p>
-            )}
-            <Toggle
-              label={t('setup.allowSpace')}
-              hint={t('setup.allowSpaceHint')}
-              checked={settings.spaceEnabled}
-              onChange={settings.setSpaceEnabled}
-            />
-            <Toggle
-              label={t('setup.allowEnter')}
-              hint={t('setup.allowEnterHint')}
-              checked={settings.enterEnabled}
-              onChange={settings.setEnterEnabled}
-            />
-            <Toggle
-              label={t('setup.examLock')}
-              hint={t('setup.examLockHint')}
-              checked={settings.examLock}
-              onChange={settings.setExamLock}
-            />
-            {/* Paper mode has no passage to run out of, and a split document
-                already continues into its own next part, so neither offers
-                this. */}
-            {!draft.paper && !split && (
-              <Toggle
-                label={t('setup.continuous')}
-                hint={t('setup.continuousHint')}
-                checked={settings.continuous}
-                onChange={settings.setContinuous}
-              />
-            )}
-          </div>
-        </Field>
+        {/* ── The switches ──────────────────────────────────────────────────
+            Ten of them, one per line, were most of this page's scroll. Paired
+            off two-up, in the same two-stack arrangement and for the same
+            reason: the dictation panel and the continuous toggle both come
+            and go.
 
-        <div className="flex items-center justify-end gap-3">
+            Each group keeps its own `Field group`, which renders a plain
+            heading and `role="group"` rather than a `<label>` — see the note
+            on `Field` below for what a single label around a set of switches
+            actually did. */}
+        <div className="grid items-start gap-x-6 gap-y-5 xl:grid-cols-2">
+          <div className="space-y-5">
+            <Field label={t('setup.pacing')} group>
+              <div className="space-y-3 rounded-panel border border-line p-4">
+                {/* Both of these can be switched off by the rest of the setup, and
+                    a greyed-out toggle with no explanation reads as broken. Each
+                    says why, and each reason names the setting that undoes it. */}
+                <Toggle
+                  label={t('pacer.toggle')}
+                  hint={
+                    pacerAvailable(profile.rules)
+                      ? t('pacer.toggleHint')
+                      : t('setup.pacerNeedsCutoff')
+                  }
+                  checked={settings.pacer}
+                  onChange={settings.setPacer}
+                  disabled={!pacerAvailable(profile.rules)}
+                />
+                <Toggle
+                  label={t('pressure.toggle')}
+                  hint={
+                    settings.timing === TimingMode.Countdown
+                      ? t('pressure.toggleHint')
+                      : t('setup.pressureNeedsCountdown')
+                  }
+                  checked={settings.pressure}
+                  onChange={settings.setPressure}
+                  disabled={settings.timing !== TimingMode.Countdown}
+                />
+              </div>
+            </Field>
+
+            <Field label={t('setup.behaviour')} group>
+              <div className="space-y-3 rounded-panel border border-line p-4">
+                <Toggle
+                  label={t('setup.allowBackspace')}
+                  hint={t('setup.allowBackspaceHint')}
+                  checked={settings.backspaceEnabled}
+                  onChange={settings.setBackspaceEnabled}
+                />
+                {/* Strict mode blocks the word boundary until the word is right, so
+                    forbidding corrections as well would leave no way out of a
+                    mistake. Said plainly rather than silently ignored. */}
+                {settings.examMode === ExamMode.Strict && !settings.backspaceEnabled && (
+                  <p className="max-w-2xl text-xs text-danger-text">
+                    {t('setup.strictNeedsBackspace')}
+                  </p>
+                )}
+                <Toggle
+                  label={t('setup.allowSpace')}
+                  hint={t('setup.allowSpaceHint')}
+                  checked={settings.spaceEnabled}
+                  onChange={settings.setSpaceEnabled}
+                />
+                <Toggle
+                  label={t('setup.allowEnter')}
+                  hint={t('setup.allowEnterHint')}
+                  checked={settings.enterEnabled}
+                  onChange={settings.setEnterEnabled}
+                />
+                <Toggle
+                  label={t('setup.examLock')}
+                  hint={t('setup.examLockHint')}
+                  checked={settings.examLock}
+                  onChange={settings.setExamLock}
+                />
+                {/* Paper mode has no passage to run out of, and a split document
+                    already continues into its own next part, so neither offers
+                    this. */}
+                {!draft.paper && !split && (
+                  <Toggle
+                    label={t('setup.continuous')}
+                    hint={t('setup.continuousHint')}
+                    checked={settings.continuous}
+                    onChange={settings.setContinuous}
+                  />
+                )}
+              </div>
+            </Field>
+          </div>
+          <div className="space-y-5">
+            {dictation && (
+              <Field label={t('setup.dictationLabel')} group>
+                <div
+                  className="space-y-3 rounded-panel border border-accent-border bg-accent-soft p-4"
+                >
+                  <Toggle
+                    label={t('setup.dictationToggle', { wpm: dictation.wpm })}
+                    hint={t('setup.dictationHint', {
+                      wpm: dictation.wpm,
+                      minutes: dictation.transcriptionMinutes,
+                    })}
+                    checked={dictateOn}
+                    onChange={setDictateOn}
+                  />
+                </div>
+              </Field>
+            )}
+
+            <Field label={t('setup.mockExam')} group>
+              <div className="space-y-3 rounded-panel border border-line p-4">
+                <Toggle
+                  label={t('setup.briefingToggle')}
+                  hint={t('setup.briefingHint')}
+                  checked={settings.briefing}
+                  onChange={settings.setBriefing}
+                />
+                <Toggle
+                  label={t('setup.examDayToggle')}
+                  hint={t('setup.examDayHint')}
+                  checked={settings.examDay}
+                  onChange={settings.setExamDay}
+                />
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-medium text-fg">{t('setup.readingLabel')}</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={MAX_READING_SEC / 60}
+                    value={Math.round(settings.readingSec / 60)}
+                    onChange={(e) => setReadingMinutes(Number(e.target.value))}
+                    aria-label={t('setup.readingAria')}
+                    className="select w-20"
+                  />
+                  <span className="text-sm text-fg-muted">{t('setup.readingHint')}</span>
+                </div>
+              </div>
+            </Field>
+          </div>
+        </div>
+
+        {/* Only offered where there is a paragraph to build the paper on. */}
+        {!draft.paper && (
+          <PaperPicker
+            passage={draft.passage}
+            passageFor={passageForSection}
+            onStart={startPaper}
+          />
+        )}
+
+        <div className="flex items-center justify-end gap-3 border-t border-line pt-5">
           {needsName && (
             <span className="text-xs text-danger-text">{t('setup.customNameRequired')}</span>
           )}

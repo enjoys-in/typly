@@ -267,7 +267,7 @@ export const hi: Record<TKey, string> = {
   'setup.allowEnterHint': 'नई पंक्ति / अनुच्छेद विराम की अनुमति।',
   'setup.examLock': 'परीक्षा लॉक',
   'setup.customName': 'परीक्षा का नाम',
-  'setup.customNamePlaceholder': 'जैसे: यूपी पुलिस कंप्यूटर ऑपरेटर — टाइपिंग टेस्ट',
+  'setup.customNamePlaceholder': 'जैसे: यूपी पुलिस कंप्यूटर ऑपरेटर टाइपिंग टेस्ट',
   'setup.customNameHint':
     'यही नाम परिणाम, प्रमाणपत्र और आपके इतिहास में दिखेगा।',
   'setup.customNameRequired': 'आगे बढ़ने के लिए परीक्षा का नाम लिखें।',
