@@ -16,6 +16,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.electron.json",
+    "test": "bun test",
     "ocr:assets": "node scripts/fetch-ocr-assets.mjs",
     "icons": "node scripts/make-icons.mjs",
     "electron:build": "node electron/build.mjs",
@@ -51,8 +52,10 @@
   },
   "devDependencies": {
     "@electron/notarize": "^3.1.1",
+    "@happy-dom/global-registrator": "^20.14.5",
     "@tailwindcss/vite": "^4.0.0",
     "@types/better-sqlite3": "^9.6.0",
+    "@types/bun": "^1.4.2",
     "@types/diff": "^7.0.0",
     "@types/node": "^26.3.0",
     "@types/nspell": "^2.1.6",

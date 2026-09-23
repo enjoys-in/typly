@@ -1,0 +1,3 @@
+[test]
+# Component tests need a document; see src/test/dom.ts.
+preload = ["./src/test/dom.ts"]

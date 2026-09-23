@@ -43,6 +43,10 @@ import { keymapFor, isPhonetic } from '@/core/text/keymaps';
 import { isDevanagari } from '@/core/text/scripts';
 import { grossWpm } from '@/core/scoring/scoring';
 import { pacerAvailable } from '@/core/exam/pacer';
+// Briefing → dictation → reading → count-in → typing. Dictation sits before
+// reading rather than replacing it: a Stenographer test dictates the passage
+// and *then* gives transcription time, which is exactly this order.
+import { initialPhase, type Phase } from '@/core/exam/gates';
 import { withTimeout } from '@/core/exam/submit';
 import { depressionsOf } from '@/core/scoring/kdph';
 import { strictPossible } from '@/core/typing/strict';
@@ -84,28 +88,6 @@ import { ExamClientChrome } from './skins/ExamClientChrome';
 import { DictationStage } from '@/components/dictation/DictationStage';
 import type { ExamLayout } from './LayoutSwitcher';
 
-/**
- * Briefing → dictation → reading → count-in → typing. With every gate off and
- * the count-in switched off, a run starts at `typing`.
- *
- * Dictation sits before reading rather than replacing it: a Stenographer test
- * dictates the passage and *then* gives transcription time, which is exactly
- * this order.
- *
- * `ready` is the last gate before the clock, and the only one that an
- * interrupted run sees too: a resumed attempt puts the screen back with the
- * timer already moving, which is the moment the count-in exists for.
- */
-type Phase = 'briefing' | 'dictation' | 'reading' | 'ready' | 'typing';
-
-function initialPhase(config: ExamConfig, resume: ExamSnapshot | null, countIn: boolean): Phase {
-  if (resume) return countIn ? 'ready' : 'typing';
-  if (config.briefing) return 'briefing';
-  if (config.dictation) return 'dictation';
-  if (config.readingSec > 0) return 'reading';
-  return countIn ? 'ready' : 'typing';
-}
-
 interface Props {
   config: ExamConfig;
   /** Progress of an interrupted attempt, already resolved by the page. */
@@ -145,7 +127,9 @@ export function ExamRun({ config, resume }: Props) {
   const setBare = useChromeStore((s) => s.setBare);
   const t = useT();
 
-  const [phase, setPhase] = useState<Phase>(() => initialPhase(config, resume, countInEnabled));
+  const [phase, setPhase] = useState<Phase>(() =>
+    initialPhase(config, resume !== null, countInEnabled),
+  );
   // Captured once: the checkpoint is consumed below, but the run stays labelled.
   const [resumed] = useState(resume !== null);
   const [typed, setTyped] = useState(resume?.typed ?? '');
@@ -163,7 +147,9 @@ export function ExamRun({ config, resume }: Props) {
   // actually starts, so time spent on the briefing or reading the passage does
   // not land in the replay, the timeline or the ghost track.
   const startAt = useRef<number>(Date.now() - (resume?.elapsedMs ?? 0));
-  const typingStarted = useRef(initialPhase(config, resume, countInEnabled) === 'typing');
+  const typingStarted = useRef(
+    initialPhase(config, resume !== null, countInEnabled) === 'typing',
+  );
   const typedRef = useRef(resume?.typed ?? '');
   const done = useRef(false);
   const awayPrompting = useRef(false);
