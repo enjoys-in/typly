@@ -8,6 +8,7 @@ import {
   History as HistoryIcon,
   Info,
   Library,
+  MessageSquareWarning,
   LayoutDashboard,
   LogOut,
   PanelLeftClose,
@@ -26,6 +27,7 @@ import { useT } from '@/i18n';
 import type { TKey } from '@/i18n/en';
 import { firstName, initialOf } from '@/core/profile/profile';
 import { AboutPanel } from './AboutPanel';
+import { ReportPanel } from '@/components/report/ReportPanel';
 import { LanguageMenu } from './LanguageMenu';
 
 interface Link {
@@ -85,6 +87,7 @@ export function Sidebar() {
   const collapsed = useSettingsStore((s) => s.sidebarCollapsed);
   const setCollapsed = useSettingsStore((s) => s.setSidebarCollapsed);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const t = useT();
   const Logo = appConfig.logo;
 
@@ -209,6 +212,23 @@ export function Sidebar() {
           practice, and both have to be reachable from the collapsed rail. */}
       <div className="flex shrink-0 flex-col gap-1 pt-3">
         <LanguageMenu collapsed={collapsed} />
+        {/* Next to About because both are about the app rather than the
+            practice — and a bug is reported from wherever it was hit, so this
+            has to be on every screen, collapsed rail included. */}
+        <button
+          type="button"
+          onClick={() => setReportOpen(true)}
+          title={collapsed ? t('nav.report') : undefined}
+          className={`group flex w-full cursor-pointer items-center rounded-control text-[13.5px] font-medium text-fg-muted outline-none transition-colors duration-150 hover:bg-surface-hover hover:text-fg focus-visible:ring-2 focus-visible:ring-accent-ring ${
+            collapsed ? 'h-10 justify-center' : 'gap-2.5 px-3 py-2'
+          }`}
+        >
+          <MessageSquareWarning
+            size={17}
+            className="shrink-0 text-fg-subtle group-hover:text-fg-muted"
+          />
+          {!collapsed && t('nav.report')}
+        </button>
         <button
           type="button"
           onClick={() => setAboutOpen(true)}
@@ -265,6 +285,7 @@ export function Sidebar() {
       </div>
 
       {aboutOpen && <AboutPanel onClose={() => setAboutOpen(false)} />}
+      {reportOpen && <ReportPanel onClose={() => setReportOpen(false)} />}
     </aside>
   );
 }

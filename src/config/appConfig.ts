@@ -59,6 +59,13 @@ export interface AboutInfo {
   github: AboutLink;
   /** Left blank until a profile URL is set — the panel skips empty links. */
   linkedin: AboutLink;
+  /**
+   * The source repository *this* app is built from, as opposed to `github`,
+   * which points at the author. Reports are filed as issues against it, so a
+   * blank URL turns the report dialog's "open on GitHub" action off and leaves
+   * only the copy-to-clipboard half.
+   */
+  repo: AboutLink;
 }
 
 export interface AppConfig {
@@ -90,6 +97,7 @@ export const appConfig: AppConfig = {
     website: { label: 'enjoys.in', url: 'https://enjoys.in' },
     github: { label: 'github.com/enjoys-in', url: 'https://github.com/enjoys-in' },
     linkedin: { label: 'LinkedIn', url: '' },
+    repo: { label: 'enjoys-in/typly', url: 'https://github.com/enjoys-in/typly' },
   },
 };
 

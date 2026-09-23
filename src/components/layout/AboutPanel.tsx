@@ -1,7 +1,7 @@
 // lucide dropped its brand glyphs, so each link gets the nearest generic icon.
 import { Briefcase, Code2, Globe, Monitor, Sparkles, X, type LucideIcon } from 'lucide-react';
 import { APP_VERSION, appConfig, type AboutLink } from '@/config/appConfig';
-import { isElectron } from '@/platform/detect';
+import { isElectron, runtimeLine } from '@/platform/detect';
 import { useChromeStore } from '@/store/chromeStore';
 import { Modal } from '@/ui/Modal';
 import { useT } from '@/i18n';
@@ -10,14 +10,6 @@ const TITLE_ID = 'about-panel-title';
 
 interface Props {
   onClose: () => void;
-}
-
-/** Runtime versions the desktop preload exposes; absent in the browser. */
-function runtimeLine(): string | null {
-  if (typeof window === 'undefined') return null;
-  const versions = window.bridge?.versions;
-  if (!versions) return null;
-  return `Electron ${versions.electron} · Chromium ${versions.chrome} · Node ${versions.node}`;
 }
 
 /** Who made this, what it is, and where to find them. */

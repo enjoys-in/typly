@@ -28,3 +28,15 @@ export function isQuickDrill(): boolean {
   if (typeof window === 'undefined') return false;
   return new URLSearchParams(window.location.search).get('quick') === '1';
 }
+
+/**
+ * The desktop runtime versions as one line, or null in the browser, where there
+ * is no preload to ask. Read by the About panel and attached to a report —
+ * "which Electron" is often the whole answer to a rendering bug.
+ */
+export function runtimeLine(): string | null {
+  if (typeof window === 'undefined') return null;
+  const versions = window.bridge?.versions;
+  if (!versions) return null;
+  return `Electron ${versions.electron} \u00b7 Chromium ${versions.chrome} \u00b7 Node ${versions.node}`;
+}
