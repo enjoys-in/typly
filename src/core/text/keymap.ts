@@ -41,6 +41,16 @@ export interface Keymap {
   resolve(key: string, before: string): KeymapOutput | null;
   /** Physical key id to highlight for one output character, or '' if unmapped. */
   keyForOutput(ch: string): string;
+  /**
+   * The keys that produce one character when no single key does, in order.
+   *
+   * A typewriter layout completes a letter rather than carrying it: Remington
+   * has no ख key at all — you type the half form ख् and then the stroke key,
+   * which fuses the two. Twelve of the commonest consonants work that way, so
+   * "which key is ख on?" has no answer and "which keys" does. Null when the
+   * character is a single key (ask `keyForOutput`) or unreachable.
+   */
+  sequenceFor(ch: string): string[] | null;
   /** Label a physical key shows on the on-screen keyboard. */
   labelFor(keyId: string, fallback: string): string;
 }
@@ -67,6 +77,14 @@ export function createKeymap({ label, table, sequences = [] }: KeymapSpec): Keym
     }
   }
 
+  // Every table entry by what it outputs, whatever its length. The index above
+  // is deliberately single-character — it exists to highlight one key — while
+  // this one has to find the half form ख्, which is two.
+  const byOutput: Record<string, string> = {};
+  for (const [key, value] of Object.entries(table)) {
+    if (!(value in byOutput)) byOutput[value] = key;
+  }
+
   // Grouped by key, longest context first, so the most specific rule wins.
   const byKey = new Map<string, KeymapSequence[]>();
   for (const seq of sequences) {
@@ -87,6 +105,15 @@ export function createKeymap({ label, table, sequences = [] }: KeymapSpec): Keym
       return direct === undefined ? null : { text: direct, replace: 0 };
     },
     keyForOutput: (ch) => reverse[ch] ?? '',
+    sequenceFor(ch) {
+      if (reverse[ch]) return null; // a single key: not a sequence
+      for (const seq of sequences) {
+        if (seq.text !== ch) continue;
+        const first = byOutput[seq.before];
+        if (first) return [first, seq.key];
+      }
+      return null;
+    },
     labelFor: (keyId, fallback) => {
       const value = table[keyId];
       return value && value.length === 1 ? value : fallback;

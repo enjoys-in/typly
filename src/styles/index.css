@@ -574,19 +574,30 @@ button,
   text-shadow: 0 1px 12px rgb(0 0 0 / 0.25);
 }
 
-/* Print only the result report (#print-area), hiding app chrome. */
+/* Print only the region asked for — the result report, or the layout chart —
+   hiding the app chrome around it. The chart is printed for the same reason
+   people photocopy one: it ends up taped beside the keyboard. */
 @media print {
   body * {
     visibility: hidden;
   }
   #print-area,
-  #print-area * {
+  #print-area *,
+  #layout-chart,
+  #layout-chart * {
     visibility: visible;
   }
-  #print-area {
+  #print-area,
+  #layout-chart {
     position: absolute;
     inset: 0;
     padding: 24px;
+  }
+  /* The finger tints are the legend; a printer that drops backgrounds would
+     leave five identical grey rows. */
+  #layout-chart {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
 

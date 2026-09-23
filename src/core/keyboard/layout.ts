@@ -88,6 +88,25 @@ export function keyIdForChar(ch: string): string {
   return SHIFT[ch] ?? ch;
 }
 
+/**
+ * The character a key produces with Shift held.
+ *
+ * The inverse of the table above, plus the letters, which shift to their own
+ * uppercase. A remapped layout needs this to be asked about its *second* layer:
+ * InScript and Remington keep half the alphabet up there — ख, घ, छ, झ, ठ, ढ, ण,
+ * थ, ध, फ, भ, श, ष and every conjunct key — and a chart that only showed the
+ * unshifted face would be missing the harder half of the keyboard.
+ */
+const SHIFTED: Record<string, string> = Object.fromEntries(
+  Object.entries(SHIFT).map(([shifted, base]) => [base, shifted]),
+);
+
+export function shiftedChar(keyId: string): string {
+  if (keyId === ' ') return '';
+  const upper = keyId.toUpperCase();
+  return upper !== keyId ? upper : (SHIFTED[keyId] ?? '');
+}
+
 /** Flat lookup from key id to its Key, for single-key displays. */
 const BY_ID: Record<string, Key> = Object.fromEntries(
   KEY_ROWS.flat().map((key) => [key.id, key]),

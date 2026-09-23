@@ -1,4 +1,5 @@
 import { KrutiDevConverter } from '@/components/tools/KrutiDevConverter';
+import { LayoutChart } from '@/components/tools/LayoutChart';
 import { KeyboardHealthCheck } from '@/components/tools/KeyboardHealthCheck';
 import { useT } from '@/i18n';
 
@@ -21,6 +22,8 @@ export function Tools() {
         <p className="mt-1 text-fg-muted">{t('toolbox.subtitle')}</p>
       </div>
 
+      {/* First, because it is the one people keep a printout of. */}
+      <LayoutChart />
       <KeyboardHealthCheck />
       <KrutiDevConverter />
     </div>

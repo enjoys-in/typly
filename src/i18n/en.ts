@@ -1471,6 +1471,23 @@ export const en = {
   'toolbox.subtitle':
     'A Kruti Dev converter and a keyboard check — both offline, because both are needed on machines you do not own.',
 
+  // Keyboard layout chart
+  'layout.title': 'Keyboard layout chart',
+  'layout.subtitle':
+    'Both layers of the Hindi layout you type with — neither is printed on any keyboard sold here.',
+  'layout.pickAria': 'Which layout to chart',
+  'layout.print': 'Print',
+  'layout.space': 'Space',
+  'layout.findLabel': 'Find a letter',
+  'layout.findPlaceholder': 'क्ष',
+  'layout.findSequence': '{letter} has no key of its own — type {keys}.',
+  'layout.findHit': '{letter} is on {key} — {finger} finger.',
+  'layout.findMiss': '{letter} is not on this layout’s charted layer.',
+  'layout.inscriptNote':
+    'InScript is logical order: the consonant is typed first and its matra after it, and the font joins them. The upper half of each key is what Shift produces.',
+  'layout.remingtonNote':
+    'Remington GAIL has no key for ख, घ, ण, थ, ध, भ, श or ष: you type the half form and then the stroke key, which completes the letter — the find box above will show you which two. Key positions are shared with the Kruti Dev fonts, but GAIL is logical order, so a matra is typed after its consonant. The upper half of each key is what Shift produces; ङ and ञ sit on the AltGr layer, which is not charted.',
+
   // Kruti Dev converter
   'krutidev.title': 'Kruti Dev ⇄ Unicode',
   'krutidev.hint':
