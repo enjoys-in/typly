@@ -20,6 +20,11 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    version: '0.9.0',
+    date: '2026-09-23',
+    items: ['changelog.countIn', 'changelog.splitOptional', 'changelog.infoHints'],
+  },
+  {
     version: '0.8.0',
     date: '2026-09-08',
     items: [

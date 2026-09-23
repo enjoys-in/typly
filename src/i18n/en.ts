@@ -1820,6 +1820,12 @@ export const en = {
     'Hide the typing box altogether and type into the passage, where the caret already is.',
   'changelog.paperMistakes':
     'Misspellings from a paper run now feed the trainer, the review queue and dictation practice.',
+  'changelog.countIn':
+    'A test counts three, two, one before the clock starts, so the first seconds of a run are no longer spent finding the home row. Switch it off in Settings if you would rather begin at once.',
+  'changelog.splitOptional':
+    'A long import is no longer split into passages behind your back — it arrives whole, and the split is a switch you throw when you want it.',
+  'changelog.infoHints':
+    'The small "i" beside a control explains what it does, on hover or on a tap, instead of a paragraph sitting permanently on the panel.',
   'changelog.drillTimed':
     'Dictation practice shows each word instead of speaking it, and holds it to a clock — three seconds by default, one word at a time or the whole batch as a line, all of it configurable on the page.',
   'changelog.examClientColours':
