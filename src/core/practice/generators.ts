@@ -1,5 +1,8 @@
-import { PracticeKind } from '../constants';
+import { PracticeKind, type Lang } from '../constants';
 import { generateDataEntry } from './dataEntry';
+import { generateDevanagariDrill } from './devanagari';
+import { isDevanagari } from '../text/scripts';
+import type { Keymap } from '../text/keymap';
 
 // Small frequent-word list for word/capital/punctuation drills.
 const WORDS = [
@@ -200,6 +203,15 @@ export function generateDrill(kind: PracticeKind, isMac = false): string {
         .join(' ');
     case PracticeKind.LongWords:
       return times(24, () => pick(LONG_WORDS)).join(' ');
+    // Asked for on a Roman keyboard, where none of them exists. `drillsFor`
+    // keeps them off the page, and `generateDrillFor` routes them to the
+    // Devanagari generator, so reaching here means a caller bypassed both —
+    // answered with words rather than an empty passage.
+    case PracticeKind.Vowels:
+    case PracticeKind.Matras:
+    case PracticeKind.HalfLetters:
+    case PracticeKind.Conjuncts:
+      return times(45, () => pick(WORDS)).join(' ');
     case PracticeKind.Mixed:
       // Words, figures, punctuation and symbols in one stream — closest to the
       // mixed content a real exam passage throws at you.
@@ -219,11 +231,43 @@ export function generateDrill(kind: PracticeKind, isMac = false): string {
   }
 }
 
+/**
+ * A drill in the script being typed.
+ *
+ * The single entry point every drill should come through. `generateDrill` below
+ * is the Roman keyboard's own generator and stays that: this decides which
+ * generator the language calls for, and hands the Devanagari one the layout in
+ * force so its row drills are the keys the typist will actually press.
+ */
+export function generateDrillFor(
+  lang: Lang,
+  kind: PracticeKind,
+  { isMac = false, keymap = null }: { isMac?: boolean; keymap?: Keymap | null } = {},
+): string {
+  return isDevanagari(lang) ? generateDevanagariDrill(kind, keymap) : generateDrill(kind, isMac);
+}
+
+/**
+ * The filler pool for a trainer drill.
+ *
+ * The weak keys come from the typist's own mistakes, so they are already in
+ * whatever script they type. The *fallback* was the Roman home row, which put
+ * `asdf` clusters into a Hindi typist's drill whenever no single key stood out.
+ * Borrowing the letters from the missed words instead keeps the drill in the
+ * script it is training, and is a better drill in English too — filler made of
+ * the letters actually being missed.
+ */
+function fillerPool(keys: string[], words: string[]): string[] {
+  if (keys.length > 0) return keys;
+  const letters = [...new Set(words.join('').replace(/\s/g, ''))];
+  return letters.length > 0 ? letters : HOME_ROW;
+}
+
 // Build a drill that emphasizes the user's weak keys and most-missed words.
 export function generateWeaknessDrill(keys: string[], words: string[]): string {
   const tokens: string[] = [];
   for (const w of words.slice(0, 8)) tokens.push(w, w);
-  const pool = keys.length ? keys : HOME_ROW;
+  const pool = fillerPool(keys, words);
   for (let i = 0; i < 26; i++) tokens.push(group(3, 5, pool));
   return shuffle(tokens).join(' ');
 }
@@ -238,7 +282,7 @@ export function generateSpeedDrill(pairs: string[], keys: string[]): string {
   for (const pair of pairs.slice(0, 10)) {
     tokens.push(pair.repeat(3), pair.repeat(2), pair);
   }
-  const pool = keys.length ? keys : HOME_ROW;
+  const pool = fillerPool(keys, pairs);
   for (const pair of pairs.slice(0, 10)) {
     tokens.push(`${group(1, 2, pool)}${pair}${group(1, 2, pool)}`);
   }

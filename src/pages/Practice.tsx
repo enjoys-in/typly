@@ -1,10 +1,15 @@
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AlignLeft,
   ArrowLeftRight,
   Asterisk,
   Baseline,
+  Combine,
   Fingerprint,
+  Languages,
+  Link2,
+  Signature,
   Layers,
   CaseUpper,
   Command,
@@ -21,10 +26,13 @@ import {
 } from 'lucide-react';
 import { useExamStore } from '@/store/examStore';
 import { drillBase, useSettingsStore } from '@/store/settingsStore';
-import { generateDrill } from '@/core/practice/generators';
+import { generateDrillFor } from '@/core/practice/generators';
+import { keymapFor } from '@/core/text/keymaps';
+import { scriptOf } from '@/core/text/scripts';
 import { isDataEntry } from '@/core/scoring/examProfiles';
 import { isMacOS } from '@/platform/detect';
 import {
+  drillsFor,
   DRILL_DIFFICULTY_ORDER,
   PracticeKind,
   PRACTICE_DIFFICULTY,
@@ -53,6 +61,10 @@ const DRILL_ICON: Record<PracticeKind, LucideIcon> = {
   [PracticeKind.Shortcuts]: Command,
   [PracticeKind.Mixed]: Layers,
   [PracticeKind.DataEntry]: Table,
+  [PracticeKind.Vowels]: Languages,
+  [PracticeKind.Matras]: Signature,
+  [PracticeKind.HalfLetters]: Combine,
+  [PracticeKind.Conjuncts]: Link2,
 };
 
 /**
@@ -73,11 +85,18 @@ export function Practice() {
   // True when the chosen exam profile is graded on key depressions, which is
   // what makes the tabular drill the one that matters rather than a curiosity.
   const dataEntryExam = isDataEntry(settings.board);
+  // Drills follow the language being practised, not the interface. A Hindi
+  // typist used to be handed English words on every card here — the drills
+  // were the one part of the app that had no idea the passage language
+  // existed. The layout goes with it, so a row drill is the keys this typist
+  // will actually press.
+  const keymap = keymapFor(settings.inputMethod, settings.lang);
+  const drills = useMemo(() => drillsFor(DRILLS, scriptOf(settings.lang)), [settings.lang]);
 
   function start(kind: PracticeKind) {
     setConfig({
       ...drillBase(settings),
-      passage: generateDrill(kind, isMacOS()),
+      passage: generateDrillFor(settings.lang, kind, { isMac: isMacOS(), keymap }),
       title: `${PRACTICE_LABEL[kind]} drill`,
       documentId: null,
       sourceType: SourceType.Text,
@@ -99,7 +118,7 @@ export function Practice() {
       <EndlessCard />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {DRILLS.map((kind) => {
+        {drills.map((kind) => {
           const Icon = DRILL_ICON[kind];
           // Eighteen flat cards give a DEST candidate no clue which one is
           // their actual exam. One quiet marker on the drill that matches the

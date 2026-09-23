@@ -1,17 +1,20 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, Lock, Play, Plus, Trash2 } from 'lucide-react';
 import { usePlatform } from '@/platform/PlatformContext';
 import { useExamStore } from '@/store/examStore';
 import { drillBase, useSettingsStore } from '@/store/settingsStore';
 import { isMacOS } from '@/platform/detect';
-import { SETTING_KEY, SourceType } from '@/core/constants';
+import { Lang, SETTING_KEY, SourceType } from '@/core/constants';
 import {
-  LESSONS,
   SkillLevel,
   lessonPassage,
+  lessonsFor,
   type Lesson,
 } from '@/core/lessons/curriculum';
+import { keymapFor } from '@/core/text/keymaps';
+import { isDevanagari } from '@/core/text/scripts';
+import { Segmented, type SegmentedOption } from '@/ui/Segmented';
 import {
   loadCustomLessons,
   saveCustomLessons,
@@ -32,6 +35,26 @@ export function Lessons() {
   const [done, setDone] = useState<Set<string> | null>(null);
   const [customs, setCustoms] = useState<CustomLesson[]>([]);
   const [addingLesson, setAddingLesson] = useState(false);
+  /**
+   * Which ladder is on screen.
+   *
+   * Seeded from the language being practised, but switchable: plenty of
+   * candidates sit an English paper and a Hindi one, and the two ladders are
+   * separate skills with separate progress. Held as a script rather than a
+   * language because Hindi and Marathi share every layout, matra and conjunct —
+   * and so share one ladder.
+   */
+  const [ladder, setLadder] = useState<Lang>(isDevanagari(settings.lang) ? Lang.Hi : Lang.En);
+  const lessons = useMemo(() => lessonsFor(ladder), [ladder]);
+  // The layout the row lessons are built from — the typist's own, not an
+  // assumed one. Null for English and for phonetic input, which has no fixed
+  // key per letter to drill.
+  const keymap = keymapFor(settings.inputMethod, ladder);
+
+  const ladderOptions: SegmentedOption<Lang>[] = [
+    { value: Lang.En, label: t('lang.eng') },
+    { value: Lang.Hi, label: t('lessons.devanagari') },
+  ];
 
   useEffect(() => {
     platform.repo.getSetting(SETTING_KEY.CompletedLessons).then((raw) => {
@@ -46,13 +69,17 @@ export function Lessons() {
 
   function isUnlocked(index: number): boolean {
     if (index === 0 || !done) return true;
-    const prev = LESSONS[index - 1];
+    const prev = lessons[index - 1];
     return !!prev && done.has(prev.id);
   }
 
-  function run(passage: string, title: string, lessonId: string) {
+  function run(passage: string, title: string, lessonId: string, lang = settings.lang) {
     setConfig({
       ...drillBase(settings),
+      // The lesson decides the language of its own run, not the last exam
+      // setup: a Devanagari lesson typed as English would grade the passage
+      // against the wrong keyboard entirely.
+      lang,
       passage,
       title,
       documentId: null,
@@ -63,7 +90,12 @@ export function Lessons() {
   }
 
   function start(lesson: Lesson) {
-    run(lessonPassage(lesson, isMacOS()), `Lesson: ${lesson.title}`, lesson.id);
+    run(
+      lessonPassage(lesson, { isMac: isMacOS(), keymap }),
+      `Lesson: ${lesson.title}`,
+      lesson.id,
+      lesson.lang,
+    );
   }
 
   async function addCustom(lesson: CustomLesson) {
@@ -78,7 +110,7 @@ export function Lessons() {
     await saveCustomLessons((k, v) => platform.repo.setSetting(k, v), next);
   }
 
-  const completedCount = done ? LESSONS.filter((l) => done.has(l.id)).length : 0;
+  const completedCount = done ? lessons.filter((l) => done.has(l.id)).length : 0;
   const levels = Object.values(SkillLevel);
 
   return (
@@ -88,19 +120,33 @@ export function Lessons() {
           <h1 className="text-3xl font-bold tracking-tight">{t('lessons.title')}</h1>
           <p className="mt-1 text-fg-muted">{t('lessons.subtitleLong')}</p>
         </div>
-        <Button variant="secondary" onClick={() => setAddingLesson(true)}>
-          <Plus size={16} /> {t('lessons.addNew')}
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Two ladders, two sets of progress. The switch is here rather than
+              in Settings because it is a choice about this page, not about how
+              runs are graded. */}
+          <Segmented
+            options={ladderOptions}
+            value={ladder}
+            onChange={setLadder}
+            ariaLabel={t('lessons.ladderAria')}
+          />
+          <Button variant="secondary" onClick={() => setAddingLesson(true)}>
+            <Plus size={16} /> {t('lessons.addNew')}
+          </Button>
+        </div>
       </div>
 
       <Card className="space-y-2">
         <div className="flex items-center justify-between text-sm">
           <span className="font-semibold">{t('lessons.curriculumProgress')}</span>
           <span className="tabular-nums text-fg-muted">
-            {t('lessons.countOf', { done: completedCount, total: LESSONS.length })}
+            {t('lessons.countOf', { done: completedCount, total: lessons.length })}
           </span>
         </div>
-        <ProgressBar value={(completedCount / LESSONS.length) * 100} />
+        <ProgressBar value={(completedCount / lessons.length) * 100} />
+        <p className="text-xs text-fg-muted">
+          {t(ladder === Lang.Hi ? 'lessons.devanagariNote' : 'lessons.romanNote')}
+        </p>
       </Card>
 
       {levels.map((level) => (
@@ -109,7 +155,7 @@ export function Lessons() {
             {t(`skill.${level}`)}
           </h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {LESSONS.map((lesson, i) =>
+            {lessons.map((lesson, i) =>
               lesson.level !== level ? null : (
                 <LessonCard
                   key={lesson.id}

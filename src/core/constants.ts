@@ -166,6 +166,39 @@ export enum PracticeKind {
   Shortcuts = 'shortcuts',
   Sentences = 'sentences',
   DataEntry = 'data_entry',
+  /**
+   * Devanagari only, and the reason a Hindi ladder cannot be the English one
+   * translated. A matra is a mark that only exists on a consonant, a half
+   * letter fuses two together, and the conjuncts are taught as characters in
+   * their own right — none of the three has a QWERTY equivalent to inherit a
+   * drill from. `drillsFor` keeps them off an English keyboard's page.
+   */
+  Vowels = 'vowels',
+  Matras = 'matras',
+  HalfLetters = 'half_letters',
+  Conjuncts = 'conjuncts',
+}
+
+/**
+ * Drills that only make sense in one script.
+ *
+ * Devanagari has no letter case, so `Capitals` is not a Hindi exercise; the
+ * four Devanagari kinds have nothing to do on a Roman keyboard. Everything not
+ * listed here is script-agnostic — a row of keys, a run of words, a page of
+ * sentences — and generates material in whichever script is being typed.
+ */
+const ROMAN_ONLY: readonly PracticeKind[] = [PracticeKind.Capitals];
+const DEVANAGARI_ONLY: readonly PracticeKind[] = [
+  PracticeKind.Vowels,
+  PracticeKind.Matras,
+  PracticeKind.HalfLetters,
+  PracticeKind.Conjuncts,
+];
+
+/** The drill kinds worth offering for a script, in the order given. */
+export function drillsFor(kinds: readonly PracticeKind[], script: Script): PracticeKind[] {
+  const hide = script === Script.Devanagari ? ROMAN_ONLY : DEVANAGARI_ONLY;
+  return kinds.filter((kind) => !hide.includes(kind));
 }
 
 /**
@@ -495,6 +528,10 @@ export const DRILL_DIFFICULTY_ORDER: Record<DrillDifficulty, number> = {
 export const PRACTICE_DIFFICULTY: Record<PracticeKind, DrillDifficulty> = {
   [PracticeKind.HomeRow]: DrillDifficulty.Easy,
   [PracticeKind.Words]: DrillDifficulty.Easy,
+  [PracticeKind.Vowels]: DrillDifficulty.Easy,
+  [PracticeKind.Matras]: DrillDifficulty.Medium,
+  [PracticeKind.HalfLetters]: DrillDifficulty.Hard,
+  [PracticeKind.Conjuncts]: DrillDifficulty.VeryHard,
   [PracticeKind.TopRow]: DrillDifficulty.Medium,
   [PracticeKind.BottomRow]: DrillDifficulty.Medium,
   [PracticeKind.Capitals]: DrillDifficulty.Medium,
@@ -532,6 +569,10 @@ export const PRACTICE_LABEL: Record<PracticeKind, string> = {
   [PracticeKind.Shortcuts]: 'Keyboard shortcuts',
   [PracticeKind.Sentences]: 'Sentences',
   [PracticeKind.DataEntry]: 'Data entry (tables)',
+  [PracticeKind.Vowels]: 'Vowels (स्वर)',
+  [PracticeKind.Matras]: 'Matras (मात्राएँ)',
+  [PracticeKind.HalfLetters]: 'Half letters (आधे अक्षर)',
+  [PracticeKind.Conjuncts]: 'Conjuncts (संयुक्ताक्षर)',
 };
 
 export const EXAM_MODE_LABEL: Record<ExamMode, string> = {

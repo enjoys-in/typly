@@ -208,6 +208,10 @@ export const en = {
   'timing.countdown': 'Countdown',
   'timing.stopwatch': 'Stopwatch',
 
+  'practice.vowels': 'Vowels (स्वर)',
+  'practice.matras': 'Matras (मात्राएँ)',
+  'practice.half_letters': 'Half letters (आधे अक्षर)',
+  'practice.conjuncts': 'Conjuncts (संयुक्ताक्षर)',
   'practice.words': 'Common words',
   'practice.capitals': 'Capital letters',
   'practice.numbers': 'Numbers',
@@ -437,6 +441,11 @@ export const en = {
   'practiceDesc.top_row': 'Reach up to q-w-e-r-t / y-u-i-o-p.',
   'practiceDesc.bottom_row': 'Reach down to z-x-c-v-b / n-m keys.',
   'practiceDesc.all_rows': 'Finger ladders across all three rows.',
+  'practiceDesc.vowels': 'The independent vowels, and the same sounds as matras.',
+  'practiceDesc.matras': 'Every vowel sign on a rotating consonant, then in real words.',
+  'practiceDesc.half_letters':
+    'Consonant, halant, consonant — three keys for one shape, and the commonest slip.',
+  'practiceDesc.conjuncts': 'क्ष, त्र, ज्ञ, श्र and the clusters that trip a fast hand.',
   'practiceDesc.words': 'Frequent English words to build flow.',
   'practiceDesc.sentences': 'Full sentences with real rhythm.',
   'practiceDesc.capitals': 'Shift for Title, ALL CAPS and CamelCase.',
@@ -490,6 +499,12 @@ export const en = {
   // Lessons
   'lessons.subtitleLong':
     "A beginner-to-advanced path. Hit each lesson's speed and accuracy target to unlock the next.",
+  'lessons.devanagari': 'हिन्दी / Devanagari',
+  'lessons.ladderAria': 'Which lesson ladder to follow',
+  'lessons.romanNote':
+    'The Roman ladder: the QWERTY rows, then words, capitals and sentences.',
+  'lessons.devanagariNote':
+    'The Devanagari ladder — Hindi and Marathi. The row lessons are built from the layout you type with, and the middle of it is what the papers actually grade: matras, half letters and the conjuncts. Targets follow the Hindi cut-offs, which sit below the English ones (SSC pairs 35 w.p.m. English with 30 Hindi).',
   'lessons.addNew': 'Add new lesson',
   'lessons.curriculumProgress': 'Curriculum progress',
   'lessons.countOf': '{done} / {total} lessons',

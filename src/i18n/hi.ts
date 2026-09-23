@@ -208,6 +208,10 @@ export const hi: Record<TKey, string> = {
   'timing.countdown': 'उल्टी गिनती',
   'timing.stopwatch': 'स्टॉपवॉच',
 
+  'practice.vowels': 'स्वर',
+  'practice.matras': 'मात्राएँ',
+  'practice.half_letters': 'आधे अक्षर',
+  'practice.conjuncts': 'संयुक्ताक्षर',
   'practice.words': 'सामान्य शब्द',
   'practice.capitals': 'बड़े अक्षर',
   'practice.numbers': 'अंक',
@@ -437,6 +441,11 @@ export const hi: Record<TKey, string> = {
   'practiceDesc.top_row': 'ऊपर q-w-e-r-t / y-u-i-o-p तक पहुँच।',
   'practiceDesc.bottom_row': 'नीचे z-x-c-v-b / n-m कुंजियों तक पहुँच।',
   'practiceDesc.all_rows': 'तीनों पंक्तियों में उँगलियों की सीढ़ियाँ।',
+  'practiceDesc.vowels': 'स्वतंत्र स्वर, और वही ध्वनियाँ मात्राओं के रूप में।',
+  'practiceDesc.matras': 'हर मात्रा बदलते व्यंजनों पर, फिर असली शब्दों में।',
+  'practiceDesc.half_letters':
+    'व्यंजन, हलंत, व्यंजन — एक आकृति के लिए तीन कुंजियाँ, और सबसे आम चूक।',
+  'practiceDesc.conjuncts': 'क्ष, त्र, ज्ञ, श्र और वे समूह जो तेज़ हाथ को रोक देते हैं।',
   'practiceDesc.words': 'प्रवाह बनाने के लिए बार-बार आने वाले अंग्रेज़ी शब्द।',
   'practiceDesc.sentences': 'वास्तविक लय वाले पूरे वाक्य।',
   'practiceDesc.capitals': 'Title, ALL CAPS और CamelCase के लिए शिफ़्ट।',
@@ -490,6 +499,11 @@ export const hi: Record<TKey, string> = {
   // Lessons
   'lessons.subtitleLong':
     'शुरुआत से उन्नत स्तर तक का रास्ता। अगला पाठ खोलने के लिए हर पाठ का गति और शुद्धता लक्ष्य पूरा करें।',
+  'lessons.devanagari': 'हिन्दी / देवनागरी',
+  'lessons.ladderAria': 'कौन-सी पाठ श्रेणी',
+  'lessons.romanNote': 'रोमन श्रेणी: क्वर्टी की पंक्तियाँ, फिर शब्द, बड़े अक्षर और वाक्य।',
+  'lessons.devanagariNote':
+    'देवनागरी श्रेणी — हिंदी और मराठी। पंक्ति के पाठ आपके चुने हुए लेआउट से बनते हैं, और बीच का हिस्सा वही है जिस पर परीक्षा में अंक कटते हैं: मात्राएँ, आधे अक्षर और संयुक्ताक्षर। लक्ष्य हिंदी की कट-ऑफ के अनुसार हैं, जो अंग्रेज़ी से कम होती है (एसएससी में अंग्रेज़ी ३५ के साथ हिंदी ३० श.प्र.मि.)।',
   'lessons.addNew': 'नया पाठ जोड़ें',
   'lessons.curriculumProgress': 'पाठ्यक्रम की प्रगति',
   'lessons.countOf': '{done} / {total} पाठ',
