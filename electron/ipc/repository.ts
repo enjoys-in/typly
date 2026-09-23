@@ -10,6 +10,7 @@ const METHODS = new Set([
   'saveDocument',
   'listDocuments',
   'getDocument',
+  'updateDocument',
   'deleteDocument',
   'getSetting',
   'setSetting',

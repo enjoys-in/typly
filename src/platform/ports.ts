@@ -1,6 +1,7 @@
 import type {
   BackupBundle,
   DocumentInput,
+  DocumentPatch,
   DocumentRow,
   GrammarIssue,
   Keystroke,
@@ -74,6 +75,12 @@ export interface Repository {
   saveDocument(doc: DocumentInput): Promise<number>;
   listDocuments(): Promise<DocumentRow[]>;
   getDocument(id: number): Promise<DocumentRow | null>;
+  /**
+   * Edits a saved paragraph in place, so a typo in an imported passage can be
+   * fixed without losing the attempts made against it. `charCount` is kept in
+   * step with the new content; an empty patch is a no-op.
+   */
+  updateDocument(id: number, patch: DocumentPatch): Promise<void>;
   /** Removes a paragraph; tests that used it keep their scores but lose the link. */
   deleteDocument(id: number): Promise<void>;
   getSetting(key: string): Promise<string | null>;

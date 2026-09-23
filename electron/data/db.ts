@@ -69,6 +69,10 @@ interface DocumentRow extends DocumentInput {
   charCount: number;
   createdAt: string;
 }
+interface DocumentPatch {
+  title?: string;
+  content?: string;
+}
 interface TestSummary {
   row: TestRow;
   mistakes: Mistake[];
@@ -196,6 +200,24 @@ export class SqliteRepository {
 
   getDocument(id: number): DocumentRow | null {
     return (this.db.prepare(`SELECT * FROM documents WHERE id = ?`).get(id) as DocumentRow | undefined) ?? null;
+  }
+
+  // An edit in place, so the attempts already made against the paragraph keep
+  // pointing at it. `charCount` is a stored column, so new content has to carry
+  // its own length or the Library would report the old one.
+  updateDocument(id: number, patch: DocumentPatch): void {
+    const sets: string[] = [];
+    const values: unknown[] = [];
+    if (patch.title !== undefined) {
+      sets.push('title = ?');
+      values.push(patch.title);
+    }
+    if (patch.content !== undefined) {
+      sets.push('content = ?', 'charCount = ?');
+      values.push(patch.content, patch.content.length);
+    }
+    if (sets.length === 0) return;
+    this.db.prepare(`UPDATE documents SET ${sets.join(', ')} WHERE id = ?`).run(...values, id);
   }
 
   // The paragraph goes, its results stay: past scores are still the user's

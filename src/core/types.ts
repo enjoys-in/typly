@@ -144,6 +144,13 @@ export interface DocumentRow extends DocumentInput {
   createdAt: string;
 }
 
+/**
+ * The editable half of a saved paragraph. The language and the source type are
+ * facts about where the text came from, and `charCount` is derived from it, so
+ * only the title and the content can be changed after the fact.
+ */
+export type DocumentPatch = Partial<Pick<DocumentInput, 'title' | 'content'>>;
+
 export interface GrammarIssue {
   offset: number;
   length: number;

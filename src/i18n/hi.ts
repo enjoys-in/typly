@@ -317,6 +317,13 @@ export const hi: Record<TKey, string> = {
   'library.start': 'शुरू करें',
   'library.runAgain': 'फिर चलाएँ',
   'library.useForTest': 'टेस्ट के लिए इस्तेमाल करें',
+  'library.editOne': '{title} संपादित करें',
+  'library.editHint': 'यह अनुच्छेद संपादित करें',
+  'library.editText': 'अनुच्छेद का पाठ',
+  'library.editEmpty': 'खाली अनुच्छेद सहेजा नहीं जा सकता।',
+  'library.editSplitNote':
+    'भाग संपादित पाठ से फिर काटे जाएँगे। यदि भागों की संख्या बदलती है, तो क्रम भाग 1 से दोबारा शुरू होगा।',
+  'library.editSaved': 'सहेजा गया। पिछले प्रयास अपने अंकों के साथ इसी अनुच्छेद पर रहेंगे।',
   'library.deleteOne': '{title} हटाएँ',
   'library.deleteHint': 'यह अनुच्छेद हटाएँ',
   'library.deleteTitle': '"{title}" हटाएँ?',

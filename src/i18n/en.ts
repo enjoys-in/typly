@@ -317,6 +317,13 @@ export const en = {
   'library.start': 'Start',
   'library.runAgain': 'Run again',
   'library.useForTest': 'Use for a test',
+  'library.editOne': 'Edit {title}',
+  'library.editHint': 'Edit this paragraph',
+  'library.editText': 'Paragraph text',
+  'library.editEmpty': 'A paragraph cannot be saved empty.',
+  'library.editSplitNote':
+    'The parts are recut from the edited text. If the number of parts changes, the split starts again from part 1.',
+  'library.editSaved': 'Saved. Past attempts keep their scores and stay on this paragraph.',
   'library.deleteOne': 'Delete {title}',
   'library.deleteHint': 'Delete this paragraph',
   'library.deleteTitle': 'Delete "{title}"?',

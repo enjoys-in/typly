@@ -2,6 +2,7 @@ import type { BackupBundle, FullResult, Repository, TestSummary } from '../ports
 import type { ShellStatus } from '@/core/ipc/shell';
 import type {
   DocumentInput,
+  DocumentPatch,
   DocumentRow,
   Keystroke,
   Mistake,
@@ -77,6 +78,9 @@ export class ElectronRepository implements Repository {
   }
   getDocument(id: number): Promise<DocumentRow | null> {
     return this.call('getDocument', [id]);
+  }
+  updateDocument(id: number, patch: DocumentPatch): Promise<void> {
+    return this.call('updateDocument', [id, patch]);
   }
   deleteDocument(id: number): Promise<void> {
     return this.call('deleteDocument', [id]);

@@ -6,6 +6,7 @@ import {
   ChevronUp,
   FileText,
   ListOrdered,
+  Pencil,
   Play,
   Trash2,
   Trophy,
@@ -14,9 +15,10 @@ import {
 import { usePlatform } from '@/platform/PlatformContext';
 import { useExamStore } from '@/store/examStore';
 import { examBase, useSettingsStore } from '@/store/settingsStore';
-import type { DocumentRow, TestRow } from '@/core/types';
+import type { DocumentPatch, DocumentRow, TestRow } from '@/core/types';
 import { DocumentParts } from '@/components/library/DocumentParts';
 import { isLongPassage, splitTexts } from '@/core/text/splitter';
+import { stripEmoji } from '@/core/text/ocrCleanup';
 import { draftFor, planFor } from '@/core/library/parts';
 import {
   clearProgress,
@@ -61,6 +63,10 @@ export function Documents() {
   // Where the user left off in each split document, keyed by document id.
   const [progress, setProgress] = useState<ProgressMap>({});
   const [order, setOrder] = useState<SeriesOrder>('serial');
+  // The paragraph whose text is open for editing, and the id whose save just
+  // landed (so the row can say the attempts were kept).
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [savedId, setSavedId] = useState<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const orderOptions: SegmentedOption<SeriesOrder>[] = [
@@ -131,6 +137,57 @@ export function Documents() {
     }
     setDraft(draftFor(doc, { ...plan, startIndex: index ?? plan.startIndex }));
     navigate('/app/setup');
+  }
+
+  /**
+   * Write an edit back to a saved paragraph.
+   *
+   * The document id does not change, which is the whole point: every attempt
+   * already recorded against this paragraph stays attached to it, and the
+   * leaderboard below the row keeps its scores.
+   *
+   * A split is a view over the content, so editing the content invalidates it.
+   * Rather than drop the split, it is recut at the same chunk size:
+   * `startProgress` keeps the finished parts when the count comes out the same
+   * and resets them when it does not, which is the only honest answer once the
+   * part boundaries have moved.
+   */
+  async function saveEdit(doc: DocumentRow, patch: DocumentPatch) {
+    const title = patch.title?.trim();
+    // The same normalisation a new paragraph gets on the New Test page: emoji
+    // are not typeable on an exam keyboard, so they never reach the store.
+    const content = patch.content === undefined ? undefined : stripEmoji(patch.content).trim();
+    const next: DocumentPatch = {};
+    if (title !== undefined && title.length > 0 && title !== doc.title) next.title = title;
+    if (content !== undefined && content !== doc.content) next.content = content;
+    if (Object.keys(next).length === 0) {
+      setEditingId(null);
+      return;
+    }
+    await platform.repo.updateDocument(doc.id, next);
+    const updated: DocumentRow = {
+      ...doc,
+      ...next,
+      charCount: next.content !== undefined ? next.content.length : doc.charCount,
+    };
+    setDocs((rows) => (rows ?? []).map((r) => (r.id === doc.id ? updated : r)));
+    if (next.content !== undefined) await recutSplit(updated);
+    setEditingId(null);
+    setSavedId(doc.id);
+  }
+
+  // Bring a split back in line with edited content, or drop it if the text is
+  // no longer long enough to cut into parts at all.
+  async function recutSplit(doc: DocumentRow) {
+    const entry = progress[String(doc.id)];
+    if (!entry) return;
+    const parts = splitTexts(doc.content, entry.chunkChars);
+    if (parts.length < 2) {
+      await resetSplit(doc);
+      return;
+    }
+    const recut = await startProgress(getSetting, setSetting, doc.id, entry.chunkChars, parts.length);
+    setProgress((map) => ({ ...map, [String(doc.id)]: recut }));
   }
 
   async function removeDoc(doc: DocumentRow) {
@@ -345,8 +402,16 @@ export function Documents() {
                       selected={selectedIds.includes(doc.id)}
                       progress={progress[String(doc.id)] ?? null}
                       currentWpm={currentWpm}
+                      editing={editingId === doc.id}
+                      justSaved={savedId === doc.id}
                       onSelect={() => toggleSelect(doc.id)}
                       onToggle={() => setOpenId(open ? null : doc.id)}
+                      onEdit={() => {
+                        setSavedId(null);
+                        setEditingId(doc.id);
+                      }}
+                      onCancelEdit={() => setEditingId(null)}
+                      onSave={(patch) => void saveEdit(doc, patch)}
                       // Resumes the next unfinished part, or runs the whole
                       // paragraph when it was never split.
                       onRun={() => startPart(doc)}
@@ -374,12 +439,17 @@ function DocRow({
   selected,
   progress,
   currentWpm,
+  editing,
+  justSaved,
   onSelect,
   onToggle,
   onRun,
   onStartPart,
   onSplit,
   onReset,
+  onEdit,
+  onCancelEdit,
+  onSave,
   onDelete,
 }: {
   doc: DocumentRow;
@@ -391,12 +461,19 @@ function DocRow({
   progress: PartProgress | null;
   /** The typist's current net WPM, so the passage can be judged against it. */
   currentWpm: number;
+  /** The row's text is open for editing. */
+  editing: boolean;
+  /** The last save landed on this row, so it can confirm what was kept. */
+  justSaved: boolean;
   onSelect: () => void;
   onToggle: () => void;
   onRun: () => void;
   onStartPart: (index: number) => void;
   onSplit: (chunkChars: number) => void;
   onReset: () => void;
+  onEdit: () => void;
+  onCancelEdit: () => void;
+  onSave: (patch: DocumentPatch) => void;
   onDelete: () => void;
 }) {
   const t = useT();
@@ -466,6 +543,15 @@ function DocRow({
             </Button>
             <button
               type="button"
+              onClick={onEdit}
+              aria-label={t('library.editOne', { title: doc.title })}
+              title={t('library.editHint')}
+              className="cursor-pointer rounded-control p-1.5 text-fg-subtle transition-colors hover:bg-surface-3 hover:text-fg"
+            >
+              <Pencil size={14} />
+            </button>
+            <button
+              type="button"
               onClick={onDelete}
               aria-label={t('library.deleteOne', { title: doc.title })}
               title={t('library.deleteHint')}
@@ -476,6 +562,28 @@ function DocRow({
           </div>
         </td>
       </tr>
+      {/* The editor is its own row rather than part of the expanded detail: a
+          typo is fixed from the list, without first having to open the
+          leaderboard and the split panel that happen to live down there. */}
+      {editing && (
+        <tr>
+          <td colSpan={7} className="bg-surface-2 px-3 py-4">
+            <DocEditor
+              doc={doc}
+              hasSplit={progress !== null}
+              onCancel={onCancelEdit}
+              onSave={onSave}
+            />
+          </td>
+        </tr>
+      )}
+      {!editing && justSaved && (
+        <tr>
+          <td colSpan={7} className="bg-accent-soft px-3 py-2 text-xs text-accent-soft-fg">
+            {t('library.editSaved')}
+          </td>
+        </tr>
+      )}
       {open && (
         <tr>
           <td colSpan={7} className="space-y-4 bg-surface-2 px-3 py-4">
@@ -502,6 +610,81 @@ function DocRow({
         </tr>
       )}
     </>
+  );
+}
+
+/**
+ * Edit one saved paragraph's name and text.
+ *
+ * The draft is local to this component, so nothing is written until Save is
+ * pressed and Cancel is a true discard. It is seeded from the row it was opened
+ * on — the component is keyed on the document id by its parent's conditional
+ * render, so a different row always gets a fresh draft.
+ */
+function DocEditor({
+  doc,
+  hasSplit,
+  onCancel,
+  onSave,
+}: {
+  doc: DocumentRow;
+  /** The paragraph is cut into parts, which an edit to the text will recut. */
+  hasSplit: boolean;
+  onCancel: () => void;
+  onSave: (patch: DocumentPatch) => void;
+}) {
+  const t = useT();
+  const [title, setTitle] = useState(doc.title);
+  const [content, setContent] = useState(doc.content);
+  const empty = content.trim().length === 0;
+  const dirty = title.trim() !== doc.title || content !== doc.content;
+
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1.5">
+        <label className="text-xs font-semibold uppercase tracking-wide text-fg-muted">
+          {t('newTest.paragraphName')}
+        </label>
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder={t('newTest.paragraphTitle')}
+          className="w-full max-w-xl rounded-control border border-edge bg-field px-3 py-2 text-sm outline-none transition-colors focus:border-accent focus:ring-4 focus:ring-accent-ring"
+        />
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-xs font-semibold uppercase tracking-wide text-fg-muted">
+          {t('library.editText')}
+        </label>
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          className="scroll-area h-56 w-full resize-none rounded-control border border-edge bg-field p-3 font-mono text-sm outline-none transition-colors focus:border-accent focus:ring-4 focus:ring-accent-ring"
+        />
+      </div>
+      {hasSplit && <p className="text-xs text-fg-muted">{t('library.editSplitNote')}</p>}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <span className="text-xs tabular-nums text-fg-muted">
+          {empty ? (
+            <span className="text-danger-text">{t('library.editEmpty')}</span>
+          ) : (
+            t('library.colChars') + ': ' + content.length
+          )}
+        </span>
+        <div className="flex items-center gap-2">
+          <Button variant="secondary" size="sm" onClick={onCancel}>
+            {t('common.cancel')}
+          </Button>
+          <Button
+            size="sm"
+            disabled={empty || !dirty}
+            onClick={() => onSave({ title: title.trim() || doc.title, content })}
+          >
+            {t('common.save')}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }
 

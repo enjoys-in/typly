@@ -2,6 +2,7 @@ import { IDB, type TableSchema } from '@enjoys/react-api/idb';
 import type { EntityTable, Table } from 'dexie';
 import type {
   DocumentInput,
+  DocumentPatch,
   DocumentRow,
   Keystroke,
   Mistake,
@@ -134,6 +135,20 @@ export class BrowserRepository implements Repository {
 
   async getDocument(id: number): Promise<DocumentRow | null> {
     return ((await this.table('documents').get(id)) as DocRecord | undefined) ?? null;
+  }
+
+  // An edit in place, so the attempts already made against the paragraph keep
+  // pointing at it. `charCount` is stored rather than computed on read, so it
+  // has to be recomputed here or the Library would report the old length.
+  async updateDocument(id: number, patch: DocumentPatch): Promise<void> {
+    const changes: Partial<DocRecord> = {};
+    if (patch.title !== undefined) changes.title = patch.title;
+    if (patch.content !== undefined) {
+      changes.content = patch.content;
+      changes.charCount = patch.content.length;
+    }
+    if (Object.keys(changes).length === 0) return;
+    await this.table('documents').update(id, changes);
   }
 
   // The paragraph goes, its results stay: past scores are still the user's
