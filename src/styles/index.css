@@ -923,3 +923,26 @@ select.select {
   background-image: linear-gradient(to bottom, var(--line) 1px, transparent 1px);
   background-size: 100% 2rem;
 }
+
+/* The count-in digit. One beat per second: it lands big, settles, and the next
+   number replaces it — the rhythm is the instruction, so the typist knows when
+   zero is coming without reading anything. */
+@keyframes count-in-tick {
+  from {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.count-in-tick {
+  animation: count-in-tick 320ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .count-in-tick {
+    animation: none;
+  }
+}

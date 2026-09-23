@@ -122,6 +122,12 @@ export const en = {
   'reading.banner': 'Reading time — the clock starts when you begin typing.',
   'reading.startNow': 'Start now',
 
+  // The 3 · 2 · 1 before the clock starts
+  'countIn.title': 'Get ready',
+  'countIn.hint': 'Put your fingers on the keyboard. The clock starts at zero.',
+  'countIn.startNow': 'Start now',
+  'countIn.turnOff': 'Settings → Behaviour to switch this off.',
+
   // Paper mode
   'paper.heading': 'Type from your paper',
   'paper.body': 'The passage is on paper in front of you — type what you read, below.',
@@ -521,6 +527,9 @@ export const en = {
   'settings.fontHint':
     'Pick a font above, then upload its .ttf/.otf if it isn’t installed. Kruti Dev also relabels the on-screen keyboard. Fonts persist in the app store and travel with backups.',
   'settings.behaviour': 'Default test behavior',
+  'settings.countIn': 'Count 3 · 2 · 1 before a test',
+  'settings.countInHint':
+    'Hold the clock for three seconds while you put your fingers on the keyboard. Off means the timer starts the moment the test opens.',
   'settings.onScreenKeyboard': 'On-screen keyboard',
   'settings.onScreenKeyboardHint':
     'Show a color-coded keyboard that highlights the next key and finger.',

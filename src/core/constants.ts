@@ -381,6 +381,10 @@ export const EXAM_INPUT_SHARE_STEP = 0.04;
 // Mock exam: cap on the reading window offered before the clock starts. The
 // default is 0 — a plain test must never gain a wait the user did not ask for.
 export const MAX_READING_SEC = 600;
+// The count-in before the clock starts: long enough to place eight fingers on
+// the home row, short enough that nobody sits through it waiting. Three is what
+// every starter's whistle counts, and a fourth second only reads as a delay.
+export const COUNT_IN_SEC = 3;
 // How often an in-progress attempt is checkpointed so a reload can resume it.
 export const SNAPSHOT_SAVE_MS = 5_000;
 // Recent tests scanned when aggregating keystroke timing (whole-history would

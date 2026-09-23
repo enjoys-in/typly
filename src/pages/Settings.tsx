@@ -307,6 +307,14 @@ export function Settings() {
           checked={settings.examLock}
           onChange={settings.setExamLock}
         />
+        {/* Off means the clock is running the instant the test screen arrives —
+            see `countIn` in the settings store for why it defaults on. */}
+        <Toggle
+          label={t('settings.countIn')}
+          hint={t('settings.countInHint')}
+          checked={settings.countIn}
+          onChange={settings.setCountIn}
+        />
         <Toggle
           label={t('settings.onScreenKeyboard')}
           hint={t('settings.onScreenKeyboardHint')}

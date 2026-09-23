@@ -75,6 +75,8 @@ interface SettingsState {
   hindiFont: HindiFont;
   /** Mock exam: show the rules briefing before the passage. */
   briefing: boolean;
+  /** Count "3 · 2 · 1" over the screen before the clock starts. */
+  countIn: boolean;
   /** Mock exam: seconds to read the passage before the clock starts. */
   readingSec: number;
   /** Exam-day mode: no app furniture, no notifications, no pausing. */
@@ -129,6 +131,7 @@ interface SettingsState {
   setInputMethod: (v: InputMethod) => void;
   setHindiFont: (v: HindiFont) => void;
   setBriefing: (v: boolean) => void;
+  setCountIn: (v: boolean) => void;
   setReadingSec: (v: number) => void;
   setExamDay: (v: boolean) => void;
   setUiLang: (v: UiLang) => void;
@@ -179,6 +182,11 @@ const DEFAULTS: Persisted = {
   // exam. It is one keypress to move past, and `drillBase` strips it anyway —
   // a practice drill is not a rehearsal.
   briefing: true,
+  // On by default: without it the clock is already running when the screen
+  // arrives, so the first seconds of every test are spent finding the home row
+  // — and they are charged to the score. Three seconds given back is cheaper
+  // than the words those seconds cost.
+  countIn: true,
   readingSec: 0,
   examDay: false,
   uiLang: 'en',
@@ -236,6 +244,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   setInputMethod: (inputMethod) => set({ inputMethod }),
   setHindiFont: (hindiFont) => set({ hindiFont }),
   setBriefing: (briefing) => set({ briefing }),
+  setCountIn: (countIn) => set({ countIn }),
   setExamDay: (examDay) => set({ examDay }),
   setExamSkin: (examSkin) => set({ examSkin }),
   setPacer: (pacer) => set({ pacer }),

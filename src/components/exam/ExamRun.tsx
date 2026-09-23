@@ -48,6 +48,7 @@ import { depressionsOf } from '@/core/scoring/kdph';
 import { strictPossible } from '@/core/typing/strict';
 import {
   CHARS_PER_WORD,
+  COUNT_IN_SEC,
   ExamMode,
   ExamSkin,
   HindiFont,
@@ -72,6 +73,7 @@ import { PaneResizer } from './PaneResizer';
 import { Timer } from './Timer';
 import { ExamToolbar } from './ExamToolbar';
 import { ExamBriefing } from './ExamBriefing';
+import { CountIn } from './CountIn';
 import { ReadingBanner } from './ReadingBanner';
 import { GhostBar } from './GhostBar';
 import { PacerBar } from './PacerBar';
@@ -83,19 +85,25 @@ import { DictationStage } from '@/components/dictation/DictationStage';
 import type { ExamLayout } from './LayoutSwitcher';
 
 /**
- * Briefing → dictation → reading → typing. A plain run starts at `typing`.
+ * Briefing → dictation → reading → count-in → typing. With every gate off and
+ * the count-in switched off, a run starts at `typing`.
  *
  * Dictation sits before reading rather than replacing it: a Stenographer test
  * dictates the passage and *then* gives transcription time, which is exactly
  * this order.
+ *
+ * `ready` is the last gate before the clock, and the only one that an
+ * interrupted run sees too: a resumed attempt puts the screen back with the
+ * timer already moving, which is the moment the count-in exists for.
  */
-type Phase = 'briefing' | 'dictation' | 'reading' | 'typing';
+type Phase = 'briefing' | 'dictation' | 'reading' | 'ready' | 'typing';
 
-function initialPhase(config: ExamConfig, resume: ExamSnapshot | null): Phase {
-  if (resume) return 'typing'; // an interrupted run is already past the gates
+function initialPhase(config: ExamConfig, resume: ExamSnapshot | null, countIn: boolean): Phase {
+  if (resume) return countIn ? 'ready' : 'typing';
   if (config.briefing) return 'briefing';
   if (config.dictation) return 'dictation';
-  return config.readingSec > 0 ? 'reading' : 'typing';
+  if (config.readingSec > 0) return 'reading';
+  return countIn ? 'ready' : 'typing';
 }
 
 interface Props {
@@ -130,13 +138,14 @@ export function ExamRun({ config, resume }: Props) {
   const examInputShare = useSettingsStore((s) => s.examInputShare);
   const setExamInputShare = useSettingsStore((s) => s.setExamInputShare);
   const showInput = useSettingsStore((s) => s.showInput);
+  const countInEnabled = useSettingsStore((s) => s.countIn);
   const setShowInput = useSettingsStore((s) => s.setShowInput);
   const account = useAuthStore((s) => s.account);
 
   const setBare = useChromeStore((s) => s.setBare);
   const t = useT();
 
-  const [phase, setPhase] = useState<Phase>(() => initialPhase(config, resume));
+  const [phase, setPhase] = useState<Phase>(() => initialPhase(config, resume, countInEnabled));
   // Captured once: the checkpoint is consumed below, but the run stays labelled.
   const [resumed] = useState(resume !== null);
   const [typed, setTyped] = useState(resume?.typed ?? '');
@@ -154,7 +163,7 @@ export function ExamRun({ config, resume }: Props) {
   // actually starts, so time spent on the briefing or reading the passage does
   // not land in the replay, the timeline or the ghost track.
   const startAt = useRef<number>(Date.now() - (resume?.elapsedMs ?? 0));
-  const typingStarted = useRef(initialPhase(config, resume) === 'typing');
+  const typingStarted = useRef(initialPhase(config, resume, countInEnabled) === 'typing');
   const typedRef = useRef(resume?.typed ?? '');
   const done = useRef(false);
   const awayPrompting = useRef(false);
@@ -190,26 +199,43 @@ export function ExamRun({ config, resume }: Props) {
     return { track: buildGhostTrack(full.keystrokes), wpm: full.row.netWpm };
   }, [config.ghostTestId, platform]);
 
-  // The one way into the typing phase, from the briefing, the reading timer, or
+  // The one way into the typing phase, from the count-in, the reading timer, or
   // the first keystroke — so the clock and the keystroke clock always agree.
+  //
+  // The keystroke clock is re-based here rather than at mount, because the time
+  // spent on the gates in front of it is not time spent typing. On a resumed
+  // attempt it is re-based to the same origin the restored elapsed time implies,
+  // so the keystrokes logged before the interruption still line up with the
+  // ones logged after it.
   const startTyping = useCallback(() => {
     if (typingStarted.current) return;
     typingStarted.current = true;
-    startAt.current = Date.now();
+    startAt.current = Date.now() - (resume?.elapsedMs ?? 0);
     setPhase('typing');
-  }, []);
+  }, [resume]);
+
+  /**
+   * Every gate leads here rather than straight to the clock: the count-in is
+   * the last thing between a candidate and a running timer. Typing itself is
+   * the exception (see `onKeyDown`) — someone already typing has plainly got
+   * their hands in place, and a count-in would swallow the keystroke.
+   */
+  const beginRun = useCallback(() => {
+    if (countInEnabled && !typingStarted.current) setPhase('ready');
+    else startTyping();
+  }, [countInEnabled, startTyping]);
 
   const leaveBriefing = () => {
     if (config.dictation) setPhase('dictation');
     else if (config.readingSec > 0) setPhase('reading');
-    else startTyping();
+    else beginRun();
   };
 
   /** The dictation is over (finished or skipped) — reading, then the clock. */
   const leaveDictation = useCallback(() => {
     if (config.readingSec > 0) setPhase('reading');
-    else startTyping();
-  }, [config.readingSec, startTyping]);
+    else beginRun();
+  }, [config.readingSec, beginRun]);
 
   const clearSnapshot = useExamSnapshot({
     active: typing,
@@ -432,10 +458,10 @@ export function ExamRun({ config, resume }: Props) {
     return () => shell.setProgress(null);
   }, [platform]);
 
-  // Reading time is over — the clock takes over from here.
+  // Reading time is over — the count-in, then the clock.
   useEffect(() => {
-    if (phase === 'reading' && reading.expired) startTyping();
-  }, [phase, reading.expired, startTyping]);
+    if (phase === 'reading' && reading.expired) beginRun();
+  }, [phase, reading.expired, beginRun]);
 
   // The checkpoint has been adopted into this run's state, so drop it — going
   // back to this page later must not restore an attempt a second time.
@@ -855,8 +881,10 @@ export function ExamRun({ config, resume }: Props) {
       />
 
       {phase === 'reading' && (
-        <ReadingBanner remainingSec={reading.remainingSec} onStart={startTyping} />
+        <ReadingBanner remainingSec={reading.remainingSec} onStart={beginRun} />
       )}
+
+      {phase === 'ready' && <CountIn seconds={COUNT_IN_SEC} onDone={startTyping} />}
 
       {/* Between attempts only — a break prompt during a run would cost the
           very attempt it exists to protect. */}
